@@ -1,4 +1,3 @@
-```markdown
 # llm-chat
 
 A simple chat application built with Ionic that utilizes Large Language Models (LLMs) for conversation.
@@ -68,4 +67,3 @@ This is a basic implementation and may require further development for productio
 ## License
 
 This project is licensed under the [MIT License](LICENSE). 
-```
