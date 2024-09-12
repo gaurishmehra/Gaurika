@@ -1,2 +1,105 @@
 // Inherit styles from home page
 @import '../home/home.page.scss';
+// Variables
+$primary-pink: #bf006f;
+$secondary-pink: #bf006f;
+$background-color: #0a0a0a;
+$text-color: #333333;
+$input-background: #0a0a0a;
+
+ion-content {
+  --background: #{$background-color};
+}
+
+ion-header {
+  ion-toolbar {
+    --background: #{$background-color};
+    --color: #ffffff;
+    
+    ion-back-button {
+      --color: #ffffff;
+    }
+  }
+}
+
+ion-list {
+  background: transparent;
+  padding: 16px;
+  
+  ion-item {
+    --background: #{$input-background};
+    --border-radius: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    color: azure;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    ion-label {
+      color: $text-color;
+      font-weight: 500;
+    }
+
+    ion-input, ion-select, ion-textarea {
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      font-size: 16px;
+    }
+
+    ion-select::part(icon) {
+      color: $primary-pink;
+    }
+  }
+}
+
+ion-button {
+  --background: #{$primary-pink};
+  --background-activated: #{$secondary-pink};
+  --border-radius: 25px;
+  margin: 24px 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+// Custom styles for select and textarea
+ion-select, ion-textarea {
+  background-color: $input-background;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+// Style for focused inputs
+ion-item.item-has-focus {
+  --highlight-background: #{$primary-pink};
+}
+
+// Adjust padding for floating labels
+ion-item ion-label[position="floating"] {
+  transform: translateY(8px) scale(0.75);
+}
+
+// Style for the select options
+ion-select-option {
+  color: $text-color;
+}
+
+// Custom scrollbar for textarea
+ion-textarea::part(native) {
+  padding: 8px 12px;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: $secondary-pink;
+    border-radius: 4px;
+  }
+}
