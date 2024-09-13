@@ -1,59 +1,105 @@
 // Inherit styles from home page
 @import '../home/home.page.scss';
+
 // Variables
 $primary-pink: #bf006f;
-$secondary-pink: #bf006f;
+$secondary-pink: darken($primary-pink, 10%); 
 $background-color: #0a0a0a;
-$text-color: #333333;
-$input-background: #0a0a0a;
+$text-color: #ffffff;
+$input-background: #141414;
+$divider-color: #2a2a2a;
+$border-radius: 12px; 
+$item-padding: 18px; 
 
 ion-content {
   --background: #{$background-color};
+  padding: 24px;
 }
 
 ion-header {
   ion-toolbar {
     --background: #{$background-color};
-    --color: #ffffff;
-    
+    --color: #{$text-color};
+
     ion-back-button {
-      --color: #ffffff;
+      --color: #{$text-color};
+    }
+
+    ion-title {
+      font-size: 20px; 
+      font-weight: 600; 
     }
   }
 }
 
 ion-list {
   background: transparent;
-  padding: 16px;
-  
+  border-radius: $border-radius;
+  overflow: hidden;
+
+  ion-item-group {
+    margin-bottom: 24px;
+  }
+
+  ion-item-divider {
+    --background: #{$divider-color};
+    --color: #{$text-color};
+    font-weight: 600; 
+    text-transform: uppercase;
+    letter-spacing: 1.5px; 
+    font-size: 14px;
+    padding: 14px $item-padding; 
+    border-top-left-radius: $border-radius; 
+    border-top-right-radius: $border-radius; 
+  }
+
   ion-item {
     --background: #{$input-background};
-    --border-radius: 12px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    color: azure;
+    --border-color: #{$divider-color};
+    --color: #{$text-color};
+    --padding-start: $item-padding;
+    --padding-end: $item-padding;
+    --inner-padding-end: 0;
+    border-bottom: 1px solid $divider-color;
 
-    &:last-child {
-      margin-bottom: 0;
+    &:last-of-type {
+      border-bottom-left-radius: $border-radius;
+      border-bottom-right-radius: $border-radius;
+      border-bottom: none;
     }
 
     ion-label {
-      color: $text-color;
-      font-weight: 500;
+      color: #{$text-color};
+      opacity: 0.8; 
+
+      h2 {
+        font-weight: 500;
+        font-size: 17px; 
+        margin-bottom: 6px; 
+      }
+
+      p {
+        font-size: 15px; 
+        opacity: 0.6; 
+      }
     }
 
     ion-input, ion-select, ion-textarea {
-      --padding-start: 0;
-      --padding-end: 0;
-      --padding-top: 8px;
-      --padding-bottom: 8px;
+      --color: #{$text-color};
+      --placeholder-color: #{rgba($text-color, 0.6)}; 
+      --placeholder-opacity: 1;
       font-size: 16px;
+      padding: 14px 0; 
     }
 
     ion-select::part(icon) {
-      color: $primary-pink;
+      color: #{$primary-pink};
+      opacity: 1;
+    }
+
+    ion-radio {
+      --border-radius: 50%; 
+      margin-right: 10px; 
     }
   }
 }
@@ -61,18 +107,20 @@ ion-list {
 ion-button {
   --background: #{$primary-pink};
   --background-activated: #{$secondary-pink};
-  --border-radius: 25px;
-  margin: 24px 16px;
+  --color: #{$text-color};
+  --border-radius: 6px; 
+  margin: 24px 0;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px; 
+  font-size: 16px; 
 }
 
 // Custom styles for select and textarea
 ion-select, ion-textarea {
-  background-color: $input-background;
-  border-radius: 12px;
-  padding: 8px 12px;
+  background-color: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
 }
 
 // Style for focused inputs
@@ -80,26 +128,39 @@ ion-item.item-has-focus {
   --highlight-background: #{$primary-pink};
 }
 
-// Adjust padding for floating labels
-ion-item ion-label[position="floating"] {
-  transform: translateY(8px) scale(0.75);
-}
-
-// Style for the select options
-ion-select-option {
-  color: $text-color;
-}
-
 // Custom scrollbar for textarea
 ion-textarea::part(native) {
-  padding: 8px 12px;
-  
+  padding: 8px 0;
+
   &::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
-    background-color: $secondary-pink;
+    background-color: #{$secondary-pink};
     border-radius: 4px;
+  }
+}
+
+// Style for the action sheet interface
+ion-action-sheet {
+  --background: #{$background-color};
+  --button-background: #{$input-background};
+  --button-color: #{$text-color};
+  --color: #{$text-color};
+  --border-radius: $border-radius;
+
+  ion-action-sheet-button {
+    --border-radius: 0;
+
+    &:first-of-type {
+      border-top-left-radius: $border-radius;
+      border-top-right-radius: $border-radius;
+    }
+
+    &:last-of-type {
+      border-bottom-left-radius: $border-radius;
+      border-bottom-right-radius: $border-radius;
+    }
   }
 }

@@ -23,18 +23,17 @@ export class HomePage implements OnInit {
   userInput = '';
   messages: { role: string; content: string }[] = [];
   client: any;
-  model = 'llama3.1-8b'; 
-  systemPrompt = ''; 
-  sessions: { name: string; messages: { role: string; content: string }[] }[] =
-    [];
+  model = 'llama3.1-8b';
+  systemPrompt = '';
+  sessions: { name: string; messages: { role: string; content: string }[] }[] = [];
   currentSessionIndex = 0;
-  isCreatingNewSession = false;
+  currentSessionName = 'Default Session';
   newSessionName = '';
-  @ViewChild(IonContent) content!: IonContent; 
-  isSessionSidebarOpen = false;
-  isCreateSessionSidebarOpen = false;
+  @ViewChild(IonContent) content!: IonContent;
+  isSessionMenuOpen = false;
+  isCreateSessionModalOpen = false;
   presentingElement: any;
-  isStreaming = false; 
+  isStreaming = false;
 
   constructor(
     private router: Router,
@@ -53,7 +52,7 @@ export class HomePage implements OnInit {
     const storedBaseUrl = await this.storage.get('baseUrl');
 
     if (storedApiKey) {
-      this.initializeCerebras(storedApiKey, storedBaseUrl); 
+      this.initializeCerebras(storedApiKey, storedBaseUrl);
     }
 
     if (storedModel) {
@@ -67,7 +66,7 @@ export class HomePage implements OnInit {
     if (storedSessions) {
       this.sessions = storedSessions;
     } else {
-      this.sessions.push({ name: 'Default', messages: [] });
+      this.sessions.push({ name: 'Default Session', messages: [] });
     }
 
     this.loadCurrentSession();
@@ -75,7 +74,7 @@ export class HomePage implements OnInit {
 
     if (this.platform.is('android')) {
       StatusBar.setStyle({ style: Style.Dark });
-      StatusBar.setBackgroundColor({ color: '#0a0a0a' }); 
+      StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
   }
 
@@ -95,7 +94,7 @@ export class HomePage implements OnInit {
 
     this.messages.push({ role: 'user', content: this.userInput });
     this.userInput = '';
-    this.isStreaming = true; 
+    this.isStreaming = true;
 
     const response = await this.client.chat.completions.create({
       messages: [
@@ -105,11 +104,11 @@ export class HomePage implements OnInit {
         ...this.messages,
       ],
       model: this.model,
-      stream: true, 
+      stream: true,
     });
 
     let assistantMessage = { role: 'assistant', content: '' };
-    this.messages.push(assistantMessage); 
+    this.messages.push(assistantMessage);
 
     for await (const part of response) {
       if (part.choices[0].delta?.content) {
@@ -122,29 +121,39 @@ export class HomePage implements OnInit {
     }
 
     this.isStreaming = false;
-    this.saveCurrentSession(); 
+    this.saveCurrentSession();
   }
 
   openSettings() {
     this.router.navigate(['/settings']);
   }
 
+  toggleSessionMenu() {
+    this.isSessionMenuOpen = !this.isSessionMenuOpen;
+  }
+
+  toggleCreateSessionModal() {
+    this.isCreateSessionModalOpen = !this.isCreateSessionModalOpen;
+  }
+
   createNewSession() {
-    this.isCreatingNewSession = true;
-    this.toggleCreateSessionSidebar();
+    this.toggleCreateSessionModal();
   }
 
   confirmNewSession() {
-    this.sessions.push({ name: this.newSessionName, messages: [] });
-    this.currentSessionIndex = this.sessions.length - 1;
-    this.loadCurrentSession();
-    this.isCreatingNewSession = false;
-    this.toggleCreateSessionSidebar();
-    this.newSessionName = ''; 
+    if (this.newSessionName.trim()) {
+      this.sessions.push({ name: this.newSessionName, messages: [] });
+      this.currentSessionIndex = this.sessions.length - 1;
+      this.loadCurrentSession();
+      this.toggleCreateSessionModal();
+      this.newSessionName = '';
+      this.saveCurrentSession();
+    }
   }
 
   loadCurrentSession() {
     this.messages = this.sessions[this.currentSessionIndex].messages;
+    this.currentSessionName = this.sessions[this.currentSessionIndex].name;
     setTimeout(() => {
       this.content.scrollToBottom(300);
     });
@@ -155,26 +164,22 @@ export class HomePage implements OnInit {
     this.storage.set('sessions', this.sessions);
   }
 
-  toggleSessionSidebar() {
-    this.isSessionSidebarOpen = !this.isSessionSidebarOpen;
-  }
-
-  toggleCreateSessionSidebar() {
-    this.isCreateSessionSidebarOpen = !this.isCreateSessionSidebarOpen;
-  }
-
   switchSession(index: number) {
     this.currentSessionIndex = index;
     this.loadCurrentSession();
-    this.toggleSessionSidebar(); 
+    this.toggleSessionMenu();
   }
 
   deleteSession(index: number) {
-    this.sessions.splice(index, 1);
-    if (this.currentSessionIndex >= this.sessions.length) {
-      this.currentSessionIndex = this.sessions.length - 1;
+    if (this.sessions.length > 1) {
+      this.sessions.splice(index, 1);
+      if (this.currentSessionIndex >= this.sessions.length) {
+        this.currentSessionIndex = this.sessions.length - 1;
+      }
+      this.loadCurrentSession();
+      this.saveCurrentSession();
+    } else {
+      alert('You cannot delete the last session.');
     }
-    this.loadCurrentSession();
-    this.saveCurrentSession();
   }
 }

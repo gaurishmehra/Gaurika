@@ -13,49 +13,90 @@ import { CommonModule } from '@angular/common';
   imports: [IonicModule, FormsModule, CommonModule]
 })
 export class SettingsPage implements OnInit {
-  apiKey = '';
+  apiKeys: string[] = [];
+  newApiKey: string = '';
+  selectedApiKey: string | null = null;
   model = 'llama3.1-8b';
-  customModel = ''; // To store custom model name
+  customModel = '';
   systemPrompt = '';
-  baseUrl = "https://api.cerebras.ai/"; // Default base URL
-  customBaseUrl = '';
+
+  availableApis = [
+    { name: 'Cerebras', baseUrl: 'https://api.cerebras.ai/v1/' },
+    { name: 'Groq', baseUrl: 'https://api.groq.com/openai/v1' },
+    { name: 'Other (Custom)', baseUrl: '' } // Custom option (empty baseUrl)
+  ];
+  selectedApi: { name: string; baseUrl: string } = this.availableApis[0]; // Initialize with the first API
+  customApiBaseUrl: string = '';
 
   constructor(private router: Router, private storage: Storage) {}
 
   async ngOnInit() {
     await this.storage.create();
 
-    const storedApiKey = await this.storage.get('apiKey');
-    const storedModel = await this.storage.get('model');
-    const storedSystemPrompt = await this.storage.get('systemPrompt');
-    const storedBaseUrl = await this.storage.get('baseUrl');
+    this.apiKeys = await this.storage.get('apiKeys') || [];
+    this.selectedApiKey = await this.storage.get('selectedApiKey');
+    this.model = await this.storage.get('model') || 'llama3.1-8b';
+    this.customModel = await this.storage.get('customModel') || '';
+    this.systemPrompt = await this.storage.get('systemPrompt') || '';
 
-    if (storedApiKey) {
-      this.apiKey = storedApiKey;
+    // Load selected API and custom URL
+    const storedSelectedApiName = await this.storage.get('selectedApiName');
+    const storedCustomApiBaseUrl = await this.storage.get('customApiBaseUrl');
+
+    if (storedSelectedApiName) {
+      this.selectedApi = this.availableApis.find(api => api.name === storedSelectedApiName) || this.availableApis[0];
     }
 
-    if (storedModel) {
-      this.model = storedModel;
+    if (storedCustomApiBaseUrl) {
+      this.customApiBaseUrl = storedCustomApiBaseUrl;
+      if (this.selectedApi.name === 'Other (Custom)') {
+        this.selectedApi.baseUrl = this.customApiBaseUrl; // Update baseUrl if custom is selected
+      }
     }
 
-    if (storedSystemPrompt) {
-      this.systemPrompt = storedSystemPrompt;
+    if (this.selectedApiKey === null && this.apiKeys.length > 0) {
+      this.selectedApiKey = this.apiKeys[0];
     }
 
-    if (storedBaseUrl) {
-      this.baseUrl = storedBaseUrl;
+    if (this.model === 'other' && this.customModel !== '') {
+      this.model = 'other'; 
     }
   }
 
-  async saveSettings() {
-    const modelToSave = this.model === 'other' ? this.customModel : this.model;
-    const baseUrlToSave = this.baseUrl === 'other' ? this.customBaseUrl : this.baseUrl;
+  addApiKey() {
+    if (this.newApiKey.trim() !== '') {
+      this.apiKeys.push(this.newApiKey);
+      this.newApiKey = '';
+      this.saveSettings();
+    }
+  }
 
-    await this.storage.set('apiKey', this.apiKey);
-    await this.storage.set('model', modelToSave); // Store selected or custom model
+  removeApiKey(index: number) {
+    this.apiKeys.splice(index, 1);
+    if (this.selectedApiKey === this.apiKeys[index]) {
+      this.selectedApiKey = this.apiKeys.length > 0 ? this.apiKeys[0] : null;
+    }
+    this.saveSettings();
+  }
+
+  async saveSettings() {
+    let baseUrlToSave = this.selectedApi.baseUrl;
+
+    if (this.selectedApi.name === 'Other (Custom)') {
+      baseUrlToSave = this.customApiBaseUrl;
+    }
+
+    await this.storage.set('apiKeys', this.apiKeys);
+    await this.storage.set('selectedApiKey', this.selectedApiKey);
+    await this.storage.set('model', this.model === 'other' ? this.customModel : this.model);
+    await this.storage.set('customModel', this.customModel);
     await this.storage.set('systemPrompt', this.systemPrompt);
+
+    // Save selected API name and custom URL
+    await this.storage.set('selectedApiName', this.selectedApi.name);
+    await this.storage.set('customApiBaseUrl', this.customApiBaseUrl);
     await this.storage.set('baseUrl', baseUrlToSave); 
 
-    window.location.reload(); 
+    window.location.reload();
   }
 }

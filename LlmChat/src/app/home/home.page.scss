@@ -1,13 +1,12 @@
 // Modern Dark Color Palette
 $background-dark: #0a0a0a;
 $background-light: #141414;
-$primary-color: #5c5c5c; // Deep charcoal grey
-$secondary-color: #a3004c; // Warm amber for contrast and pop
-$accent-color: #767676; // Neutral grey for accents
+$primary-color: #5c5c5c;
+$secondary-color: #a3004c;
+$accent-color: #767676;
 $text-color: #f0f0f0;
 $muted-text: #a0a0a0;
 $card-background: rgba(255, 255, 255, 0.05);
-
 
 // Typography
 $font-family: 'Inter', sans-serif;
@@ -38,7 +37,7 @@ body {
 
 ion-content {
   --ion-background-color: #{$background-dark};
-  --padding-bottom: 80px; // Adjust for fixed bottom bar
+  --padding-bottom: 80px;
 }
 
 // Shared Component Styles
@@ -53,7 +52,7 @@ ion-header {
   ion-toolbar {
     --background: transparent;
     --border-width: 0;
-    @include glass-effect; // Add blur to the header
+    @include glass-effect;
 
     &::after {
       display: none;
@@ -62,8 +61,17 @@ ion-header {
     ion-title {
       font-size: 1.2rem;
       font-weight: 600;
-      text-align: center; // Center the title
-      width: 100%;       // Ensure title takes full width
+      text-align: center;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+
+      ion-icon {
+        margin-left: 8px;
+        font-size: 1.2rem;
+      }
     }
 
     ion-buttons {
@@ -74,26 +82,16 @@ ion-header {
           --background: rgba($accent-color, 0.1);
         }
       }
-      // Add styles for back button to match other buttons
-      ion-back-button {
-        --color: #{$accent-color};
-        @include soft-transition;
-        &:hover {
-          --background: rgba($accent-color, 0.1);
-        }
-      }
     }
   }
 
-  &.floating-header { // Floating header specific styles
+  &.floating-header {
     ion-toolbar {
-      // margin: 16px;
       margin-top: 5px;
-      border-radius: 16px; // Consistent rounded corners
+      border-radius: 16px;
     }
   }
 }
-
 
 // Message List Styles
 ion-list {
@@ -131,7 +129,8 @@ ion-item {
         font-weight: 600;
       }
     }
-    &.writing-message { // Styling for "Writing..." message
+
+    &.writing-message {
       background: linear-gradient(135deg, rgba($secondary-color, 0.1), rgba($secondary-color, 0.2));
       border-left: 4px solid $secondary-color;
 
@@ -158,7 +157,7 @@ ion-item {
   padding: 8px;
   z-index: 1000;
 
-  ion-toolbar {
+  .bottom-toolbar {
     --background: transparent;
     --min-height: 50px;
     display: flex;
@@ -171,12 +170,15 @@ ion-item {
       --placeholder-opacity: 0.8;
       --padding-start: 16px;
       --padding-end: 16px;
-      border-radius: 25px; // Consistent rounded corners 
-      margin-right: 10px;
-      height: 50px;
+      border-radius: 25px;
+      height: 45px;
       flex-grow: 1;
       font-size: 16px;
       @include soft-transition;
+
+      &::part(native) {
+        border-radius: 25px;
+      }
 
       &:focus {
         --background: #{rgba($primary-color, 0.1)};
@@ -188,44 +190,21 @@ ion-item {
       --color: #{$text-color};
       --border-radius: 25px;
       --box-shadow: none;
-      min-width: 50px;
-      height: 50px;
-      margin: 0; 
-      padding-left: 5px; // Adjust padding as needed for even spacing
-      padding-right: 5px;
+      height: 45px;
+      margin-left: 10px;
+      padding: 0 15px;
       @include soft-transition;
 
       &:hover {
         --background: #{darken($accent-color, 10%)};
       }
     }
-    ion-input {
-      --border-radius: 25px;
-      --padding-start: 15px;
-      --padding-end: 15px;
-  }}
-}
-
-
-// FAB Styles
-ion-fab {
-  margin-bottom: 96px; // Adjusted for fixed bottom bar
-}
-
-ion-fab-button {
-  --background: #{$secondary-color};
-  --color: #{$text-color};
-  @include floating;
-  @include soft-transition;
-
-  &:hover {
-    --background: #{darken($secondary-color, 10%)};
   }
 }
 
 // Modal Styles 
-.session-sidebar,
-.create-session-sidebar {
+.session-menu,
+.create-session-modal {
   --background: #{rgba($background-light, 0.8)};
   --width: 90%;
   --max-width: 400px;
@@ -236,7 +215,7 @@ ion-fab-button {
     --background: transparent;
     ion-title {
       font-weight: 600;
-      text-align: center; // Center modal titles
+      text-align: center;
       width: 100%;
     }
     ion-buttons {
@@ -265,12 +244,12 @@ ion-fab-button {
       --background: #{rgba(255, 255, 255, 0.1)};
     }
     
-    ion-label { // Style for floating labels in modals
+    ion-label {
       color: $text-color;
       font-weight: 500;
     }
 
-    ion-input { // Style for input fields in modals
+    ion-input {
       --color: $text-color;
       --placeholder-color: $muted-text;
       --background: rgba($background-light, 0.3);
@@ -279,7 +258,7 @@ ion-fab-button {
     }
   }
 
-  ion-button[expand="block"] { // Style for "Create" button in modal
+  ion-button[expand="block"] {
     --background: #{$accent-color};
     --color: #{$text-color};
     --border-radius: 16px;
@@ -298,75 +277,14 @@ ion-fab-button {
   }
 }
 
-
-// Settings Page Styles
-ion-content[fullscreen] {
-  --padding-start: 16px;
-  --padding-end: 16px;
-
-  ion-list {
-    background: transparent;
-    padding: 0; // Remove default padding 
-
-    ion-item {
-      @extend %rounded-component;
-      --background: #{$card-background};
-      --color: #{$text-color};
-      margin-bottom: 16px;
-
-      ion-label {
-        color: $text-color;
-        font-weight: 500;
-      }
-
-      ion-input,
-      ion-select,
-      ion-textarea {
-        --color: #{$text-color};
-        --placeholder-color: #{$muted-text};
-        --background: #{rgba($background-light, 0.3)};
-        border-radius: 8px;
-        margin-top: 8px;
-      }
-
-      ion-select::part(icon) { 
-        color: $accent-color; 
-      }
-
-      ion-select::part(placeholder) {
-        color: $muted-text; 
-      }
-    }
-  }
-
-  ion-button[expand="block"] {
-    --background: #{$accent-color};
-    --color: #{$text-color};
-    --border-radius: 16px;
-    margin: 24px 0; // Adjust margin 
-    height: 54px;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: none;
-    @include floating; 
-    @include soft-transition;
-
-    &:hover {
-      --background: #{darken($accent-color, 10%)};
-    }
-  }
-}
-
 // Responsive Design 
 @media (max-width: 768px) {
-  .session-sidebar,
-  .create-session-sidebar {
+  .session-menu,
+  .create-session-modal {
     --width: 100%;
     --border-radius: 20px 20px 0 0; 
   }
 }
-
 
 // Animations
 @keyframes fadeInUp {

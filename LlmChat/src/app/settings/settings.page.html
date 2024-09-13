@@ -1,49 +1,90 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>Settings</ion-title>
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
+    <ion-title>Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-list lines="full">
-    <ion-item>
-      <ion-label position="floating">API Key</ion-label>
-      <ion-input [(ngModel)]="apiKey"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label>Model</ion-label>
-      <ion-select [(ngModel)]="model">
-        <ion-select-option value="llama3.1-8b">llama3.1-8b(Cerebras)</ion-select-option>
-        <ion-select-option value="llama3.1-70b">llama3.1-70b(Cerebras)</ion-select-option>
-        <ion-select-option value="llama-3.1-70b-versatile">llama3.1-70b(Groq)</ion-select-option>
-        <ion-select-option value="llama-3.1-8b-instant">llama3.1-8(Groq)</ion-select-option>
-        <ion-select-option value="other">Other (Enter below)</ion-select-option>
-      </ion-select>
-    </ion-item>
-    <ion-item *ngIf="model === 'other'">
-      <ion-label position="floating">Custom Model Name</ion-label>
-      <ion-input [(ngModel)]="customModel"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-label position="floating">System Prompt</ion-label>
-      <ion-textarea [(ngModel)]="systemPrompt"></ion-textarea>
-    </ion-item>
-    <ion-item>
-      <ion-label>Base URL</ion-label>
-      <ion-select [(ngModel)]="baseUrl">
-        <ion-select-option value="https://api.cerebras.ai/v1/">Cerebras - Default</ion-select-option>
-        <ion-select-option value="https://api.groq.com/openai/v1">Groq</ion-select-option> 
-        <ion-select-option value="other">Other (Enter below)</ion-select-option>
-      </ion-select>
-    </ion-item>
-    <ion-item *ngIf="baseUrl === 'other'">
-      <ion-label position="floating">Custom Base URL</ion-label>
-      <ion-input [(ngModel)]="customBaseUrl"></ion-input>
-    </ion-item>
+<ion-content>
+  <ion-list>
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>API Keys</ion-label>
+      </ion-item-divider>
+      <ion-item *ngFor="let key of apiKeys; let i = index">
+        <ion-label>
+          <h2>API Key {{ i + 1 }}</h2>
+          <p>{{ key }}</p>
+        </ion-label>
+        <ion-radio slot="start" [value]="key" [(ngModel)]="selectedApiKey"></ion-radio>
+        <ion-button slot="end" fill="clear" (click)="removeApiKey(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-item>
+        <ion-input [(ngModel)]="newApiKey" placeholder="Add new API key"></ion-input>
+        <ion-button slot="end" fill="clear" (click)="addApiKey()">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-item *ngIf="selectedApiKey">
+        <ion-label>Selected API Key:</ion-label>
+        <ion-label>{{ selectedApiKey }}</ion-label>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>API Selection</ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-label>API Provider</ion-label>
+        <ion-select [(ngModel)]="selectedApi" interface="action-sheet">
+          <ion-select-option *ngFor="let api of availableApis" [value]="api">
+            {{ api.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item *ngIf="selectedApi.name === 'Other (Custom)'">
+        <ion-label position="floating">Custom API Base URL</ion-label>
+        <ion-input [(ngModel)]="customApiBaseUrl"></ion-input>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>Model Settings</ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-label>Model</ion-label>
+        <ion-select [(ngModel)]="model" interface="action-sheet">
+          <ion-select-option value="llama3.1-8b">llama3.1-8b (Cerebras)</ion-select-option>
+          <ion-select-option value="llama3.1-70b">llama3.1-70b (Cerebras)</ion-select-option>
+          <ion-select-option value="llama-3.1-70b-versatile">llama3.1-70b (Groq)</ion-select-option>
+          <ion-select-option value="llama-3.1-8b-instant">llama3.1-8b (Groq)</ion-select-option>
+          <ion-select-option value="other">Other (Custom)</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item *ngIf="model === 'other'">
+        <ion-label position="floating">Custom Model Name</ion-label>
+        <ion-input [(ngModel)]="customModel"></ion-input>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>System Prompt</ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-textarea [(ngModel)]="systemPrompt" placeholder="Enter system prompt" rows="3"></ion-textarea>
+      </ion-item>
+    </ion-item-group>
+
   </ion-list>
 
-  <ion-button expand="block" (click)="saveSettings()">Save</ion-button>
+  <div class="ion-padding">
+    <ion-button expand="block" (click)="saveSettings()">Save Settings</ion-button>
+  </div>
 </ion-content>

@@ -1,6 +1,11 @@
 <ion-header class="floating-header" [translucent]="true">
   <ion-toolbar>
-    <ion-title>Llm Chat</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="toggleSessionMenu()">
+        <ion-label>{{ currentSessionName }}</ion-label>
+        <ion-icon slot="end" name="chevron-down-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
     <ion-buttons slot="end">
       <ion-button (click)="openSettings()">
         <ion-icon name="settings-outline"></ion-icon>
@@ -30,47 +35,36 @@
     </ion-item>
   </ion-list>
 
-  <ion-fab vertical="bottom" horizontal="start" slot="fixed">
-    <ion-fab-button (click)="toggleSessionSidebar()">
-      <ion-icon name="chatbubbles-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="toggleCreateSessionSidebar()">
-      <ion-icon name="add-circle-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
   <div class="bottom-bar">
-    <ion-toolbar>
-      <ion-input
-        [(ngModel)]="userInput"
-        placeholder="Enter your message..."
-      ></ion-input>
-      <ion-button
-        class="send-button"
-        (click)="sendMessage()"
-        slot="end"
-        [disabled]="isStreaming || userInput === ''" 
-      >
-        Send
-      </ion-button>
-    </ion-toolbar>
+  <div class="bottom-toolbar">
+    <ion-input
+      [(ngModel)]="userInput"
+      placeholder="Enter your message..."
+    ></ion-input>
+    <ion-button
+      class="send-button"
+      (click)="sendMessage()"
+      [disabled]="isStreaming || userInput === ''" 
+    >
+      Send
+    </ion-button>
   </div>
+</div>
 </ion-content>
 
 <ion-modal
-  [isOpen]="isSessionSidebarOpen"
-  class="session-sidebar"
+  [isOpen]="isSessionMenuOpen"
+  class="session-menu"
   [presentingElement]="presentingElement"
   [canDismiss]="true"
-  (ionModalDidDismiss)="isSessionSidebarOpen = false"
+  (ionModalDidDismiss)="isSessionMenuOpen = false"
 >
   <ng-template>
     <ion-header>
       <ion-toolbar>
         <ion-title>Chat Sessions</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="toggleSessionSidebar()">Close</ion-button>
+          <ion-button (click)="toggleSessionMenu()">Close</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -91,23 +85,26 @@
           </ion-button>
         </ion-item>
       </ion-list>
+      <ion-button expand="block" (click)="createNewSession()">
+        Create New Session
+      </ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>
 
 <ion-modal
-  [isOpen]="isCreateSessionSidebarOpen"
-  class="create-session-sidebar"
+  [isOpen]="isCreateSessionModalOpen"
+  class="create-session-modal"
   [presentingElement]="presentingElement"
   [canDismiss]="true"
-  (ionModalDidDismiss)="isCreateSessionSidebarOpen = false"
+  (ionModalDidDismiss)="isCreateSessionModalOpen = false"
 >
   <ng-template>
     <ion-header>
       <ion-toolbar>
         <ion-title>New Chat Session</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="toggleCreateSessionSidebar()">Close</ion-button>
+          <ion-button (click)="toggleCreateSessionModal()">Close</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
