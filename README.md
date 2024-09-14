@@ -15,7 +15,7 @@ This application provides a basic chat interface powered by LLMs. It's designed 
 
 2. **Navigate to the Project Directory:**
    ```bash
-   cd llm-chat/LlmChat
+   cd Gaurika/Gaurika
    ```
 
 3. **Build for Android (Ionic required):**
