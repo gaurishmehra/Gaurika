@@ -9,29 +9,34 @@
 
 <ion-content>
   <ion-list>
+
     <ion-item-group>
       <ion-item-divider>
         <ion-label>API Keys</ion-label>
       </ion-item-divider>
       <ion-item *ngFor="let key of apiKeys; let i = index">
         <ion-label>
-          <h2>API Key {{ i + 1 }}</h2>
-          <p>{{ key }}</p>
+          <h2>{{ key.name }}</h2>
+          <p>{{ key.key }}</p>
         </ion-label>
-        <ion-radio slot="start" [value]="key" [(ngModel)]="selectedApiKey"></ion-radio>
+        <ion-button slot="end" fill="clear" (click)="editApiKey(i)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
         <ion-button slot="end" fill="clear" (click)="removeApiKey(i)">
           <ion-icon name="trash-outline"></ion-icon>
         </ion-button>
       </ion-item>
-      <ion-item>
-        <ion-input [(ngModel)]="newApiKey" placeholder="Add new API key"></ion-input>
-        <ion-button slot="end" fill="clear" (click)="addApiKey()">
-          <ion-icon name="add-outline"></ion-icon>
-        </ion-button>
+      <ion-item button (click)="showAddApiKeyModal()">
+        <ion-label>Add New API Key</ion-label>
+        <ion-icon name="add-outline" slot="end"></ion-icon>
       </ion-item>
-      <ion-item *ngIf="selectedApiKey">
+      <ion-item>
         <ion-label>Selected API Key:</ion-label>
-        <ion-label>{{ selectedApiKey }}</ion-label>
+        <ion-select [(ngModel)]="selectedApiKeyIndex" interface="action-sheet">
+          <ion-select-option *ngFor="let key of apiKeys; let i = index" [value]="i">
+            {{ key.name }}
+          </ion-select-option>
+        </ion-select>
       </ion-item>
     </ion-item-group>
 
@@ -79,6 +84,16 @@
       </ion-item-divider>
       <ion-item>
         <ion-textarea [(ngModel)]="systemPrompt" placeholder="Enter system prompt" rows="3"></ion-textarea>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-item-group> 
+      <ion-item-divider>
+        <ion-label>Chain of Thought Reasoning</ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-label>Enable Multi-Turn CoT</ion-label>
+        <ion-toggle [(ngModel)]="isMultiTurnCotEnabled"></ion-toggle>
       </ion-item>
     </ion-item-group>
 

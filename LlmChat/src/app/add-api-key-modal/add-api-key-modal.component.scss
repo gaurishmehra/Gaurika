@@ -1,0 +1,60 @@
+// Variables (you can adjust these to match your app's theme)
+$primary-pink: #bf006f;
+$background-color: #0a0a0a;
+$text-color: #ffffff;
+$input-background: #141414;
+$border-radius: 12px;
+$item-padding: 20px;
+
+ion-header {
+  ion-toolbar {
+    --background: #{$background-color};
+    --color: #{$text-color};
+
+    ion-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    ion-button {
+      --color: #{$text-color};
+    }
+  }
+}
+
+ion-content {
+  --background: #{$background-color};
+  padding: $item-padding; 
+}
+
+ion-item {
+  --background: #{$input-background};
+  --border-color: transparent;
+  --color: #{$text-color};
+  --padding-start: $item-padding;
+  --padding-end: $item-padding;
+  margin-bottom: 16px;
+  border-radius: $border-radius;
+
+  ion-label {
+    color: #{$text-color};
+    opacity: 0.8;
+  }
+
+  ion-input {
+    --color: #{$text-color};
+    --placeholder-color: rgba($text-color, 0.6);
+    --placeholder-opacity: 1;
+    font-size: 16px;
+  }
+}
+
+ion-button {
+  --background: #{$primary-pink};
+  --color: #{$text-color};
+  --border-radius: $border-radius;
+  margin-top: 24px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
