@@ -182,6 +182,7 @@ a more robust solution.`;
             ...this.messages,
           ],
           model: this.model,
+          temperature: 0.3, // Set temperature here 
           stream: true,
         });
 
@@ -250,17 +251,15 @@ reasoning turns.`;
           })),
         ],
         model: this.model,
+        temperature: 0.7, // Set temperature here
         max_tokens: 4096, 
       });
 
       const finalAnswer = synthesisResponse.choices[0].message.content;
       this.messages.push({ role: 'assistant', content: finalAnswer });
 
-      // Save only the final layer's messages
-      this.sessions[this.currentSessionIndex].messages = [
-        { role: 'user', content: this.userInput }, 
-        { role: 'assistant', content: finalAnswer } 
-      ];
+      // Save the entire messages array, including user message and all CoT turns
+      this.sessions[this.currentSessionIndex].messages = this.messages; 
       this.storage.set('sessions', this.sessions);
 
       this.isStreaming = false;
@@ -277,6 +276,7 @@ reasoning turns.`;
           ...this.messages,
         ],
         model: this.model,
+        temperature: 0.3, // Set temperature for regular chat
         stream: true,
       });
 
