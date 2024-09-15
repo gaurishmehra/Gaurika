@@ -19,8 +19,8 @@ $font-family: 'Inter', sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-@mixin floating {
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+@mixin rounded-corners($radius: 16px) {
+  border-radius: $radius;
 }
 
 @mixin soft-transition {
@@ -40,19 +40,13 @@ ion-content {
   --padding-bottom: 80px;
 }
 
-// Shared Component Styles
-%rounded-component {
-  border-radius: 16px;
-  @include glass-effect;
-  @include floating;
-}
-
 // Header Styles
 ion-header {
   ion-toolbar {
     --background: transparent;
     --border-width: 0;
     @include glass-effect;
+    @include rounded-corners; 
 
     &::after {
       display: none;
@@ -88,7 +82,6 @@ ion-header {
   &.floating-header {
     ion-toolbar {
       margin-top: 5px;
-      border-radius: 16px;
     }
   }
 }
@@ -107,7 +100,8 @@ ion-item {
   margin-bottom: 16px;
 
   ion-label {
-    @extend %rounded-component;
+    @include rounded-corners;
+    @include glass-effect; 
     padding: 16px;
 
     &.user-message {
@@ -153,7 +147,8 @@ ion-item {
   bottom: 16px;
   left: 16px;
   right: 16px;
-  @extend %rounded-component;
+  @include rounded-corners;
+  @include glass-effect; 
   padding: 8px;
   z-index: 1000;
 
@@ -208,11 +203,13 @@ ion-item {
   --background: #{rgba($background-light, 0.8)};
   --width: 90%;
   --max-width: 400px;
-  --border-radius: 20px 0 0 20px;
+  @include rounded-corners(20px); // Apply rounded corners to modals
   @include glass-effect;
 
   ion-header ion-toolbar {
     --background: transparent;
+    @include rounded-corners(20px 20px 0 0); // Rounded top corners for toolbar
+
     ion-title {
       font-weight: 600;
       text-align: center;
@@ -236,7 +233,7 @@ ion-item {
   ion-item {
     --background: #{$card-background};
     --border-color: transparent;
-    border-radius: 12px;
+    @include rounded-corners(12px);
     margin-bottom: 8px;
     @include soft-transition;
 
@@ -261,14 +258,13 @@ ion-item {
   ion-button[expand="block"] {
     --background: #{$accent-color};
     --color: #{$text-color};
-    --border-radius: 16px;
+    @include rounded-corners(16px);
     margin: 24px 16px; 
     height: 54px;
     font-size: 18px;
     font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: none;
-    @include floating;
     @include soft-transition;
 
     &:hover {
@@ -277,14 +273,6 @@ ion-item {
   }
 }
 
-// Responsive Design 
-@media (max-width: 768px) {
-  .session-menu,
-  .create-session-modal {
-    --width: 100%;
-    --border-radius: 20px 20px 0 0; 
-  }
-}
 
 // Animations
 @keyframes fadeInUp {

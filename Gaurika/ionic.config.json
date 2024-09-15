@@ -1,7 +1,8 @@
 {
   "name": "Gaurika",
   "integrations": {
-    "capacitor": {}
+    "capacitor": {},
+    "cordova": {}
   },
   "type": "angular"
 }

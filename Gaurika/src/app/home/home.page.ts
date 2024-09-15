@@ -45,15 +45,9 @@ export class HomePage implements OnInit {
   async ngOnInit() {
     await this.storage.create();
 
-    const storedApiKey = await this.storage.get('apiKey');
     const storedModel = await this.storage.get('model');
     const storedSystemPrompt = await this.storage.get('systemPrompt');
     const storedSessions = await this.storage.get('sessions');
-    const storedBaseUrl = await this.storage.get('baseUrl');
-
-    if (storedApiKey) {
-      this.initializeCerebras(storedApiKey, storedBaseUrl);
-    }
 
     if (storedModel) {
       this.model = storedModel;
@@ -76,20 +70,40 @@ export class HomePage implements OnInit {
       StatusBar.setStyle({ style: Style.Dark });
       StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
+
+    // Initialize OpenAI client after loading settings
+    await this.initializeOpenAIClient();
+  }
+
+  async initializeOpenAIClient() {
+    const storedApiKeys = await this.storage.get('apiKeys') || [];
+    const selectedApiKeyIndex = await this.storage.get('selectedApiKeyIndex') || 0;
+    const storedBaseUrl = await this.storage.get('baseUrl');
+
+    if (storedApiKeys.length > 0 && selectedApiKeyIndex < storedApiKeys.length) {
+      const selectedApiKey = storedApiKeys[selectedApiKeyIndex].key;
+      this.initializeCerebras(selectedApiKey, storedBaseUrl);
+    } else {
+      // Handle case where no API key is selected (e.g., show an alert)
+      console.warn("No API key selected. Please configure an API key in settings.");
+    }
   }
 
   initializeCerebras(apiKey: string, baseUrl?: string) {
-    this.client = new OpenAI({ 
-      apiKey, 
-      baseURL: baseUrl || 'https://api.cerebras.ai/',
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: baseUrl || 'https://api.cerebras.ai/', 
       dangerouslyAllowBrowser: true,
     });
   }
 
   async sendMessage() {
     if (!this.client) {
-      alert('Please set your API key in settings.');
-      return;
+      await this.initializeOpenAIClient(); // Try to initialize again if not already
+      if (!this.client) {
+        alert('API client not initialized. Please check your API key settings.');
+        return;
+      }
     }
 
     const isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled');
@@ -100,7 +114,7 @@ export class HomePage implements OnInit {
       this.isStreaming = true;
 
       let turns = [];
-      for (let i = 0; i < 3; i++) { // Example: 3 turns
+      for (let i = 0; i < 3; i++) { 
         const initialSystemPrompt = 
           `You are a highly intelligent AI assistant, adept at logical reasoning and 
 problem-solving. Your task is to answer my question in a comprehensive 
@@ -236,7 +250,7 @@ reasoning turns.`;
           })),
         ],
         model: this.model,
-        max_tokens: 4096,
+        max_tokens: 4096, 
       });
 
       const finalAnswer = synthesisResponse.choices[0].message.content;
@@ -244,14 +258,13 @@ reasoning turns.`;
 
       // Save only the final layer's messages
       this.sessions[this.currentSessionIndex].messages = [
-        { role: 'user', content: this.userInput }, // Original user message
+        { role: 'user', content: this.userInput }, 
         { role: 'assistant', content: finalAnswer } 
       ];
       this.storage.set('sessions', this.sessions);
 
       this.isStreaming = false;
     } else {
-      // Existing single-turn logic
       this.messages.push({ role: 'user', content: this.userInput });
       this.userInput = '';
       this.isStreaming = true;
@@ -291,10 +304,16 @@ reasoning turns.`;
 
   toggleSessionMenu() {
     this.isSessionMenuOpen = !this.isSessionMenuOpen;
+    if (this.isSessionMenuOpen) {
+      this.isCreateSessionModalOpen = false; // Close create session modal if session menu is opened
+    }
   }
 
   toggleCreateSessionModal() {
     this.isCreateSessionModalOpen = !this.isCreateSessionModalOpen;
+    if (this.isCreateSessionModalOpen) {
+      this.isSessionMenuOpen = false; // Close session menu if create session modal is opened
+    }
   }
 
   createNewSession() {
@@ -304,7 +323,7 @@ reasoning turns.`;
   confirmNewSession() {
     if (this.newSessionName.trim()) {
       this.sessions.push({ name: this.newSessionName, messages: [] });
-      this.currentSessionIndex = this.sessions.length - 1;
+      this.currentSessionIndex = this.sessions.length - 1; // Automatically switch to the new session
       this.loadCurrentSession();
       this.toggleCreateSessionModal();
       this.newSessionName = '';
