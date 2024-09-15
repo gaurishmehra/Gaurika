@@ -10,7 +10,7 @@ This application provides a basic chat interface powered by LLMs. It's designed 
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/gaurishmehra/Llm-Chat
+   git clone https://github.com/gaurishmehra/Gaurika
    ```
 
 2. **Navigate to the Project Directory:**
@@ -22,6 +22,11 @@ This application provides a basic chat interface powered by LLMs. It's designed 
    ```bash
    ionic cap build android
    ```
+4.**optional**
+ If you want to try it out as website use : 
+```bash
+ionic serve -lag
+```
 
 **Note:** You need to have Ionic and the necessary Android development tools installed on your system.
 
