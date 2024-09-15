@@ -12,6 +12,13 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
+// Interface for prompt modules
+interface PromptModule {
+  role: string;
+  content: string;
+  contextVariables?: { [key: string]: string };
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -34,6 +41,88 @@ export class HomePage implements OnInit {
   isCreateSessionModalOpen = false;
   presentingElement: any;
   isStreaming = false;
+
+  // Prompt Modules
+  initialPrompt: PromptModule = {
+    role: 'system',
+    content: `You are a highly intelligent AI assistant, adept at logical reasoning and problem-solving. 
+             Your task is to answer the user's question in a comprehensive and insightful manner, 
+             showcasing your ability to think step-by-step. Please follow this structure: 
+
+             ## Reasoning:
+             1. [Clearly state the first step]
+                Explanation: [Provide a detailed explanation of this step, including relevant background knowledge or logic.]
+             2. [Clearly state the second step]
+                Explanation: [Offer a thorough explanation of this step, connecting it to the previous step(s) and showing how it contributes to the solution.]
+             ... [Continue with as many steps as needed]
+
+             ## Answer:
+             [Present your final answer here, concisely and clearly derived from the step-by-step reasoning process above.]`
+  };
+
+  followupPrompt: PromptModule = {
+    role: 'system',
+    content: `You are an exceptional AI assistant, gifted with analytical skills and the ability to improve 
+             upon existing solutions. Consider the original question and the previous turn's reasoning, 
+             which is provided below.
+
+             ## Previous Reasoning:
+             {{previousReasoning}} 
+
+             Your new task is threefold:
+
+             ## Analysis:
+             ### Critique:
+             [Concisely evaluate the strengths and weaknesses of the previous reasoning. What was effective? 
+              Where could it be improved or expanded?] 
+
+             ### New Reasoning:
+             1. [State the first step of your revised or enhanced approach]
+                Explanation: [Thoroughly explain this step, referring back to the previous reasoning if necessary. 
+                             Highlight what's new or different in your approach.]
+             2. [State the second step of your refined reasoning]
+                Explanation: [Offer a clear explanation, indicating how this step builds upon, corrects, or deviates 
+                             from the earlier reasoning path.]
+             ... [Continue with additional steps as required] 
+
+             ## Answer:
+             [Present your updated and refined answer based on the analysis and new reasoning steps.]`,
+    contextVariables: { previousReasoning: '' }
+  };
+
+  synthesisPrompt: PromptModule = {
+    role: 'system',
+    content: `You are an expert AI synthesizer, skilled at combining and refining multiple lines of thought. 
+             You will receive three distinct turns of reasoning aimed at solving a problem. Your objective 
+             is to synthesize them into a final, conclusive answer.
+
+             ## Turns of Reasoning:
+             {{turn1}}
+             {{turn2}}
+             {{turn3}}
+
+             Follow these steps:
+
+             ## Synthesis:
+             ### Analysis:
+             [Provide a concise analysis of each turn of reasoning. Briefly summarize its core approach and 
+              highlight its main strengths and limitations.] 
+
+             ### Comparison:
+             [Compare and contrast the three turns. What are the key differences and similarities in their 
+              strategies? Did they arrive at similar conclusions through different paths? Which turn offered 
+              the most insightful or valid points?]
+
+             ### Final Reasoning:
+             [Based on your analysis and comparison, construct a final, integrated line of reasoning. Draw upon 
+              the most compelling aspects of each turn to create a comprehensive and well-supported argument. 
+              Present it in a clear step-by-step manner.]
+
+             ## Final Answer:
+             [Present your final, synthesized answer. This answer should be clear, concise, and easily 
+              understood by a general audience.]`,
+    contextVariables: { turn1: '', turn2: '', turn3: '' }
+  };
 
   constructor(
     private router: Router,
@@ -92,7 +181,7 @@ export class HomePage implements OnInit {
   initializeCerebras(apiKey: string, baseUrl?: string) {
     this.client = new OpenAI({
       apiKey,
-      baseURL: baseUrl || 'https://api.cerebras.ai/', 
+      baseURL: baseUrl || 'https://api.cerebras.ai/',
       dangerouslyAllowBrowser: true,
     });
   }
@@ -114,75 +203,21 @@ export class HomePage implements OnInit {
       this.isStreaming = true;
 
       let turns = [];
-      for (let i = 0; i < 3; i++) { 
-        const initialSystemPrompt = 
-          `You are a highly intelligent AI assistant, adept at logical reasoning and 
-problem-solving. Your task is to answer my question in a comprehensive 
-and insightful manner, showcasing your ability to think step-by-step.
+      let currentPrompt = this.initialPrompt;
 
-Here's the structure to follow:
-
-<reasoning>
-1. [Clearly state the first step]
-   Explanation: [Provide a detailed explanation of this step, 
-                 including any relevant background knowledge or logic.]
-2. [Clearly state the second step]
-   Explanation: [Offer a thorough explanation of this step, 
-                 connecting it to the previous step(s) and showing 
-                 how it contributes to the solution.]
-... [Continue with as many steps as needed]
-</reasoning>
-
-<answer>
-[Present your final answer here, concisely and clearly derived 
-from the step-by-step reasoning process above.]
-</answer>
-
-Demonstrate your reasoning skills by making your thought process transparent.`;
-
-        const followupSystemPrompt = 
-          `You are an exceptional AI assistant, gifted with analytical skills and 
-the ability to improve upon existing solutions. Consider the original 
-question and the previous turn's reasoning. 
-
-Your new task is threefold:
-
-<analysis>
-<critique>
-[Concisely evaluate the strengths and weaknesses of the previous 
-reasoning. What was effective? Where could it be improved or expanded?] 
-</critique>
-
-<new_reasoning>
-1. [State the first step of your revised or enhanced approach]
-   Explanation: [Thoroughly explain this step, referring back to the 
-                 previous reasoning if necessary. Highlight what's new 
-                 or different in your approach.]
-2. [State the second step of your refined reasoning]
-   Explanation: [Offer a clear explanation, indicating how this step 
-                 builds upon, corrects, or deviates from the earlier 
-                 reasoning path.]
-... [Continue with additional steps as required] 
-</new_reasoning>
-
-<answer>
-[Present your updated and refined answer based on the analysis and 
-new reasoning steps.]
-</answer>
-</analysis>
-
-Be critical yet constructive. Aim to provide valuable insights and 
-a more robust solution.`;
-
-        const systemPrompt = i === 0 ? initialSystemPrompt : followupSystemPrompt;
+      for (let i = 0; i < 5; i++) {
+        let promptToSend = { ...currentPrompt };
+        if (currentPrompt.contextVariables) {
+          promptToSend.content = this.replaceContextVariables(
+            promptToSend.content,
+            currentPrompt.contextVariables
+          );
+        }
 
         const response = await this.client.chat.completions.create({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...this.messages,
-          ],
+          messages: [promptToSend, ...this.messages],
           model: this.model,
-          temperature: 0.3, // Set temperature here 
+          temperature: 0.25,
           stream: true,
         });
 
@@ -200,66 +235,38 @@ a more robust solution.`;
         }
 
         turns.push(assistantMessage.content);
+
+        if (i > 0 && this.calculateCosineSimilarity(turns[i - 1], turns[i]) > 0.8) {
+          break;
+        }
+
+        currentPrompt = this.followupPrompt;
+        currentPrompt.contextVariables!['previousReasoning'] = assistantMessage.content; // Use bracket notation
       }
 
       // Final Synthesis
-      const finalSynthesisPrompt = 
-        `You are an expert AI synthesizer, skilled at combining and refining 
-multiple lines of thought. You will receive three distinct turns of 
-reasoning aimed at solving a problem. Your objective is to synthesize 
-them into a final, conclusive answer.
+      let synthesisPromptToSend = { ...this.synthesisPrompt };
+      synthesisPromptToSend.contextVariables!['turn1'] = turns[0]; // Use bracket notation
+      synthesisPromptToSend.contextVariables!['turn2'] = turns[1]; // Use bracket notation
+      synthesisPromptToSend.contextVariables!['turn3'] = turns[2]; // Use bracket notation
 
-Follow these steps:
-
-<synthesis>
-<analysis>
-[Provide a concise analysis of each turn of reasoning. Briefly 
-summarize its core approach and highlight its main strengths and 
-limitations.] 
-</analysis>
-
-<comparison>
-[Compare and contrast the three turns. What are the key differences 
-and similarities in their strategies? Did they arrive at similar 
-conclusions through different paths? Which turn offered the most 
-insightful or valid points?]
-</comparison>
-
-<final_reasoning>
-[Based on your analysis and comparison, construct a final, integrated 
-line of reasoning. Draw upon the most compelling aspects of each turn 
-to create a comprehensive and well-supported argument. Present it in 
-a clear step-by-step manner.]
-</final_reasoning>
-
-<final_answer>
-[Present your final, synthesized answer. This answer should be clear, 
-concise, and easily understood by a general audience.] 
-</final_answer>
-</synthesis>
-
-Your goal is to produce a definitive and insightful answer by 
-leveraging the combined knowledge and perspectives of the three 
-reasoning turns.`;
+      synthesisPromptToSend.content = this.replaceContextVariables(
+        synthesisPromptToSend.content,
+        synthesisPromptToSend.contextVariables!
+      );
 
       const synthesisResponse = await this.client.chat.completions.create({
-        messages: [
-          { role: 'system', content: finalSynthesisPrompt },
-          ...turns.map((turn, i) => ({
-            role: 'assistant',
-            content: `Turn ${i + 1}:\n${turn}`,
-          })),
-        ],
+        messages: [synthesisPromptToSend],
         model: this.model,
-        temperature: 0.7, // Set temperature here
-        max_tokens: 4096, 
+        temperature: 0.5,
+        max_tokens: 4096,
       });
 
       const finalAnswer = synthesisResponse.choices[0].message.content;
       this.messages.push({ role: 'assistant', content: finalAnswer });
 
       // Save the entire messages array, including user message and all CoT turns
-      this.sessions[this.currentSessionIndex].messages = this.messages; 
+      this.sessions[this.currentSessionIndex].messages = this.messages;
       this.storage.set('sessions', this.sessions);
 
       this.isStreaming = false;
@@ -276,7 +283,7 @@ reasoning turns.`;
           ...this.messages,
         ],
         model: this.model,
-        temperature: 0.3, // Set temperature for regular chat
+        temperature: 0.75, // Set temperature for regular chat
         stream: true,
       });
 
@@ -296,6 +303,52 @@ reasoning turns.`;
       this.isStreaming = false;
       this.saveCurrentSession();
     }
+  }
+
+  // Helper function to replace context variables in a string
+  replaceContextVariables(
+    text: string,
+    variables: { [key: string]: string }
+  ): string {
+    for (const key in variables) {
+      text = text.replace(`{{${key}}}`, variables[key]);
+    }
+    return text;
+  }
+
+  // Helper function to calculate cosine similarity between two strings
+  calculateCosineSimilarity(str1: string, str2: string): number {
+    const words1 = str1.toLowerCase().split(/\s+/);
+    const words2 = str2.toLowerCase().split(/\s+/);
+
+    const wordCounts1: { [word: string]: number } = {};
+    const wordCounts2: { [word: string]: number } = {};
+
+    for (const word of words1) {
+      wordCounts1[word] = (wordCounts1[word] || 0) + 1;
+    }
+    for (const word of words2) {
+      wordCounts2[word] = (wordCounts2[word] || 0) + 1;
+    }
+
+    const allWords = new Set([...words1, ...words2]);
+    let dotProduct = 0;
+    let magnitude1 = 0;
+    let magnitude2 = 0;
+
+    for (const word of allWords) {
+      const count1 = wordCounts1[word] || 0;
+      const count2 = wordCounts2[word] || 0;
+      dotProduct += count1 * count2;
+      magnitude1 += count1 * count1;
+      magnitude2 += count2 * count2;
+    }
+
+    if (magnitude1 === 0 || magnitude2 === 0) {
+      return 0;
+    }
+
+    return dotProduct / (Math.sqrt(magnitude1) * Math.sqrt(magnitude2));
   }
 
   openSettings() {
