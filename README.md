@@ -1,4 +1,4 @@
-# llm-chat
+# Gaurika
 
 A simple chat application built with Ionic that utilizes Large Language Models (LLMs) for conversation.
 
@@ -23,8 +23,8 @@ This application provides a basic chat interface powered by LLMs. It's designed 
    ionic cap build android
    ```
 4.**optional**
- If you want to try it out as website use : 
 ```bash
+#If you want to try it out as website use : 
 ionic serve -lag
 ```
 
@@ -58,6 +58,7 @@ Contributions are welcome! If you'd like to enhance the application, feel free t
 * Support for multiple chat sessions.
 * Local storage of data.
 * UI for adding custom LLM providers and models.
+* Multi Turn COT (uses cosine similatiry to dynamically determine the number of turns to be used in the conversation)[Todo - add more information in the readme about the multi turn cot]
 
 ## Future Enhancements
 
