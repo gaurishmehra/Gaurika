@@ -22,7 +22,7 @@ This application provides a basic chat interface powered by LLMs. It's designed 
    ```bash
    ionic cap build android
    ```
-4.**optional**
+4. **optional**
 ```bash
 #If you want to try it out as website use : 
 ionic serve -lag
