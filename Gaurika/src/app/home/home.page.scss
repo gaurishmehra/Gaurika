@@ -37,7 +37,7 @@ body {
 
 ion-content {
   --ion-background-color: #{$background-dark};
-  --padding-bottom: 80px;
+  --padding-bottom: 100px; // Increased padding to accommodate bottom bar and image preview
 }
 
 // Header Styles
@@ -90,6 +90,7 @@ ion-header {
 ion-list {
   background: transparent;
   padding: 16px;
+  margin-bottom: 100px; // Added margin to prevent messages from being hidden
 }
 
 ion-item {
@@ -138,18 +139,25 @@ ion-item {
       margin-top: 8px;
       white-space: pre-wrap;
     }
+
+    .message-image {
+      max-width: 100%;
+      height: auto;
+      display: block; 
+      margin-top: 10px;
+    }
   }
 }
 
 // Bottom Bar Styles
 .bottom-bar {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
-  @include rounded-corners;
+  bottom: 0; 
+  left: 0;
+  right: 0;
+  @include rounded-corners(0 0 20px 20px); // Rounded top corners for bottom bar
   @include glass-effect; 
-  padding: 8px;
+  padding: 12px 16px; 
   z-index: 1000;
 
   .bottom-toolbar {
@@ -180,6 +188,28 @@ ion-item {
       }
     }
 
+    .upload-button {
+      --background: transparent; // Remove default background
+      --color: #{$accent-color}; // Use accent color
+      --border-radius: 50%; // Make it circular
+      --box-shadow: none; // Remove default box shadow
+      // height: 45px;
+      width: 75px; // Make it square
+      margin-left: 0px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      @include soft-transition;
+
+      &:hover {
+        --background: rgba($accent-color, 0.1); // Subtle hover effect
+      }
+
+      ion-icon {
+        font-size: 20px; // Adjust icon size as needed
+      }
+    }
+
     .send-button {
       --background: #{$accent-color};
       --color: #{$text-color};
@@ -195,7 +225,24 @@ ion-item {
       }
     }
   }
+
+  .image-preview {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+
+    img {
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 10px; 
+    }
+
+    ion-button {
+      margin-left: 10px;
+    }
+  }
 }
+
 
 // Modal Styles 
 .session-menu,
@@ -203,12 +250,12 @@ ion-item {
   --background: #{rgba($background-light, 0.8)};
   --width: 90%;
   --max-width: 400px;
-  @include rounded-corners(20px); // Apply rounded corners to modals
+  @include rounded-corners(20px); 
   @include glass-effect;
 
   ion-header ion-toolbar {
     --background: transparent;
-    @include rounded-corners(20px 20px 0 0); // Rounded top corners for toolbar
+    @include rounded-corners(20px 20px 0 0);
 
     ion-title {
       font-weight: 600;
@@ -282,4 +329,14 @@ ion-item {
 
 ion-item {
   animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.writing-message {
+  animation: pulse 1s infinite; 
 }

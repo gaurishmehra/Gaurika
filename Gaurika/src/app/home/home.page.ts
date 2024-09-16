@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import OpenAI from 'openai';
 import { Storage } from '@ionic/storage-angular';
@@ -12,7 +12,12 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
-// Interface for prompt modules
+interface Message {
+  role: string;
+  content: string;
+  image?: string;
+}
+
 interface PromptModule {
   role: string;
   content: string;
@@ -28,21 +33,24 @@ interface PromptModule {
 })
 export class HomePage implements OnInit {
   userInput = '';
-  messages: { role: string; content: string }[] = [];
+  messages: Message[] = [];
   client: any;
   model = 'llama3.1-8b';
   systemPrompt = '';
-  sessions: { name: string; messages: { role: string; content: string }[] }[] = [];
+  sessions: { name: string; messages: Message[] }[] = [];
   currentSessionIndex = 0;
   currentSessionName = 'Default Session';
   newSessionName = '';
   @ViewChild(IonContent) content!: IonContent;
+  @ViewChild('fileInput') fileInput!: ElementRef;
   isSessionMenuOpen = false;
   isCreateSessionModalOpen = false;
   presentingElement: any;
   isStreaming = false;
+  isMultiTurnCotEnabled = false;
+  isMultimodalEnabled = false;
+  selectedImage: string | null = null;
 
-  // Prompt Modules
   initialPrompt: PromptModule = {
     role: 'system',
     content: `You are a highly intelligent AI assistant, adept at logical reasoning and problem-solving. 
@@ -160,7 +168,9 @@ export class HomePage implements OnInit {
       StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
 
-    // Initialize OpenAI client after loading settings
+    this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
+    this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
+
     await this.initializeOpenAIClient();
   }
 
@@ -173,7 +183,6 @@ export class HomePage implements OnInit {
       const selectedApiKey = storedApiKeys[selectedApiKeyIndex].key;
       this.initializeCerebras(selectedApiKey, storedBaseUrl);
     } else {
-      // Handle case where no API key is selected (e.g., show an alert)
       console.warn("No API key selected. Please configure an API key in settings.");
     }
   }
@@ -188,18 +197,56 @@ export class HomePage implements OnInit {
 
   async sendMessage() {
     if (!this.client) {
-      await this.initializeOpenAIClient(); // Try to initialize again if not already
+      await this.initializeOpenAIClient();
       if (!this.client) {
         alert('API client not initialized. Please check your API key settings.');
         return;
       }
     }
 
-    const isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled');
+    let messageContent = this.userInput;
+    let imageContent = this.selectedImage;
 
-    if (isMultiTurnCotEnabled) {
-      this.messages.push({ role: 'user', content: this.userInput });
-      this.userInput = '';
+    if (this.isMultimodalEnabled && imageContent) {
+      const base64Image = await this.getBase64Image(imageContent);
+      this.messages.push({ 
+        role: 'user', 
+        content: messageContent,
+        image: imageContent 
+      });
+
+      const apiMessage = [
+        { type: "text", text: messageContent },
+        {
+          type: "image_url",
+          image_url: {
+            url: base64Image
+          }
+        }
+      ];
+
+      try {
+        const response = await this.client.chat.completions.create({
+          model: "gpt-4-vision-preview",
+          messages: [
+            { role: "user", content: apiMessage }
+          ],
+          max_tokens: 300
+        });
+
+        this.messages.push({
+          role: 'assistant',
+          content: response.choices[0].message.content
+        });
+      } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        this.messages.push({
+          role: 'assistant',
+          content: 'Sorry, I encountered an error processing your image.'
+        });
+      }
+    } else if (this.isMultiTurnCotEnabled) {
+      this.messages.push({ role: 'user', content: messageContent });
       this.isStreaming = true;
 
       let turns = [];
@@ -241,14 +288,13 @@ export class HomePage implements OnInit {
         }
 
         currentPrompt = this.followupPrompt;
-        currentPrompt.contextVariables!['previousReasoning'] = assistantMessage.content; // Use bracket notation
+        currentPrompt.contextVariables!['previousReasoning'] = assistantMessage.content;
       }
 
-      // Final Synthesis
       let synthesisPromptToSend = { ...this.synthesisPrompt };
-      synthesisPromptToSend.contextVariables!['turn1'] = turns[0]; // Use bracket notation
-      synthesisPromptToSend.contextVariables!['turn2'] = turns[1]; // Use bracket notation
-      synthesisPromptToSend.contextVariables!['turn3'] = turns[2]; // Use bracket notation
+      synthesisPromptToSend.contextVariables!['turn1'] = turns[0];
+      synthesisPromptToSend.contextVariables!['turn2'] = turns[1];
+      synthesisPromptToSend.contextVariables!['turn3'] = turns[2];
 
       synthesisPromptToSend.content = this.replaceContextVariables(
         synthesisPromptToSend.content,
@@ -265,14 +311,9 @@ export class HomePage implements OnInit {
       const finalAnswer = synthesisResponse.choices[0].message.content;
       this.messages.push({ role: 'assistant', content: finalAnswer });
 
-      // Save the entire messages array, including user message and all CoT turns
-      this.sessions[this.currentSessionIndex].messages = this.messages;
-      this.storage.set('sessions', this.sessions);
-
       this.isStreaming = false;
     } else {
-      this.messages.push({ role: 'user', content: this.userInput });
-      this.userInput = '';
+      this.messages.push({ role: 'user', content: messageContent });
       this.isStreaming = true;
 
       const response = await this.client.chat.completions.create({
@@ -283,7 +324,7 @@ export class HomePage implements OnInit {
           ...this.messages,
         ],
         model: this.model,
-        temperature: 0.75, // Set temperature for regular chat
+        temperature: 0.75,
         stream: true,
       });
 
@@ -301,54 +342,48 @@ export class HomePage implements OnInit {
       }
 
       this.isStreaming = false;
-      this.saveCurrentSession();
+    }
+
+    this.userInput = '';
+    this.selectedImage = null;
+    this.saveCurrentSession();
+    setTimeout(() => {
+      this.content.scrollToBottom(300);
+    });
+  }
+
+  triggerImageUpload() {
+    this.fileInput.nativeElement.click();
+  }
+
+  async onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.selectedImage = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
-  // Helper function to replace context variables in a string
-  replaceContextVariables(
-    text: string,
-    variables: { [key: string]: string }
-  ): string {
-    for (const key in variables) {
-      text = text.replace(`{{${key}}}`, variables[key]);
-    }
-    return text;
+  removeSelectedImage() {
+    this.selectedImage = null;
   }
 
-  // Helper function to calculate cosine similarity between two strings
-  calculateCosineSimilarity(str1: string, str2: string): number {
-    const words1 = str1.toLowerCase().split(/\s+/);
-    const words2 = str2.toLowerCase().split(/\s+/);
-
-    const wordCounts1: { [word: string]: number } = {};
-    const wordCounts2: { [word: string]: number } = {};
-
-    for (const word of words1) {
-      wordCounts1[word] = (wordCounts1[word] || 0) + 1;
-    }
-    for (const word of words2) {
-      wordCounts2[word] = (wordCounts2[word] || 0) + 1;
+  async getBase64Image(imgUrl: string): Promise<string> {
+    if (imgUrl.startsWith('data:image')) {
+      return imgUrl;
     }
 
-    const allWords = new Set([...words1, ...words2]);
-    let dotProduct = 0;
-    let magnitude1 = 0;
-    let magnitude2 = 0;
-
-    for (const word of allWords) {
-      const count1 = wordCounts1[word] || 0;
-      const count2 = wordCounts2[word] || 0;
-      dotProduct += count1 * count2;
-      magnitude1 += count1 * count1;
-      magnitude2 += count2 * count2;
-    }
-
-    if (magnitude1 === 0 || magnitude2 === 0) {
-      return 0;
-    }
-
-    return dotProduct / (Math.sqrt(magnitude1) * Math.sqrt(magnitude2));
+    const response = await fetch(imgUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
 
   openSettings() {
@@ -358,14 +393,14 @@ export class HomePage implements OnInit {
   toggleSessionMenu() {
     this.isSessionMenuOpen = !this.isSessionMenuOpen;
     if (this.isSessionMenuOpen) {
-      this.isCreateSessionModalOpen = false; // Close create session modal if session menu is opened
+      this.isCreateSessionModalOpen = false;
     }
   }
 
   toggleCreateSessionModal() {
     this.isCreateSessionModalOpen = !this.isCreateSessionModalOpen;
     if (this.isCreateSessionModalOpen) {
-      this.isSessionMenuOpen = false; // Close session menu if create session modal is opened
+      this.isSessionMenuOpen = false;
     }
   }
 
@@ -376,7 +411,7 @@ export class HomePage implements OnInit {
   confirmNewSession() {
     if (this.newSessionName.trim()) {
       this.sessions.push({ name: this.newSessionName, messages: [] });
-      this.currentSessionIndex = this.sessions.length - 1; // Automatically switch to the new session
+      this.currentSessionIndex = this.sessions.length - 1;
       this.loadCurrentSession();
       this.toggleCreateSessionModal();
       this.newSessionName = '';
@@ -414,5 +449,63 @@ export class HomePage implements OnInit {
     } else {
       alert('You cannot delete the last session.');
     }
+  }
+
+  /**
+   * Replaces context variables in a string with their corresponding values.
+   * 
+   * @param text The string containing the context variables.
+   * @param variables An object mapping context variable names to their values.
+   * @returns The string with the context variables replaced.
+   */
+  replaceContextVariables(
+    text: string,
+    variables: { [key: string]: string }
+  ): string {
+    for (const key in variables) {
+      text = text.replace(`{{${key}}}`, variables[key]);
+    }
+    return text;
+  }
+
+  /**
+   * Calculates the cosine similarity between two strings.
+   * 
+   * @param str1 The first string.
+   * @param str2 The second string.
+   * @returns The cosine similarity between the two strings, a value between 0 and 1.
+   */
+  calculateCosineSimilarity(str1: string, str2: string): number {
+    const words1 = str1.toLowerCase().split(/\s+/);
+    const words2 = str2.toLowerCase().split(/\s+/);
+
+    const wordCounts1: { [word: string]: number } = {};
+    const wordCounts2: { [word: string]: number } = {};
+
+    for (const word of words1) {
+      wordCounts1[word] = (wordCounts1[word] || 0) + 1;
+    }
+    for (const word of words2) {
+      wordCounts2[word] = (wordCounts2[word] || 0) + 1;
+    }
+
+    const allWords = new Set([...words1, ...words2]);
+    let dotProduct = 0;
+    let magnitude1 = 0;
+    let magnitude2 = 0;
+
+    for (const word of allWords) {
+      const count1 = wordCounts1[word] || 0;
+      const count2 = wordCounts2[word] || 0;
+      dotProduct += count1 * count2;
+      magnitude1 += count1 * count1;
+      magnitude2 += count2 * count2;
+    }
+
+    if (magnitude1 === 0 || magnitude2 === 0) {
+      return 0;
+    }
+
+    return dotProduct / (Math.sqrt(magnitude1) * Math.sqrt(magnitude2));
   }
 }

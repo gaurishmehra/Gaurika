@@ -24,7 +24,8 @@
         <span class="message-sender">
           {{ message.role === 'user' ? 'User' : model }}: 
         </span>
-        <p class="message-content">{{ message.content }}</p> 
+        <p class="message-content">{{ message.content }}</p>
+        <img *ngIf="message.image" [src]="message.image" class="message-image" /> 
       </ion-label>
     </ion-item>
     <ion-item *ngIf="isStreaming">
@@ -36,23 +37,39 @@
   </ion-list>
 
   <div class="bottom-bar">
-  <div class="bottom-toolbar">
-    <ion-input
-      [(ngModel)]="userInput"
-      placeholder="Enter your message..."
-    ></ion-input>
-    <ion-button
-      class="send-button"
-      (click)="sendMessage()"
-      [disabled]="isStreaming || userInput === ''" 
-    >
-      Send
-    </ion-button>
+    <div class="bottom-toolbar">
+      <ion-input
+        [(ngModel)]="userInput"
+        placeholder="Enter your message..."
+      ></ion-input>
+      <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()">
+        <ion-icon name="attach-outline"></ion-icon> 
+      </ion-button>
+      <input
+        type="file"
+        #fileInput
+        (change)="onFileSelected($event)"
+        style="display: none;"
+        accept="image/*"
+      >
+      <ion-button
+        class="send-button"
+        (click)="sendMessage()"
+        [disabled]="isStreaming || (userInput === '' && !selectedImage)" 
+      >
+        Send
+      </ion-button>
+    </div>
+    <div *ngIf="selectedImage" class="image-preview">
+      <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" /> 
+      <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+        <ion-icon name="close-circle"></ion-icon>
+      </ion-button>
+    </div>
   </div>
-</div>
 </ion-content>
 
-<ion-modal
+<ion-modal 
   [isOpen]="isSessionMenuOpen"
   class="session-menu"
   [presentingElement]="presentingElement"

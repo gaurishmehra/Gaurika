@@ -15,24 +15,25 @@ import { AddApiKeyModalComponent } from '../add-api-key-modal/add-api-key-modal.
 })
 export class SettingsPage implements OnInit {
   apiKeys: { name: string, key: string }[] = [];
-  selectedApiKeyIndex: number = 0; 
+  selectedApiKeyIndex: number = 0;
   model = 'llama3.1-8b';
   customModel = '';
   systemPrompt = '';
-  isMultiTurnCotEnabled = false; 
+  isMultiTurnCotEnabled = false;
+  isMultimodalEnabled = false;
 
   availableApis = [
     { name: 'Cerebras', baseUrl: 'https://api.cerebras.ai/v1/' },
     { name: 'Groq', baseUrl: 'https://api.groq.com/openai/v1' },
-    { name: 'Other (Custom)', baseUrl: '' } 
+    { name: 'Other (Custom)', baseUrl: '' }
   ];
-  selectedApi: { name: string; baseUrl: string } = this.availableApis[0]; 
+  selectedApi: { name: string; baseUrl: string } = this.availableApis[0];
   customApiBaseUrl: string = '';
 
   constructor(
-    private router: Router, 
+    private router: Router,
     private storage: Storage,
-    private modalController: ModalController 
+    private modalController: ModalController
   ) {}
 
   async ngOnInit() {
@@ -44,6 +45,7 @@ export class SettingsPage implements OnInit {
     this.customModel = await this.storage.get('customModel') || '';
     this.systemPrompt = await this.storage.get('systemPrompt') || '';
     this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
+    this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
 
     const storedSelectedApiName = await this.storage.get('selectedApiName');
     const storedCustomApiBaseUrl = await this.storage.get('customApiBaseUrl');
@@ -55,7 +57,7 @@ export class SettingsPage implements OnInit {
     if (storedCustomApiBaseUrl) {
       this.customApiBaseUrl = storedCustomApiBaseUrl;
       if (this.selectedApi.name === 'Other (Custom)') {
-        this.selectedApi.baseUrl = this.customApiBaseUrl; 
+        this.selectedApi.baseUrl = this.customApiBaseUrl;
       }
     }
 
@@ -65,7 +67,7 @@ export class SettingsPage implements OnInit {
     }
 
     if (this.model === 'other' && this.customModel !== '') {
-      this.model = 'other'; 
+      this.model = 'other';
     }
   }
 
@@ -103,7 +105,6 @@ export class SettingsPage implements OnInit {
     return await modal.present();
   }
 
-
   removeApiKey(index: number) {
     this.apiKeys.splice(index, 1);
     if (this.selectedApiKeyIndex === index) {
@@ -125,10 +126,11 @@ export class SettingsPage implements OnInit {
     await this.storage.set('customModel', this.customModel);
     await this.storage.set('systemPrompt', this.systemPrompt);
     await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
+    await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled); 
 
     await this.storage.set('selectedApiName', this.selectedApi.name);
     await this.storage.set('customApiBaseUrl', this.customApiBaseUrl);
-    await this.storage.set('baseUrl', baseUrlToSave); 
+    await this.storage.set('baseUrl', baseUrlToSave);
 
     window.location.reload();
   }
