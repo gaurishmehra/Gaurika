@@ -142,9 +142,12 @@ export class HomePage implements OnInit {
   async ngOnInit() {
     await this.storage.create();
 
+    // Retrieve stored settings
     const storedModel = await this.storage.get('model');
     const storedSystemPrompt = await this.storage.get('systemPrompt');
     const storedSessions = await this.storage.get('sessions');
+    this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
+    this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
 
     if (storedModel) {
       this.model = storedModel;
@@ -168,9 +171,6 @@ export class HomePage implements OnInit {
       StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
 
-    this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
-    this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
-
     await this.initializeOpenAIClient();
   }
 
@@ -181,13 +181,21 @@ export class HomePage implements OnInit {
 
     if (storedApiKeys.length > 0 && selectedApiKeyIndex < storedApiKeys.length) {
       const selectedApiKey = storedApiKeys[selectedApiKeyIndex].key;
-      this.initializeCerebras(selectedApiKey, storedBaseUrl);
+
+      if (storedBaseUrl) {
+        this.initializesdk(selectedApiKey, storedBaseUrl);
+      } else {
+        console.warn("No API Base URL found in storage. Using default.");
+        this.initializesdk(selectedApiKey); // Use default if not found
+      }
     } else {
-      console.warn("No API key selected. Please configure an API key in settings.");
+      console.warn(
+        'No API key selected. Please configure an API key in settings.'
+      );
     }
   }
 
-  initializeCerebras(apiKey: string, baseUrl?: string) {
+  initializesdk(apiKey: string, baseUrl?: string) {
     this.client = new OpenAI({
       apiKey,
       baseURL: baseUrl || 'https://api.cerebras.ai/',
@@ -209,40 +217,38 @@ export class HomePage implements OnInit {
 
     if (this.isMultimodalEnabled && imageContent) {
       const base64Image = await this.getBase64Image(imageContent);
-      this.messages.push({ 
-        role: 'user', 
+      this.messages.push({
+        role: 'user',
         content: messageContent,
-        image: imageContent 
+        image: imageContent,
       });
 
       const apiMessage = [
-        { type: "text", text: messageContent },
+        { type: 'text', text: messageContent },
         {
-          type: "image_url",
+          type: 'image_url',
           image_url: {
-            url: base64Image
-          }
-        }
+            url: base64Image,
+          },
+        },
       ];
 
       try {
         const response = await this.client.chat.completions.create({
-          model: "gpt-4-vision-preview",
-          messages: [
-            { role: "user", content: apiMessage }
-          ],
-          max_tokens: 300
+          model: 'mistralai/pixtral-12b:free',
+          messages: [{ role: 'user', content: apiMessage }],
+          max_tokens: 300,
         });
 
         this.messages.push({
           role: 'assistant',
-          content: response.choices[0].message.content
+          content: response.choices[0].message.content,
         });
       } catch (error) {
         console.error('Error calling OpenAI API:', error);
         this.messages.push({
           role: 'assistant',
-          content: 'Sorry, I encountered an error processing your image.'
+          content: 'Sorry, I encountered an error processing your image.',
         });
       }
     } else if (this.isMultiTurnCotEnabled) {
@@ -288,7 +294,8 @@ export class HomePage implements OnInit {
         }
 
         currentPrompt = this.followupPrompt;
-        currentPrompt.contextVariables!['previousReasoning'] = assistantMessage.content;
+        currentPrompt.contextVariables!['previousReasoning'] =
+          assistantMessage.content;
       }
 
       let synthesisPromptToSend = { ...this.synthesisPrompt };
@@ -453,7 +460,7 @@ export class HomePage implements OnInit {
 
   /**
    * Replaces context variables in a string with their corresponding values.
-   * 
+   *
    * @param text The string containing the context variables.
    * @param variables An object mapping context variable names to their values.
    * @returns The string with the context variables replaced.
@@ -470,7 +477,7 @@ export class HomePage implements OnInit {
 
   /**
    * Calculates the cosine similarity between two strings.
-   * 
+   *
    * @param str1 The first string.
    * @param str2 The second string.
    * @returns The cosine similarity between the two strings, a value between 0 and 1.

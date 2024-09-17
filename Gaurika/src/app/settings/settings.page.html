@@ -45,14 +45,14 @@
         <ion-label>API Selection</ion-label>
       </ion-item-divider>
       <ion-item>
-        <ion-label>API Provider</ion-label>
-        <ion-select [(ngModel)]="selectedApi" interface="action-sheet">
-          <ion-select-option *ngFor="let api of availableApis" [value]="api">
+        <ion-label>API Provider:</ion-label>
+        <ion-select [(ngModel)]="selectedApiProviderIndex" interface="action-sheet">
+          <ion-select-option *ngFor="let api of apiProviders; let i = index" [value]="i">
             {{ api.name }}
           </ion-select-option>
         </ion-select>
       </ion-item>
-      <ion-item *ngIf="selectedApi.name === 'Other (Custom)'">
+      <ion-item *ngIf="getSelectedApiProviderName() === 'Other (Custom)'">
         <ion-label position="floating">Custom API Base URL</ion-label>
         <ion-input [(ngModel)]="customApiBaseUrl"></ion-input>
       </ion-item>
@@ -63,16 +63,14 @@
         <ion-label>Model Settings</ion-label>
       </ion-item-divider>
       <ion-item>
-        <ion-label>Model</ion-label>
-        <ion-select [(ngModel)]="model" interface="action-sheet">
-          <ion-select-option value="llama3.1-8b">llama3.1-8b (Cerebras)</ion-select-option>
-          <ion-select-option value="llama3.1-70b">llama3.1-70b (Cerebras)</ion-select-option>
-          <ion-select-option value="llama-3.1-70b-versatile">llama3.1-70b (Groq)</ion-select-option>
-          <ion-select-option value="llama-3.1-8b-instant">llama3.1-8b (Groq)</ion-select-option>
-          <ion-select-option value="other">Other (Custom)</ion-select-option>
+        <ion-label>Model:</ion-label>
+        <ion-select [(ngModel)]="selectedModelIndex" interface="action-sheet">
+          <ion-select-option *ngFor="let model of models; let i = index" [value]="i">
+            {{ model.name }}
+          </ion-select-option>
         </ion-select>
       </ion-item>
-      <ion-item *ngIf="model === 'other'">
+      <ion-item *ngIf="getSelectedModelName() === 'Other (Custom)'">
         <ion-label position="floating">Custom Model Name</ion-label>
         <ion-input [(ngModel)]="customModel"></ion-input>
       </ion-item>
