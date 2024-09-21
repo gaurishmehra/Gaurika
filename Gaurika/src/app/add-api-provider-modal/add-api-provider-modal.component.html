@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Add/Edit API Provider</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="closeModal()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-label position="floating">Provider Name</ion-label>
+      <ion-input [(ngModel)]="apiProvider.name"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Base URL</ion-label>
+      <ion-input [(ngModel)]="apiProvider.baseUrl"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding">
+    <ion-button expand="block" (click)="saveApiProvider()">Save</ion-button>
+  </div>
+</ion-content>

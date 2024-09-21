@@ -42,37 +42,61 @@
 
     <ion-item-group>
       <ion-item-divider>
-        <ion-label>API Selection</ion-label>
+        <ion-label>API Providers</ion-label>
       </ion-item-divider>
+      <ion-item *ngFor="let provider of apiProviders; let i = index">
+        <ion-label>
+          <h2>{{ provider.name }}</h2>
+          <p *ngIf="provider.baseUrl">{{ provider.baseUrl }}</p>
+        </ion-label>
+        <ion-button slot="end" fill="clear" (click)="editApiProvider(i)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button slot="end" fill="clear" (click)="removeApiProvider(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-item button (click)="showAddApiProviderModal()">
+        <ion-label>Add New API Provider</ion-label>
+        <ion-icon name="add-outline" slot="end"></ion-icon>
+      </ion-item>
       <ion-item>
-        <ion-label>API Provider:</ion-label>
+        <ion-label>Selected API Provider:</ion-label>
         <ion-select [(ngModel)]="selectedApiProviderIndex" interface="action-sheet">
-          <ion-select-option *ngFor="let api of apiProviders; let i = index" [value]="i">
-            {{ api.name }}
+          <ion-select-option *ngFor="let provider of apiProviders; let i = index" [value]="i">
+            {{ provider.name }}
           </ion-select-option>
         </ion-select>
-      </ion-item>
-      <ion-item *ngIf="getSelectedApiProviderName() === 'Other (Custom)'">
-        <ion-label position="floating">Custom API Base URL</ion-label>
-        <ion-input [(ngModel)]="customApiBaseUrl"></ion-input>
       </ion-item>
     </ion-item-group>
 
     <ion-item-group>
       <ion-item-divider>
-        <ion-label>Model Settings</ion-label>
+        <ion-label>Models</ion-label>
       </ion-item-divider>
+      <ion-item *ngFor="let model of models; let i = index">
+        <ion-label>
+          <h2>{{ model.name }}</h2>
+          <p>{{ model.value }}</p>
+        </ion-label>
+        <ion-button slot="end" fill="clear" (click)="editModel(i)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button slot="end" fill="clear" (click)="removeModel(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-item button (click)="showAddModelModal()">
+        <ion-label>Add New Model</ion-label>
+        <ion-icon name="add-outline" slot="end"></ion-icon>
+      </ion-item>
       <ion-item>
-        <ion-label>Model:</ion-label>
+        <ion-label>Selected Model:</ion-label>
         <ion-select [(ngModel)]="selectedModelIndex" interface="action-sheet">
           <ion-select-option *ngFor="let model of models; let i = index" [value]="i">
             {{ model.name }}
           </ion-select-option>
         </ion-select>
-      </ion-item>
-      <ion-item *ngIf="getSelectedModelName() === 'Other (Custom)'">
-        <ion-label position="floating">Custom Model Name</ion-label>
-        <ion-input [(ngModel)]="customModel"></ion-input>
       </ion-item>
     </ion-item-group>
 
@@ -91,10 +115,25 @@
       </ion-item-divider>
       <ion-item>
         <ion-label>Enable Multi-Turn CoT</ion-label>
-        <ion-toggle [(ngModel)]="isMultiTurnCotEnabled"></ion-toggle>
+        <ion-toggle [(ngModel)]="isMultiTurnCotEnabled" (ionChange)="onCotToggleChange()"></ion-toggle> 
+      </ion-item>
+      <ion-item>
+        <ion-label>Enable Single-Turn CoT</ion-label>
+        <ion-toggle [(ngModel)]="isSingleTurnCotEnabled" (ionChange)="onCotToggleChange()"></ion-toggle>
       </ion-item>
     </ion-item-group>
-     <ion-item-group> 
+
+    <ion-item-group> 
+      <ion-item-divider>
+        <ion-label>Web Grounding</ion-label> 
+      </ion-item-divider>
+      <ion-item>
+        <ion-label>Enable Web Grounding</ion-label>
+        <ion-toggle [(ngModel)]="isWebGroundingEnabled"></ion-toggle>
+      </ion-item>
+    </ion-item-group>
+
+    <ion-item-group> 
       <ion-item-divider>
         <ion-label>Multimodal</ion-label>
       </ion-item-divider>

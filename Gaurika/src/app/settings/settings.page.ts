@@ -6,6 +6,11 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { AddApiKeyModalComponent } from '../add-api-key-modal/add-api-key-modal.component';
 
+// Assuming you have components for adding/editing providers and models
+import { AddApiProviderModalComponent } from '../add-api-provider-modal/add-api-provider-modal.component';
+import { AddModelModalComponent } from '../add-model-modal/add-model-modal.component';
+
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.page.html',
@@ -17,28 +22,16 @@ export class SettingsPage implements OnInit {
   apiKeys: { name: string, key: string }[] = [];
   selectedApiKeyIndex: number = 0;
 
-  apiProviders: { name: string, baseUrl: string }[] = [
-    { name: 'Cerebras', baseUrl: 'https://api.cerebras.ai/v1/' },
-    { name: 'Groq', baseUrl: 'https://api.groq.com/openai/v1' },
-    { name: 'SambaNova', baseUrl: 'https://fast-api.snova.ai/v1/' },
-    { name: 'Other (Custom)', baseUrl: '' }
-  ];
+  apiProviders: { name: string, baseUrl?: string }[] = []; 
   selectedApiProviderIndex: number = 0;
-  customApiBaseUrl: string = '';
 
-  models: { name: string, value: string }[] = [
-    { name: 'llama3.1-8b (Cerebras)', value: 'llama3.1-8b' },
-    { name: 'llama3.1-70b (Cerebras)', value: 'llama3.1-70b' },
-    { name: 'llama3.1-70b (Groq)', value: 'llama-3.1-70b-versatile' },
-    { name: 'llama3.1-8b (Groq)', value: 'llama-3.1-8b-instant' },
-    { name: 'llama3.1-405b (SambaNova)', value: 'Meta-Llama-3.1-405B-Instruct-8k' },
-    { name: 'Other (Custom)', value: 'other' }
-  ];
+  models: { name: string, value: string }[] = [];
   selectedModelIndex: number = 0;
-  customModel: string = '';
 
   systemPrompt = '';
   isMultiTurnCotEnabled = false;
+  isSingleTurnCotEnabled = false;
+  isWebGroundingEnabled = false;
   isMultimodalEnabled = false;
 
   constructor(
@@ -53,14 +46,16 @@ export class SettingsPage implements OnInit {
     this.apiKeys = await this.storage.get('apiKeys') || [];
     this.selectedApiKeyIndex = await this.storage.get('selectedApiKeyIndex') || 0;
 
+    this.apiProviders = await this.storage.get('apiProviders') || [];
     this.selectedApiProviderIndex = await this.storage.get('selectedApiProviderIndex') || 0;
-    this.customApiBaseUrl = await this.storage.get('customApiBaseUrl') || '';
 
+    this.models = await this.storage.get('models') || [];
     this.selectedModelIndex = await this.storage.get('selectedModelIndex') || 0;
-    this.customModel = await this.storage.get('customModel') || '';
 
     this.systemPrompt = await this.storage.get('systemPrompt') || '';
     this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
+    this.isSingleTurnCotEnabled = await this.storage.get('isSingleTurnCotEnabled') || false;
+    this.isWebGroundingEnabled = await this.storage.get('isWebGroundingEnabled') || false;
     this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
 
     // Ensure selectedApiKeyIndex is within bounds
@@ -76,10 +71,6 @@ export class SettingsPage implements OnInit {
     // Ensure selectedModelIndex is within bounds
     if (this.selectedModelIndex >= this.models.length) {
       this.selectedModelIndex = this.models.length > 0 ? this.models.length - 1 : 0;
-    }
-
-    if (this.getSelectedModelValue() === 'other' && this.customModel !== '') {
-      this.selectedModelIndex = this.models.length - 1; // Select "Other (Custom)"
     }
   }
 
@@ -125,28 +116,116 @@ export class SettingsPage implements OnInit {
     this.saveSettings();
   }
 
-  async saveSettings() {
-    let baseUrlToSave = this.getSelectedApiProviderBaseUrl();
+  async showAddApiProviderModal() {
+    const modal = await this.modalController.create({
+      component: AddApiProviderModalComponent, 
+    });
 
-    if (this.getSelectedApiProviderName() === 'Other (Custom)') {
-      baseUrlToSave = this.customApiBaseUrl;
+    modal.onDidDismiss().then((data) => {
+      if (data.data && data.data.name && data.data.baseUrl) {
+        this.apiProviders.push(data.data);
+        this.saveSettings();
+      }
+    });
+
+    return await modal.present();
+  }
+
+  async editApiProvider(index: number) { 
+    const modal = await this.modalController.create({
+      component: AddApiProviderModalComponent,
+      componentProps: {
+        apiProvider: this.apiProviders[index],
+        index: index
+      }
+    });
+
+    modal.onDidDismiss().then((data) => {
+      if (data.data && data.data.name && data.data.baseUrl) {
+        this.apiProviders[index] = data.data;
+        this.saveSettings();
+      }
+    });
+
+    return await modal.present();
+  }
+
+  removeApiProvider(index: number) {
+    this.apiProviders.splice(index, 1);
+    if (this.selectedApiProviderIndex === index) {
+      this.selectedApiProviderIndex = this.apiProviders.length > 0 ? 0 : 0;
     }
+    this.saveSettings();
+  }
 
+
+  async showAddModelModal() {
+    const modal = await this.modalController.create({
+      component: AddModelModalComponent, 
+    });
+
+    modal.onDidDismiss().then((data) => {
+      if (data.data && data.data.name && data.data.value) {
+        this.models.push(data.data);
+        this.saveSettings();
+      }
+    });
+
+    return await modal.present();
+  }
+
+  async editModel(index: number) { 
+    const modal = await this.modalController.create({
+      component: AddModelModalComponent,
+      componentProps: {
+        model: this.models[index],
+        index: index
+      }
+    });
+
+    modal.onDidDismiss().then((data) => {
+      if (data.data && data.data.name && data.data.value) {
+        this.models[index] = data.data;
+        this.saveSettings();
+      }
+    });
+
+    return await modal.present();
+  }
+
+  removeModel(index: number) {
+    this.models.splice(index, 1);
+    if (this.selectedModelIndex === index) {
+      this.selectedModelIndex = this.models.length > 0 ? 0 : 0;
+    }
+    this.saveSettings();
+  }
+
+
+  async saveSettings() {
     await this.storage.set('apiKeys', this.apiKeys);
     await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
 
+    await this.storage.set('apiProviders', this.apiProviders); 
     await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
-    await this.storage.set('customApiBaseUrl', this.customApiBaseUrl);
 
+    await this.storage.set('models', this.models);
     await this.storage.set('selectedModelIndex', this.selectedModelIndex);
-    await this.storage.set('customModel', this.customModel);
 
     await this.storage.set('systemPrompt', this.systemPrompt);
     await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
+    await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
+    await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
     await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
 
-    await this.storage.set('baseUrl', baseUrlToSave);
-    await this.storage.set('model', this.getSelectedModelValue()); // Save the selected model value
+    // You'll need to determine how to select and save the active 
+    // API provider and model based on the selected indices.
+    // For example:
+    const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
+    await this.storage.set('baseUrl', selectedApiProvider.baseUrl || ''); 
+
+    const selectedModel = this.models[this.selectedModelIndex];
+    await this.storage.set('model', selectedModel.value); 
 
     window.location.reload();
   }
@@ -164,7 +243,7 @@ export class SettingsPage implements OnInit {
   }
 
   getSelectedApiProviderBaseUrl(): string {
-    return this.apiProviders[this.selectedApiProviderIndex].baseUrl;
+    return this.apiProviders[this.selectedApiProviderIndex].baseUrl || ''; 
   }
 
   getSelectedModelName(): string {
@@ -172,10 +251,16 @@ export class SettingsPage implements OnInit {
   }
 
   getSelectedModelValue(): string {
-    if (this.selectedModelIndex === this.models.length - 1 && this.customModel !== '') { // "Other (Custom)"
-      return this.customModel; 
-    } else {
-      return this.models[this.selectedModelIndex].value;
+    return this.models[this.selectedModelIndex].value;
+  }
+
+  onCotToggleChange() {
+    if (this.isMultiTurnCotEnabled && this.isSingleTurnCotEnabled) {
+      if (this.isMultiTurnCotEnabled) { 
+        this.isSingleTurnCotEnabled = false;
+      } else {
+        this.isMultiTurnCotEnabled = false;
+      }
     }
   }
 }

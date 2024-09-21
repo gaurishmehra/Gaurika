@@ -48,6 +48,7 @@ export class HomePage implements OnInit {
   presentingElement: any;
   isStreaming = false;
   isMultiTurnCotEnabled = false;
+  isSingleTurnCotEnabled = false; 
   isMultimodalEnabled = false;
   selectedImage: string | null = null;
 
@@ -132,6 +133,46 @@ export class HomePage implements OnInit {
     contextVariables: { turn1: '', turn2: '', turn3: '' }
   };
 
+  initialSingleTurnPrompt: PromptModule = {
+    role: 'system',
+    content: `You are an AI assistant with exceptional analytical capabilities and a commitment to accuracy. Follow this precise structure:
+
+    1. INITIAL BRAINSTORMING (200-300 words):
+    Generate diverse ideas related to the question. Include conventional wisdom, expert opinions, and relevant facts. Prioritize accuracy but don't filter out unconventional thoughts.
+
+    2. INITIAL REASONING (400-500 words):
+    Develop a logical, fact-based argument to answer the question. Use credible information and sound logic. Present in numbered steps:
+    Step 1: [Statement based on verified information]
+        Explanation: [Detailed reasoning with supporting evidence]
+    Step 2: [Statement building on previous step]
+        Explanation: [Detailed reasoning with additional facts or expert insights]
+    [Continue for at least 5 steps, ensuring each step is logically sound and factually accurate]
+
+    3. CRITICAL ANALYSIS AND ALTERNATIVE APPROACH (500-600 words):
+    Rigorously examine your initial reasoning for potential flaws or oversights. Then, construct an alternative approach that:
+    a) Addresses any weaknesses in the initial reasoning
+    b) Considers the problem from a different, yet equally valid perspective
+    c) Incorporates any overlooked facts or alternative interpretations of data
+    Present this new reasoning in numbered steps:
+    Step 1: [Statement presenting a different, factually-supported viewpoint]
+        Explanation: [Detailed justification using credible information]
+    Step 2: [Statement building on the new approach]
+        Explanation: [Detailed reasoning with additional evidence]
+    [Continue for at least 6 steps, ensuring each step is logical and based on accurate information]
+
+    4. INITIAL ANSWER (100-150 words):
+    Based on your alternative approach, provide a clear, accurate answer to the question. Ensure it's supported by the facts and logic presented in your revised reasoning.
+
+    5. FINAL, COMPREHENSIVE, AND CORRECT ANSWER (200-250 words):
+    Formulate a final answer that MUST:
+    a) Synthesize the most accurate elements from both reasoning processes
+    b) Be more comprehensive and precise than the initial answer
+    c) Address any remaining uncertainties or potential objections
+    d) Be firmly grounded in factual information and sound logic
+
+    Throughout this process, prioritize accuracy and logical consistency. If at any point you realize you've made an error or have access to conflicting information, acknowledge it explicitly and correct your reasoning before moving to the next step.`
+};
+
   constructor(
     private router: Router,
     private storage: Storage,
@@ -147,6 +188,7 @@ export class HomePage implements OnInit {
     const storedSystemPrompt = await this.storage.get('systemPrompt');
     const storedSessions = await this.storage.get('sessions');
     this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
+    this.isSingleTurnCotEnabled = await this.storage.get('isSingleTurnCotEnabled') || false;
     this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
 
     if (storedModel) {
@@ -317,6 +359,32 @@ export class HomePage implements OnInit {
 
       const finalAnswer = synthesisResponse.choices[0].message.content;
       this.messages.push({ role: 'assistant', content: finalAnswer });
+
+      this.isStreaming = false;
+    } else if (this.isSingleTurnCotEnabled) {
+      this.messages.push({ role: 'user', content: messageContent });
+      this.isStreaming = true;
+
+      const response = await this.client.chat.completions.create({
+        messages: [this.initialSingleTurnPrompt, ...this.messages],
+        model: this.model,
+        temperature: .5,
+        top_p: 1,
+        stream: true,
+      });
+
+      let assistantMessage = { role: 'assistant', content: '' };
+      this.messages.push(assistantMessage);
+
+      for await (const part of response) {
+        if (part.choices[0].delta?.content) {
+          assistantMessage.content += part.choices[0].delta.content;
+        }
+
+        setTimeout(() => {
+          this.content.scrollToBottom(300);
+        });
+      }
 
       this.isStreaming = false;
     } else {

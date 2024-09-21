@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Add/Edit Model</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="closeModal()">Close</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item>
+      <ion-label position="floating">Model Name</ion-label>
+      <ion-input [(ngModel)]="model.name"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="floating">Model Value</ion-label>
+      <ion-input [(ngModel)]="model.value"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding">
+    <ion-button expand="block" (click)="saveModel()">Save</ion-button>
+  </div>
+</ion-content>
