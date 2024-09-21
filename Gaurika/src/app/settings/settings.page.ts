@@ -10,22 +10,21 @@ import { AddApiKeyModalComponent } from '../add-api-key-modal/add-api-key-modal.
 import { AddApiProviderModalComponent } from '../add-api-provider-modal/add-api-provider-modal.component';
 import { AddModelModalComponent } from '../add-model-modal/add-model-modal.component';
 
-
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.page.html',
   styleUrls: ['./settings.page.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, CommonModule]
+  imports: [IonicModule, FormsModule, CommonModule],
 })
 export class SettingsPage implements OnInit {
-  apiKeys: { name: string, key: string }[] = [];
+  apiKeys: { name: string; key: string }[] = [];
   selectedApiKeyIndex: number = 0;
 
-  apiProviders: { name: string, baseUrl?: string }[] = []; 
+  apiProviders: { name: string; baseUrl?: string }[] = [];
   selectedApiProviderIndex: number = 0;
 
-  models: { name: string, value: string }[] = [];
+  models: { name: string; value: string }[] = [];
   selectedModelIndex: number = 0;
 
   systemPrompt = '';
@@ -43,29 +42,35 @@ export class SettingsPage implements OnInit {
   async ngOnInit() {
     await this.storage.create();
 
-    this.apiKeys = await this.storage.get('apiKeys') || [];
-    this.selectedApiKeyIndex = await this.storage.get('selectedApiKeyIndex') || 0;
+    this.apiKeys = (await this.storage.get('apiKeys')) || [];
+    this.selectedApiKeyIndex = (await this.storage.get('selectedApiKeyIndex')) || 0;
 
-    this.apiProviders = await this.storage.get('apiProviders') || [];
-    this.selectedApiProviderIndex = await this.storage.get('selectedApiProviderIndex') || 0;
+    this.apiProviders = (await this.storage.get('apiProviders')) || [];
+    this.selectedApiProviderIndex =
+      (await this.storage.get('selectedApiProviderIndex')) || 0;
 
-    this.models = await this.storage.get('models') || [];
-    this.selectedModelIndex = await this.storage.get('selectedModelIndex') || 0;
+    this.models = (await this.storage.get('models')) || [];
+    this.selectedModelIndex = (await this.storage.get('selectedModelIndex')) || 0;
 
-    this.systemPrompt = await this.storage.get('systemPrompt') || '';
-    this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
-    this.isSingleTurnCotEnabled = await this.storage.get('isSingleTurnCotEnabled') || false;
-    this.isWebGroundingEnabled = await this.storage.get('isWebGroundingEnabled') || false;
-    this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
+    this.systemPrompt = (await this.storage.get('systemPrompt')) || '';
+    this.isMultiTurnCotEnabled =
+      (await this.storage.get('isMultiTurnCotEnabled')) || false;
+    this.isSingleTurnCotEnabled =
+      (await this.storage.get('isSingleTurnCotEnabled')) || false;
+    this.isWebGroundingEnabled =
+      (await this.storage.get('isWebGroundingEnabled')) || false;
+    this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
 
     // Ensure selectedApiKeyIndex is within bounds
     if (this.selectedApiKeyIndex >= this.apiKeys.length) {
-      this.selectedApiKeyIndex = this.apiKeys.length > 0 ? this.apiKeys.length - 1 : 0;
+      this.selectedApiKeyIndex =
+        this.apiKeys.length > 0 ? this.apiKeys.length - 1 : 0;
     }
 
     // Ensure selectedApiProviderIndex is within bounds
     if (this.selectedApiProviderIndex >= this.apiProviders.length) {
-      this.selectedApiProviderIndex = this.apiProviders.length > 0 ? this.apiProviders.length - 1 : 0;
+      this.selectedApiProviderIndex =
+        this.apiProviders.length > 0 ? this.apiProviders.length - 1 : 0;
     }
 
     // Ensure selectedModelIndex is within bounds
@@ -94,8 +99,8 @@ export class SettingsPage implements OnInit {
       component: AddApiKeyModalComponent,
       componentProps: {
         apiKey: this.apiKeys[index],
-        index: index
-      }
+        index: index,
+      },
     });
 
     modal.onDidDismiss().then((data) => {
@@ -118,7 +123,7 @@ export class SettingsPage implements OnInit {
 
   async showAddApiProviderModal() {
     const modal = await this.modalController.create({
-      component: AddApiProviderModalComponent, 
+      component: AddApiProviderModalComponent,
     });
 
     modal.onDidDismiss().then((data) => {
@@ -131,13 +136,13 @@ export class SettingsPage implements OnInit {
     return await modal.present();
   }
 
-  async editApiProvider(index: number) { 
+  async editApiProvider(index: number) {
     const modal = await this.modalController.create({
       component: AddApiProviderModalComponent,
       componentProps: {
         apiProvider: this.apiProviders[index],
-        index: index
-      }
+        index: index,
+      },
     });
 
     modal.onDidDismiss().then((data) => {
@@ -158,10 +163,9 @@ export class SettingsPage implements OnInit {
     this.saveSettings();
   }
 
-
   async showAddModelModal() {
     const modal = await this.modalController.create({
-      component: AddModelModalComponent, 
+      component: AddModelModalComponent,
     });
 
     modal.onDidDismiss().then((data) => {
@@ -174,13 +178,13 @@ export class SettingsPage implements OnInit {
     return await modal.present();
   }
 
-  async editModel(index: number) { 
+  async editModel(index: number) {
     const modal = await this.modalController.create({
       component: AddModelModalComponent,
       componentProps: {
         model: this.models[index],
-        index: index
-      }
+        index: index,
+      },
     });
 
     modal.onDidDismiss().then((data) => {
@@ -201,13 +205,15 @@ export class SettingsPage implements OnInit {
     this.saveSettings();
   }
 
-
   async saveSettings() {
     await this.storage.set('apiKeys', this.apiKeys);
     await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
 
-    await this.storage.set('apiProviders', this.apiProviders); 
-    await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
+    await this.storage.set('apiProviders', this.apiProviders);
+    await this.storage.set(
+      'selectedApiProviderIndex',
+      this.selectedApiProviderIndex
+    );
 
     await this.storage.set('models', this.models);
     await this.storage.set('selectedModelIndex', this.selectedModelIndex);
@@ -218,14 +224,12 @@ export class SettingsPage implements OnInit {
     await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
     await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
 
-    // You'll need to determine how to select and save the active 
-    // API provider and model based on the selected indices.
-    // For example:
+    // Select and save the active API provider and model
     const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
-    await this.storage.set('baseUrl', selectedApiProvider.baseUrl || ''); 
+    await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
 
     const selectedModel = this.models[this.selectedModelIndex];
-    await this.storage.set('model', selectedModel.value); 
+    await this.storage.set('model', selectedModel.value);
 
     window.location.reload();
   }
@@ -243,7 +247,7 @@ export class SettingsPage implements OnInit {
   }
 
   getSelectedApiProviderBaseUrl(): string {
-    return this.apiProviders[this.selectedApiProviderIndex].baseUrl || ''; 
+    return this.apiProviders[this.selectedApiProviderIndex].baseUrl || '';
   }
 
   getSelectedModelName(): string {
@@ -256,11 +260,24 @@ export class SettingsPage implements OnInit {
 
   onCotToggleChange() {
     if (this.isMultiTurnCotEnabled && this.isSingleTurnCotEnabled) {
-      if (this.isMultiTurnCotEnabled) { 
+      if (this.isMultiTurnCotEnabled) {
         this.isSingleTurnCotEnabled = false;
       } else {
         this.isMultiTurnCotEnabled = false;
       }
+    }
+
+    // Ensure only one CoT or Web Grounding is enabled at a time
+    if (this.isMultiTurnCotEnabled || this.isSingleTurnCotEnabled) {
+      this.isWebGroundingEnabled = false;
+    }
+  }
+
+  onWebGroundingToggleChange() {
+    // Ensure only one CoT or Web Grounding is enabled at a time
+    if (this.isWebGroundingEnabled) {
+      this.isMultiTurnCotEnabled = false;
+      this.isSingleTurnCotEnabled = false;
     }
   }
 }

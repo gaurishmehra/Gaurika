@@ -16,6 +16,8 @@ interface Message {
   role: string;
   content: string;
   image?: string;
+  tool_call_id?: string;
+  isToolCallInProgress?: boolean; // For UI management
 }
 
 interface PromptModule {
@@ -48,8 +50,9 @@ export class HomePage implements OnInit {
   presentingElement: any;
   isStreaming = false;
   isMultiTurnCotEnabled = false;
-  isSingleTurnCotEnabled = false; 
+  isSingleTurnCotEnabled = false;
   isMultimodalEnabled = false;
+  isWebGroundingEnabled = false;
   selectedImage: string | null = null;
 
   initialPrompt: PromptModule = {
@@ -66,7 +69,7 @@ export class HomePage implements OnInit {
              ... [Continue with as many steps as needed]
 
              ## Answer:
-             [Present your final answer here, concisely and clearly derived from the step-by-step reasoning process above.]`
+             [Present your final answer here, concisely and clearly derived from the step-by-step reasoning process above.]`,
   };
 
   followupPrompt: PromptModule = {
@@ -96,7 +99,7 @@ export class HomePage implements OnInit {
 
              ## Answer:
              [Present your updated and refined answer based on the analysis and new reasoning steps.]`,
-    contextVariables: { previousReasoning: '' }
+    contextVariables: { previousReasoning: '' },
   };
 
   synthesisPrompt: PromptModule = {
@@ -130,7 +133,7 @@ export class HomePage implements OnInit {
              ## Final Answer:
              [Present your final, synthesized answer. This answer should be clear, concise, and easily 
               understood by a general audience.]`,
-    contextVariables: { turn1: '', turn2: '', turn3: '' }
+    contextVariables: { turn1: '', turn2: '', turn3: '' },
   };
 
   initialSingleTurnPrompt: PromptModule = {
@@ -170,8 +173,8 @@ export class HomePage implements OnInit {
     c) Address any remaining uncertainties or potential objections
     d) Be firmly grounded in factual information and sound logic
 
-    Throughout this process, prioritize accuracy and logical consistency. If at any point you realize you've made an error or have access to conflicting information, acknowledge it explicitly and correct your reasoning before moving to the next step.`
-};
+    Throughout this process, prioritize accuracy and logical consistency. If at any point you realize you've made an error or have access to conflicting information, acknowledge it explicitly and correct your reasoning before moving to the next step.`,
+  };
 
   constructor(
     private router: Router,
@@ -190,6 +193,7 @@ export class HomePage implements OnInit {
     this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
     this.isSingleTurnCotEnabled = await this.storage.get('isSingleTurnCotEnabled') || false;
     this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
+    this.isWebGroundingEnabled = await this.storage.get('isWebGroundingEnabled') || false;
 
     if (storedModel) {
       this.model = storedModel;
@@ -227,7 +231,7 @@ export class HomePage implements OnInit {
       if (storedBaseUrl) {
         this.initializesdk(selectedApiKey, storedBaseUrl);
       } else {
-        console.warn("No API Base URL found in storage. Using default.");
+        console.warn('No API Base URL found in storage. Using default.');
         this.initializesdk(selectedApiKey); // Use default if not found
       }
     } else {
@@ -277,7 +281,7 @@ export class HomePage implements OnInit {
 
       try {
         const response = await this.client.chat.completions.create({
-          model: 'mistralai/pixtral-12b:free',
+          model: this.model,
           messages: [{ role: 'user', content: apiMessage }],
           max_tokens: 300,
         });
@@ -368,7 +372,7 @@ export class HomePage implements OnInit {
       const response = await this.client.chat.completions.create({
         messages: [this.initialSingleTurnPrompt, ...this.messages],
         model: this.model,
-        temperature: .5,
+        temperature: 0.5,
         top_p: 1,
         stream: true,
       });
@@ -386,6 +390,98 @@ export class HomePage implements OnInit {
         });
       }
 
+      this.isStreaming = false;
+    } else if (this.isWebGroundingEnabled) {
+      // Web Grounding Logic
+      this.messages.push({ role: 'user', content: messageContent });
+      this.isStreaming = true;
+
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'webgroundtool',
+            description:
+              'Use this tool to search the web for factual information related to the user\'s request.',
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'query to search the web',
+                },
+              },
+              required: ['query'],
+            },
+          },
+        },
+      ];
+
+      const runConversation = async (isInitialCall = true) => {
+        // Filter out tool messages before sending to OpenAI
+        const messagesToSend = isInitialCall 
+          ? this.messages.filter(m => m.role !== 'abc')
+          : this.messages;
+        // console.log('messagesToSend:', messagesToSend);
+        const response = await this.client.chat.completions.create({
+          messages: [
+            ...(this.systemPrompt
+              ? [{ role: 'system', content: this.systemPrompt }]
+              : []),
+            ...messagesToSend, 
+          ],
+          model: this.model,
+          temperature: 0.75,
+          stream: true,
+          tools: isInitialCall ? tools : undefined, 
+        });
+        this.messages = this.messages.filter(m => m.role !== 'tool');
+
+        let assistantMessage = { role: 'assistant', content: '' };
+        this.messages.push(assistantMessage);
+
+        for await (const part of response) {
+          if (part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
+          } else if (part.choices[0].delta?.tool_calls) {
+            const toolCall = part.choices[0].delta.tool_calls[0];
+            if (toolCall.function.name === 'webgroundtool') {
+              const args = JSON.parse(toolCall.function.arguments);
+              const query = args.query;
+
+              this.messages.push({
+                role: 'tool',
+                content: 'Scraping the web...',
+                tool_call_id: toolCall.id,
+                isToolCallInProgress: true, 
+              });
+
+              if (query) {
+                const webgroundingResult = await this.webgroundtool(query);
+
+                // Remove the "Scraping the web..." message
+                this.messages = this.messages.filter(
+                  (m) => m.tool_call_id !== toolCall.id
+                );
+
+                this.messages.push({
+                  role: 'tool',
+                  content: webgroundingResult,
+                  tool_call_id: toolCall.id,
+                });
+                await runConversation(false);
+                return;
+              }
+            }
+          }
+
+          setTimeout(() => {
+            this.content.scrollToBottom(300);
+          });
+        }
+      };
+
+      await runConversation(); 
       this.isStreaming = false;
     } else {
       this.messages.push({ role: 'user', content: messageContent });
@@ -421,7 +517,7 @@ export class HomePage implements OnInit {
 
     this.userInput = '';
     this.selectedImage = null;
-    this.saveCurrentSession();
+    this.saveCurrentSession(); 
     setTimeout(() => {
       this.content.scrollToBottom(300);
     });
@@ -526,13 +622,6 @@ export class HomePage implements OnInit {
     }
   }
 
-  /**
-   * Replaces context variables in a string with their corresponding values.
-   *
-   * @param text The string containing the context variables.
-   * @param variables An object mapping context variable names to their values.
-   * @returns The string with the context variables replaced.
-   */
   replaceContextVariables(
     text: string,
     variables: { [key: string]: string }
@@ -543,13 +632,6 @@ export class HomePage implements OnInit {
     return text;
   }
 
-  /**
-   * Calculates the cosine similarity between two strings.
-   *
-   * @param str1 The first string.
-   * @param str2 The second string.
-   * @returns The cosine similarity between the two strings, a value between 0 and 1.
-   */
   calculateCosineSimilarity(str1: string, str2: string): number {
     const words1 = str1.toLowerCase().split(/\s+/);
     const words2 = str2.toLowerCase().split(/\s+/);
@@ -582,5 +664,23 @@ export class HomePage implements OnInit {
     }
 
     return dotProduct / (Math.sqrt(magnitude1) * Math.sqrt(magnitude2));
+  }
+
+  async webgroundtool(query: string): Promise<string> {
+    console.log('webgroundtool called with query:', query);
+    // Replace with your actual web grounding implementation (e.g., using a search API)
+    return `sam altman is gay`; 
+  }
+
+  getFilteredMessages(): Message[] {
+    return this.messages.filter(m => m.role !== 'tool'); // Filter out tool messages
+  }
+
+  isToolCallInProgress(): boolean {
+    return this.messages.some(m => m.isToolCallInProgress);
+  }
+
+  getToolCallInProgressMessage(): string {
+    return this.messages.find(m => m.isToolCallInProgress)?.content || '';
   }
 }

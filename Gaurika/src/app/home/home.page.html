@@ -16,7 +16,7 @@
 
 <ion-content [fullscreen]="true">
   <ion-list lines="none">
-    <ion-item *ngFor="let message of messages">
+    <ion-item *ngFor="let message of getFilteredMessages()"> 
       <ion-label
         [class.user-message]="message.role === 'user'"
         [class.assistant-message]="message.role === 'assistant'"
@@ -31,7 +31,10 @@
     <ion-item *ngIf="isStreaming">
       <ion-label class="writing-message">
         <span class="message-sender">{{ model }}: </span> 
-        <p class="message-content">Writing...</p> 
+        <ion-spinner *ngIf="!isToolCallInProgress()" name="crescent"></ion-spinner>
+        <p class="message-content">
+          {{ isToolCallInProgress() ? getToolCallInProgressMessage() : 'Writing...' }} 
+        </p> 
       </ion-label>
     </ion-item>
   </ion-list>
