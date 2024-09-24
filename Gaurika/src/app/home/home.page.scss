@@ -69,8 +69,12 @@ ion-header {
   }
 
   &.floating-header {
+    background-color: transparent;
+    --background: transparent;
     ion-toolbar {
       margin-top: 5px;
+      --background: transparent;
+      background-color: transparent;
     }
   }
 }
