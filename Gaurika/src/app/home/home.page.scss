@@ -37,7 +37,7 @@ body {
 
 ion-content {
   --ion-background-color: #{$background-dark};
-  --padding-bottom: 100px; // Increased padding to accommodate bottom bar and image preview
+  --padding-bottom: 100px;
 }
 
 // Header Styles
@@ -46,7 +46,7 @@ ion-header {
     --background: transparent;
     --border-width: 0;
     @include glass-effect;
-    @include rounded-corners; 
+    @include rounded-corners;
 
     &::after {
       display: none;
@@ -55,17 +55,6 @@ ion-header {
     ion-title {
       font-size: 1.2rem;
       font-weight: 600;
-      text-align: center;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-
-      ion-icon {
-        margin-left: 8px;
-        font-size: 1.2rem;
-      }
     }
 
     ion-buttons {
@@ -90,7 +79,7 @@ ion-header {
 ion-list {
   background: transparent;
   padding: 16px;
-  margin-bottom: 100px; // Added margin to prevent messages from being hidden
+  margin-bottom: 100px;
 }
 
 ion-item {
@@ -102,7 +91,7 @@ ion-item {
 
   ion-label {
     @include rounded-corners;
-    @include glass-effect; 
+    @include glass-effect;
     padding: 16px;
 
     &.user-message {
@@ -143,8 +132,9 @@ ion-item {
     .message-image {
       max-width: 100%;
       height: auto;
-      display: block; 
+      display: block;
       margin-top: 10px;
+      @include rounded-corners(8px);
     }
   }
 }
@@ -156,7 +146,7 @@ ion-item {
   left: 16px;
   right: 16px;
   @include rounded-corners;
-  @include glass-effect; 
+  @include glass-effect;
   padding: 8px;
   z-index: 1000;
 
@@ -202,7 +192,29 @@ ion-item {
         --background: #{darken($accent-color, 10%)};
       }
     }
+
+    .upload-button {
+      --background: transparent;
+      --color: #{$accent-color};
+      --border-radius: 50%;
+      --box-shadow: none;
+      width: 45px;
+      margin-left: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      @include soft-transition;
+
+      &:hover {
+        --background: rgba($accent-color, 0.1);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
   }
+
   .image-preview {
     margin-top: 10px;
     display: flex;
@@ -211,44 +223,23 @@ ion-item {
     img {
       max-width: 200px;
       max-height: 150px;
-      border-radius: 10px; 
+      border-radius: 10px;
     }
 
     ion-button {
       margin-left: 10px;
-    }
-  }
-  .upload-button {
-    --background: transparent; // Remove default background
-    --color: #{$accent-color}; // Use accent color
-    --border-radius: 50%; // Make it circular
-    --box-shadow: none; // Remove default box shadow
-    // height: 45px;
-    width: 75px; // Make it square
-    margin-left: 0px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    @include soft-transition;
-
-    &:hover {
-      --background: rgba($accent-color, 0.1); // Subtle hover effect
-    }
-
-    ion-icon {
-      font-size: 20px; // Adjust icon size as needed
+      --color: #{$accent-color};
     }
   }
 }
 
-
-// Modal Styles 
+// Modal Styles
 .session-menu,
 .create-session-modal {
   --background: #{rgba($background-light, 0.8)};
   --width: 90%;
   --max-width: 400px;
-  @include rounded-corners(20px); 
+  @include rounded-corners(20px);
   @include glass-effect;
 
   ion-header ion-toolbar {
@@ -260,6 +251,7 @@ ion-item {
       text-align: center;
       width: 100%;
     }
+
     ion-buttons {
       ion-button {
         --color: #{$accent-color};
@@ -304,7 +296,7 @@ ion-item {
     --background: #{$accent-color};
     --color: #{$text-color};
     @include rounded-corners(16px);
-    margin: 24px 16px; 
+    margin: 24px 16px;
     height: 54px;
     font-size: 18px;
     font-weight: 600;
@@ -317,7 +309,6 @@ ion-item {
     }
   }
 }
-
 
 // Animations
 @keyframes fadeInUp {
@@ -336,5 +327,17 @@ ion-item {
 }
 
 .writing-message {
-  animation: pulse 1s infinite; 
+  animation: pulse 1s infinite;
+}
+
+// Responsive adjustments
+@media (max-width: 576px) {
+  .bottom-bar {
+    left: 8px;
+    right: 8px;
+  }
+
+  ion-list {
+    padding: 8px;
+  }
 }
