@@ -2,8 +2,10 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="toggleSessionMenu()">
-        <ion-label>{{ currentSessionName }}</ion-label>
-        <ion-icon slot="end" name="chevron-down-outline"></ion-icon>
+        <div class="ion-padding"> 
+          <ion-icon slot="start" name="folder-open-outline"></ion-icon> 
+          <ion-label *ngIf="!showTemplatesPage">{{ currentSessionName }}</ion-label>
+        </div>
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
@@ -15,70 +17,76 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-list lines="none">
-    <ion-item *ngFor="let message of getFilteredMessages()"> 
-      <ion-label
-        [class.user-message]="message.role === 'user'"
-        [class.assistant-message]="message.role === 'assistant'"
-      >
-        <span class="message-sender">
-          {{ message.role === 'user' ? 'User' : model }}: 
-        </span>
-        <p class="message-content">{{ message.content }}</p>
-        <img *ngIf="message.image" [src]="message.image" class="message-image" /> 
-      </ion-label>
-    </ion-item>
-    <ion-item *ngIf="isStreaming">
-      <ion-label class="writing-message">
-        <span class="message-sender">{{ model }}: </span> 
-        <ion-spinner *ngIf="!isToolCallInProgress()" name="crescent"></ion-spinner>
-        <p class="message-content">
-          {{ isToolCallInProgress() ? getToolCallInProgressMessage() : 'Writing...' }} 
-        </p> 
-      </ion-label>
-    </ion-item>
-  </ion-list>
+  <div class="content-container">
+    <div *ngIf="showTemplatesPage" class="templates-page">
+      <div class="templates-header">
+        <h1 class="page-title">Choose Your Adventure</h1>
+        <p class="page-subtitle">Select a conversation starter to begin.</p>
+      </div>
 
-  <div class="bottom-bar">
-    <div class="bottom-toolbar">
-      <ion-input
-        [(ngModel)]="userInput"
-        placeholder="Enter your message..."
-      ></ion-input>
-      <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()">
-        <ion-icon name="attach-outline"></ion-icon> 
-      </ion-button>
-      <input
-        type="file"
-        #fileInput
-        (change)="onFileSelected($event)"
-        style="display: none;"
-        accept="image/*"
-      >
-      <ion-button
-        class="send-button"
-        (click)="sendMessage()"
-        [disabled]="isStreaming || (userInput === '' && !selectedImage)" 
-      >
-        Send
-      </ion-button>
+      <div class="templates-grid">
+        <div *ngFor="let template of templateConversations" class="template-item" (click)="startConversation(template)">
+          <div class="template-icon">
+            <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon> 
+          </div>
+          <div class="template-content">
+            <h2 class="template-title">{{ template.name }}</h2>
+            <p class="template-description">{{ template.prompt }}</p>
+          </div>
+        </div>
+      </div>
     </div>
-    <div *ngIf="selectedImage" class="image-preview">
-      <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" /> 
-      <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
-        <ion-icon name="close-circle"></ion-icon>
-      </ion-button>
+
+    <div *ngIf="!showTemplatesPage" class="chat-page">
+      <ion-list lines="none">
+        <ion-item *ngFor="let message of getFilteredMessages()">
+          <ion-label
+            [class.user-message]="message.role === 'user'"
+            [class.assistant-message]="message.role === 'assistant'"
+          >
+            <span class="message-sender">
+              {{ message.role === 'user' ? 'User' : model }}:
+            </span>
+            <p class="message-content">{{ message.content }}</p>
+            <img *ngIf="message.image" [src]="message.image" class="message-image" />
+          </ion-label>
+        </ion-item>
+        <ion-item *ngIf="isStreaming">
+          <ion-label class="writing-message">
+            <span class="message-sender">{{ model }}: </span>
+            <ion-spinner *ngIf="!isToolCallInProgress()" name="crescent"></ion-spinner>
+            <p class="message-content">
+              {{ isToolCallInProgress() ? getToolCallInProgressMessage() : 'Writing...' }}
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <div class="bottom-bar">
+        <div class="bottom-toolbar">
+          <ion-input [(ngModel)]="userInput" placeholder="Enter your message..."></ion-input>
+          <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()">
+            <ion-icon name="attach-outline"></ion-icon>
+          </ion-button>
+          <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
+          <ion-button class="send-button" (click)="sendMessage()"
+            [disabled]="isStreaming || (userInput === '' && !selectedImage)">
+            Send
+          </ion-button>
+        </div>
+        <div *ngIf="selectedImage" class="image-preview">
+          <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
+          <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+            <ion-icon name="close-circle"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
     </div>
   </div>
 </ion-content>
 
-<ion-modal 
-  [isOpen]="isSessionMenuOpen"
-  class="session-menu"
-  [presentingElement]="presentingElement"
-  [canDismiss]="true"
-  (ionModalDidDismiss)="isSessionMenuOpen = false"
->
+<ion-modal [isOpen]="isSessionMenuOpen" class="session-menu" [presentingElement]="presentingElement" [canDismiss]="true"
+  (ionModalDidDismiss)="isSessionMenuOpen = false">
   <ng-template>
     <ion-header>
       <ion-toolbar>
@@ -90,17 +98,9 @@
     </ion-header>
     <ion-content class="ion-padding">
       <ion-list>
-        <ion-item
-          *ngFor="let session of sessions; let i = index"
-          (click)="switchSession(i)"
-        >
+        <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
           {{ session.name }}
-          <ion-button
-            slot="end"
-            fill="clear"
-            color="danger"
-            (click)="deleteSession(i)"
-          >
+          <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
             <ion-icon name="trash-outline"></ion-icon>
           </ion-button>
         </ion-item>
@@ -112,13 +112,8 @@
   </ng-template>
 </ion-modal>
 
-<ion-modal
-  [isOpen]="isCreateSessionModalOpen"
-  class="create-session-modal"
-  [presentingElement]="presentingElement"
-  [canDismiss]="true"
-  (ionModalDidDismiss)="isCreateSessionModalOpen = false"
->
+<ion-modal [isOpen]="isCreateSessionModalOpen" class="create-session-modal" [presentingElement]="presentingElement"
+  [canDismiss]="true" (ionModalDidDismiss)="isCreateSessionModalOpen = false">
   <ng-template>
     <ion-header>
       <ion-toolbar>

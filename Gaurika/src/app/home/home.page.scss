@@ -341,3 +341,136 @@ ion-item {
     padding: 8px;
   }
 }
+.templates-page {
+  background-color: $background-dark;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+
+  .templates-header {
+    padding: 40px 20px 30px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba($secondary-color, 0.8), rgba($secondary-color, 0.6));
+    @include rounded-corners(20px 20px 20px 20px);
+    margin: 20px; 
+
+    .page-title {
+      font-size: 3rem; 
+      font-weight: bold;
+      color: $text-color;
+      margin-bottom: 12px; 
+    }
+
+    .page-subtitle {
+      font-size: 1.4rem; 
+      color: $text-color;
+      opacity: 0.8;
+    }
+  }
+
+  .templates-grid {
+    margin: 20px; // Reduced margin for mobile
+    padding: 20px 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .template-item {
+      @include glass-effect;
+      @include rounded-corners;
+      @include soft-transition;
+      width: 100%;
+      max-width: 350px;
+      min-height: 150px;
+      display: flex;
+      align-items: center;
+      padding: 25px;
+      border: 2px solid transparent;
+      cursor: pointer; 
+
+      &:hover {
+        transform: translateY(-5px);
+        border-color: $accent-color;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      &:active {
+        transform: translateY(-2px); 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); 
+      }
+
+      .template-icon {
+        width: 64px; 
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 20px;
+
+        ion-icon {
+          font-size: 2.8rem; 
+          color: $accent-color;
+        }
+      }
+
+      .template-content {
+        .template-title {
+          font-size: 1.8rem; 
+          font-weight: 600;
+          color: $text-color;
+          margin-bottom: 10px; 
+        }
+
+        .template-description {
+          font-size: 1.1rem; 
+          color: $muted-text;
+        }
+      }
+    }
+  }
+
+  // Media Query for Mobile Responsiveness
+  @media (max-width: 768px) { // Adjust breakpoint as needed
+    .templates-header {
+      margin: 10px; // Reduced margin
+      .page-title {
+        font-size: 2.4rem; // Reduced font size
+      }
+      .page-subtitle {
+        font-size: 1.2rem; // Reduced font size
+      }
+    }
+
+    .templates-grid {
+      margin: 10px; // Reduced margin
+      gap: 15px; // Reduced gap
+
+      .template-item {
+        max-width: 100%; // Full width on mobile
+        padding: 20px; // Reduced padding
+        .template-icon {
+          width: 50px; // Reduced icon size
+          height: 50px;
+          margin-right: 15px; // Reduced margin
+
+          ion-icon {
+            font-size: 2.2rem; // Reduced icon size
+          }
+        }
+        .template-content {
+          .template-title {
+            font-size: 1.6rem; // Reduced font size
+          }
+          .template-description {
+            font-size: 1rem; // Reduced font size
+          }
+        }
+      }
+    }
+  }
+}

@@ -17,7 +17,7 @@ interface Message {
   content: string;
   image?: string;
   tool_call_id?: string;
-  isToolCallInProgress?: boolean; // For UI management
+  isToolCallInProgress?: boolean;
 }
 
 interface PromptModule {
@@ -54,6 +54,24 @@ export class HomePage implements OnInit {
   isMultimodalEnabled = false;
   isWebGroundingEnabled = false;
   selectedImage: string | null = null;
+  showTemplatesPage = true;
+
+  templateConversations: { name: string; prompt: string }[] = [
+    {
+      name: 'Creative Writing',
+      prompt:
+        'Write a short story about a talking cat who goes on an adventure.',
+    },
+    {
+      name: 'Code Generation',
+      prompt:
+        'Generate Python code for a function that calculates the factorial of a number.',
+    },
+    {
+      name: 'Problem Solving',
+      prompt: 'Explain how to solve a Rubik\'s Cube step-by-step.',
+    },
+  ];
 
   initialPrompt: PromptModule = {
     role: 'system',
@@ -186,14 +204,17 @@ export class HomePage implements OnInit {
   async ngOnInit() {
     await this.storage.create();
 
-    // Retrieve stored settings
     const storedModel = await this.storage.get('model');
     const storedSystemPrompt = await this.storage.get('systemPrompt');
     const storedSessions = await this.storage.get('sessions');
-    this.isMultiTurnCotEnabled = await this.storage.get('isMultiTurnCotEnabled') || false;
-    this.isSingleTurnCotEnabled = await this.storage.get('isSingleTurnCotEnabled') || false;
-    this.isMultimodalEnabled = await this.storage.get('isMultimodalEnabled') || false;
-    this.isWebGroundingEnabled = await this.storage.get('isWebGroundingEnabled') || false;
+    this.isMultiTurnCotEnabled =
+      (await this.storage.get('isMultiTurnCotEnabled')) || false;
+    this.isSingleTurnCotEnabled =
+      (await this.storage.get('isSingleTurnCotEnabled')) || false;
+    this.isMultimodalEnabled =
+      (await this.storage.get('isMultimodalEnabled')) || false;
+    this.isWebGroundingEnabled =
+      (await this.storage.get('isWebGroundingEnabled')) || false;
 
     if (storedModel) {
       this.model = storedModel;
@@ -205,11 +226,8 @@ export class HomePage implements OnInit {
 
     if (storedSessions) {
       this.sessions = storedSessions;
-    } else {
-      this.sessions.push({ name: 'Default Session', messages: [] });
     }
 
-    this.loadCurrentSession();
     this.presentingElement = document.querySelector('.ion-page');
 
     if (this.platform.is('android')) {
@@ -221,18 +239,22 @@ export class HomePage implements OnInit {
   }
 
   async initializeOpenAIClient() {
-    const storedApiKeys = await this.storage.get('apiKeys') || [];
-    const selectedApiKeyIndex = await this.storage.get('selectedApiKeyIndex') || 0;
+    const storedApiKeys = (await this.storage.get('apiKeys')) || [];
+    const selectedApiKeyIndex =
+      (await this.storage.get('selectedApiKeyIndex')) || 0;
     const storedBaseUrl = await this.storage.get('baseUrl');
 
-    if (storedApiKeys.length > 0 && selectedApiKeyIndex < storedApiKeys.length) {
+    if (
+      storedApiKeys.length > 0 &&
+      selectedApiKeyIndex < storedApiKeys.length
+    ) {
       const selectedApiKey = storedApiKeys[selectedApiKeyIndex].key;
 
       if (storedBaseUrl) {
         this.initializesdk(selectedApiKey, storedBaseUrl);
       } else {
         console.warn('No API Base URL found in storage. Using default.');
-        this.initializesdk(selectedApiKey); // Use default if not found
+        this.initializesdk(selectedApiKey);
       }
     } else {
       console.warn(
@@ -253,7 +275,9 @@ export class HomePage implements OnInit {
     if (!this.client) {
       await this.initializeOpenAIClient();
       if (!this.client) {
-        alert('API client not initialized. Please check your API key settings.');
+        alert(
+          'API client not initialized. Please check your API key settings.'
+        );
         return;
       }
     }
@@ -335,7 +359,10 @@ export class HomePage implements OnInit {
 
         turns.push(assistantMessage.content);
 
-        if (i > 0 && this.calculateCosineSimilarity(turns[i - 1], turns[i]) > 0.8) {
+        if (
+          i > 0 &&
+          this.calculateCosineSimilarity(turns[i - 1], turns[i]) > 0.8
+        ) {
           break;
         }
 
@@ -392,7 +419,6 @@ export class HomePage implements OnInit {
 
       this.isStreaming = false;
     } else if (this.isWebGroundingEnabled) {
-      // Web Grounding Logic
       this.messages.push({ role: 'user', content: messageContent });
       this.isStreaming = true;
 
@@ -402,7 +428,7 @@ export class HomePage implements OnInit {
           function: {
             name: 'webgroundtool',
             description:
-              'Use this tool to search the web for factual information related to the user\'s request.',
+              "Use this tool to search the web for factual information related to the user's request.",
             parameters: {
               type: 'object',
               properties: {
@@ -418,24 +444,22 @@ export class HomePage implements OnInit {
       ];
 
       const runConversation = async (isInitialCall = true) => {
-        // Filter out tool messages before sending to OpenAI
-        const messagesToSend = isInitialCall 
-          ? this.messages.filter(m => m.role !== 'abc')
+        const messagesToSend = isInitialCall
+          ? this.messages.filter((m) => m.role !== 'abc')
           : this.messages;
-        // console.log('messagesToSend:', messagesToSend);
         const response = await this.client.chat.completions.create({
           messages: [
             ...(this.systemPrompt
               ? [{ role: 'system', content: this.systemPrompt }]
               : []),
-            ...messagesToSend, 
+            ...messagesToSend,
           ],
           model: this.model,
           temperature: 0.75,
           stream: true,
-          tools: isInitialCall ? tools : undefined, 
+          tools: isInitialCall ? tools : undefined,
         });
-        this.messages = this.messages.filter(m => m.role !== 'tool');
+        this.messages = this.messages.filter((m) => m.role !== 'tool');
 
         let assistantMessage = { role: 'assistant', content: '' };
         this.messages.push(assistantMessage);
@@ -453,13 +477,12 @@ export class HomePage implements OnInit {
                 role: 'tool',
                 content: 'Scraping the web...',
                 tool_call_id: toolCall.id,
-                isToolCallInProgress: true, 
+                isToolCallInProgress: true,
               });
 
               if (query) {
                 const webgroundingResult = await this.webgroundtool(query);
 
-                // Remove the "Scraping the web..." message
                 this.messages = this.messages.filter(
                   (m) => m.tool_call_id !== toolCall.id
                 );
@@ -481,7 +504,7 @@ export class HomePage implements OnInit {
         }
       };
 
-      await runConversation(); 
+      await runConversation();
       this.isStreaming = false;
     } else {
       this.messages.push({ role: 'user', content: messageContent });
@@ -517,7 +540,7 @@ export class HomePage implements OnInit {
 
     this.userInput = '';
     this.selectedImage = null;
-    this.saveCurrentSession(); 
+    this.saveCurrentSession();
     setTimeout(() => {
       this.content.scrollToBottom(300);
     });
@@ -591,6 +614,7 @@ export class HomePage implements OnInit {
   }
 
   loadCurrentSession() {
+    this.showTemplatesPage = false;
     this.messages = this.sessions[this.currentSessionIndex].messages;
     this.currentSessionName = this.sessions[this.currentSessionIndex].name;
     setTimeout(() => {
@@ -668,19 +692,44 @@ export class HomePage implements OnInit {
 
   async webgroundtool(query: string): Promise<string> {
     console.log('webgroundtool called with query:', query);
-    // Replace with your actual web grounding implementation (e.g., using a search API)
-    return `sam altman is gay`; 
+    return `sam altman is gay`;
   }
 
   getFilteredMessages(): Message[] {
-    return this.messages.filter(m => m.role !== 'tool'); // Filter out tool messages
+    return this.messages.filter((m) => m.role !== 'tool');
   }
 
   isToolCallInProgress(): boolean {
-    return this.messages.some(m => m.isToolCallInProgress);
+    return this.messages.some((m) => m.isToolCallInProgress);
   }
 
   getToolCallInProgressMessage(): string {
-    return this.messages.find(m => m.isToolCallInProgress)?.content || '';
+    return this.messages.find((m) => m.isToolCallInProgress)?.content || '';
+  }
+
+  async startConversation(template: { name: string; prompt: string }) {
+    this.showTemplatesPage = false;
+    this.sessions.push({
+      name: template.name,
+      messages: [{ role: 'user', content: template.prompt }],
+    });
+    this.currentSessionIndex = this.sessions.length - 1;
+    this.loadCurrentSession();
+    this.saveCurrentSession();
+
+    await this.sendMessage();
+  }
+
+  getIconForTemplate(templateName: string): string {
+    switch (templateName) {
+      case 'Creative Writing':
+        return 'create-outline';
+      case 'Code Generation':
+        return 'code-slash-outline';
+      case 'Problem Solving':
+        return 'bulb-outline';
+      default:
+        return 'chatbubbles-outline';
+    }
   }
 }
