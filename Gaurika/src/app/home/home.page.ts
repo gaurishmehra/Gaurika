@@ -232,7 +232,7 @@ export class HomePage implements OnInit {
 
     if (this.platform.is('android')) {
       StatusBar.setStyle({ style: Style.Dark });
-      StatusBar.setBackgroundColor({ color: '#141414' });
+      StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
 
     await this.initializeOpenAIClient();
