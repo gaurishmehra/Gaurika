@@ -707,17 +707,72 @@ export class HomePage implements OnInit {
     return this.messages.find((m) => m.isToolCallInProgress)?.content || '';
   }
 
+
+  deleteMessage(index: number) {
+    this.messages.splice(index, 1);
+    this.saveCurrentSession();
+  }
+
+  get lastAssistantMessage(): Message | undefined {
+    let lastMessage: Message | undefined;
+    for (let i = this.messages.length - 1; i >= 0; i--) {
+        if (this.messages[i].role === "assistant") {
+            lastMessage = this.messages[i];
+            break;
+        }
+    }
+    return lastMessage;
+  }
+
+  retryLastAssistantMessage() {
+    if (this.lastAssistantMessage) {
+      const lastAssistantMessageIndex = this.messages.lastIndexOf(this.lastAssistantMessage);
+
+      if (lastAssistantMessageIndex !== -1) {
+        // Find the index of the user message immediately before the last assistant message
+        const lastUserMessageIndex = lastAssistantMessageIndex - 1; 
+
+        if (lastUserMessageIndex >= 0 && this.messages[lastUserMessageIndex].role === 'user') {
+          // Store the content of the last user message before deleting
+          const lastUserMessageContent = this.messages[lastUserMessageIndex].content;
+
+          // Delete both the last assistant and the user message before it
+          this.messages.splice(lastUserMessageIndex, 2); 
+
+          // Set the userInput to the stored content of the last user message
+          this.userInput = lastUserMessageContent; 
+
+          // Resend the message
+          this.sendMessage();
+        }
+      }
+    }
+  }
+
+
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
-    this.sessions.push({
-      name: template.name,
-      messages: [{ role: 'user', content: template.prompt }],
-    });
+
+    if (this.userInput.trim() === '') {
+      this.sessions.push({
+        name: template.name,
+        messages: [{ role: 'user', content: template.prompt }],
+      });
+    } else {
+      this.sessions.push({
+        name: template.name,
+        messages: [
+          { role: 'user', content: this.userInput },
+          { role: 'user', content: template.prompt },
+        ],
+      });
+    }
     this.currentSessionIndex = this.sessions.length - 1;
     this.loadCurrentSession();
     this.saveCurrentSession();
 
-    await this.sendMessage();
+    // This line is crucial to actually send the message
+    await this.sendMessage();  
   }
 
   getIconForTemplate(templateName: string): string {

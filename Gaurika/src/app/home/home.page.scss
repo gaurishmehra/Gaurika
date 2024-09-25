@@ -45,13 +45,7 @@ ion-header {
   background-color: $background-dark;
   --background:$background-dark;
   ion-toolbar {
-    // --background: transparent;
-    // background-color: transparent;
     background-color: $background-dark;
-    // --border-width: 0;
-    // @include glass-effect;
-    // @include rounded-corners;
-    // border-radius:0px 0px 20px 20px;
     --background:$background-dark;
 
     &::after {
@@ -75,14 +69,11 @@ ion-header {
   }
 
   &.floating-header {
-    // background-color: rgba($background-dark, 1);
     background-color: $background-dark;
     --background:$background-dark;
     ion-toolbar {
-      // margin-top: 10px;
       --border-radius: 0;
       --background:$background-dark;
-      // background-color: rgba($color: #000000, $alpha: 0.0);
       background-color: $background-dark;
     }
   }
@@ -107,6 +98,7 @@ ion-item {
     @include rounded-corners;
     @include glass-effect;
     padding: 16px;
+    position: relative;
 
     &.user-message {
       background: linear-gradient(135deg, rgba($primary-color, 0.1), rgba($primary-color, 0.2));
@@ -149,6 +141,16 @@ ion-item {
       display: block;
       margin-top: 10px;
       @include rounded-corners(8px);
+    }
+
+    ion-buttons {
+      position: absolute;
+      top: 8px; 
+      right: 8px; 
+
+      ion-button {
+        // ... your button styles 
+      }
     }
   }
 }
@@ -198,7 +200,8 @@ ion-item {
       --border-radius: 25px;
       --box-shadow: none;
       height: 45px;
-      margin-left: 10px;
+      margin-left: 0;
+      margin-right: 10px;
       padding: 0 15px;
       @include soft-transition;
 
@@ -360,6 +363,19 @@ ion-item {
   ion-list {
     padding: 8px;
   }
+}
+
+.retry-button {
+  // background-color: $secondary-color;
+  --border-radius: 25px;
+  border-radius: 25px;
+  --background: $secondary-color;
+  background-color: $secondary-color;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 .templates-page {
   background-color: $background-dark;

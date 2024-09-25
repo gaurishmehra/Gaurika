@@ -37,7 +37,7 @@
 
     <div *ngIf="!showTemplatesPage" class="chat-page">
       <ion-list lines="none">
-        <ion-item *ngFor="let message of getFilteredMessages()">
+        <ion-item *ngFor="let message of getFilteredMessages(); let i = index">
           <ion-label
             [class.user-message]="message.role === 'user'"
             [class.assistant-message]="message.role === 'assistant'"
@@ -47,6 +47,11 @@
             </span>
             <p class="message-content">{{ message.content }}</p>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
+            <ion-buttons *ngIf="message.role === 'user' || message.role === 'assistant'" slot="end">
+              <ion-button (click)="deleteMessage(i)" fill="clear" color="danger">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
           </ion-label>
         </ion-item>
         <ion-item *ngIf="isStreaming"> 
@@ -55,6 +60,11 @@
             <p class="message-content">Writing...</p> 
           </ion-label>
         </ion-item>
+
+        <ion-button *ngIf="lastAssistantMessage && !isStreaming" (click)="retryLastAssistantMessage()" expand="block" class="retry-button">
+          Retry Last Response
+        </ion-button>
+
       </ion-list>
 
       <div class="bottom-bar">
