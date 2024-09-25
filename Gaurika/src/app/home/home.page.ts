@@ -68,8 +68,8 @@ export class HomePage implements OnInit {
         'Generate Python code for a function that calculates the factorial of a number.',
     },
     {
-      name: 'Problem Solving',
-      prompt: 'Explain how to solve a Rubik\'s Cube step-by-step.',
+      name: 'Physics',
+      prompt: 'What is the theory of general relativity and how is it different from the theory of special relativity?',
     },
   ];
 
