@@ -263,7 +263,7 @@ export class SettingsPage implements OnInit {
       console.log('Settings saved successfully!');
   
       // Optional: Reload to reflect changes 
-      // window.location.reload();
+      window.location.reload();
   
     } catch (error) {
       console.error('Error saving settings:', error);
