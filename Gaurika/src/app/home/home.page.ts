@@ -353,10 +353,7 @@ export class HomePage implements OnInit {
 
         turns.push(assistantMessage.content);
 
-        if (
-          i > 0 &&
-          this.calculateCosineSimilarity(turns[i - 1], turns[i]) > 0.8
-        ) {
+        if (i > 0 && this.calculateCosineSimilarity(turns[i - 1], turns[i]) > 0.9) {
           break;
         }
 
