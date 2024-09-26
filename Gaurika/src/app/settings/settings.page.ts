@@ -180,13 +180,22 @@ export class SettingsPage implements OnInit {
         apiKeys: this.apiKeys,
         apiProviders: this.apiProviders,
         selectedApiKeyIndex: this.selectedApiKeyIndex, 
-        selectedApiProviderIndex: this.selectedApiProviderIndex 
+        selectedApiProviderIndex: this.selectedApiProviderIndex,
+        models: this.models,
+        selectedModelIndex: this.selectedModelIndex,
       }
     });
 
     modal.onDidDismiss().then((data) => {
-      if (data.data && data.data.name && data.data.value && data.data.apiKeyIndex !== undefined && data.data.apiProviderIndex !== undefined) {
-        this.models.push(data.data);
+
+      if (
+        data.data.data &&
+        data.data.data.name &&
+        data.data.data.value &&
+        data.data.data.apiKeyIndex !== undefined &&
+        data.data.data.apiProviderIndex !== undefined
+      ) {
+        this.models.push(data.data.data);
         this.saveSettings();
       }
     });
@@ -224,30 +233,42 @@ export class SettingsPage implements OnInit {
   }
 
   async saveSettings() {
-    await this.storage.set('models', this.models);
-    await this.storage.set('selectedModelIndex', this.selectedModelIndex);
-
-    await this.storage.set('systemPrompt', this.systemPrompt);
-    await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
-    await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
-    await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
-    await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
-
-    // Select and save the active API provider and model based on selectedModelIndex
-    const selectedModel = this.models[this.selectedModelIndex];
-    this.selectedApiKeyIndex = selectedModel.apiKeyIndex || 0;
-    this.selectedApiProviderIndex = selectedModel.apiProviderIndex || 0;
-
-    await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
-    await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
-
-    const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
-    await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
-
-    await this.storage.set('model', selectedModel.value);
-    await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
-
-    window.location.reload(); 
+    try {
+      // 1. Ensure Storage is Created:
+      await this.storage.create();
+  
+      // 2. Save Individual Settings:
+      await this.storage.set('apiKeys', this.apiKeys);
+      await this.storage.set('apiProviders', this.apiProviders);
+      await this.storage.set('models', this.models); // Saving models explicitly
+  
+      await this.storage.set('selectedModelIndex', this.selectedModelIndex);
+      await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
+      await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
+  
+      await this.storage.set('systemPrompt', this.systemPrompt);
+      await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
+      await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
+      await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
+      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
+  
+      // 3. Derive and Save Active Model and API Details:
+      const selectedModel = this.models[this.selectedModelIndex];
+      const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
+  
+      await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
+      await this.storage.set('model', selectedModel.value);
+      await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
+  
+      console.log('Settings saved successfully!');
+  
+      // Optional: Reload to reflect changes 
+      // window.location.reload();
+  
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      // Handle the error (e.g., show an error message)
+    }
   }
 
   onCotToggleChange() {

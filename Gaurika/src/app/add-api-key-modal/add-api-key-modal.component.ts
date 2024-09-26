@@ -21,6 +21,10 @@ export class AddApiKeyModalComponent {
   }
 
   saveApiKey() {
-    this.modalController.dismiss({ name: this.apiKey.name, key: this.apiKey.key });
+    this.modalController.dismiss({ 
+      name: this.apiKey.name, 
+      key: this.apiKey.key,
+      index: this.index // Include the index here
+    });
   }
 }
