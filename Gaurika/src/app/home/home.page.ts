@@ -301,7 +301,7 @@ export class HomePage implements OnInit {
         const response = await this.client.chat.completions.create({
           model: this.model,
           messages: [{ role: 'user', content: apiMessage }],
-          max_tokens: 300,
+          max_tokens: 4096,
         });
 
         this.messages.push({
