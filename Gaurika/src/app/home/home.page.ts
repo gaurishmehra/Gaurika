@@ -235,31 +235,26 @@ export class HomePage implements OnInit {
       StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
 
-    await this.initializeOpenAIClient();
+    // Get selected API Key and base URL from storage
+    const storedApiKey = await this.storage.get('apiKey');
+    const storedBaseUrl = await this.storage.get('baseUrl');
+
+    if (storedApiKey && storedBaseUrl) {
+      this.initializesdk(storedApiKey, storedBaseUrl);
+    } else {
+      console.warn('API Key or base URL not found in storage. Initializing with default values.');
+      await this.initializeOpenAIClient(); // Fallback to initialize with default if not found in storage
+    }
   }
 
   async initializeOpenAIClient() {
-    const storedApiKeys = (await this.storage.get('apiKeys')) || [];
-    const selectedApiKeyIndex =
-      (await this.storage.get('selectedApiKeyIndex')) || 0;
-    const storedBaseUrl = await this.storage.get('baseUrl');
+    const storedApiKey = await this.storage.get('apiKey'); // Get selected API Key
+    const storedBaseUrl = await this.storage.get('baseUrl'); // Get selected base URL
 
-    if (
-      storedApiKeys.length > 0 &&
-      selectedApiKeyIndex < storedApiKeys.length
-    ) {
-      const selectedApiKey = storedApiKeys[selectedApiKeyIndex].key;
-
-      if (storedBaseUrl) {
-        this.initializesdk(selectedApiKey, storedBaseUrl);
-      } else {
-        console.warn('No API Base URL found in storage. Using default.');
-        this.initializesdk(selectedApiKey);
-      }
+    if (storedApiKey && storedBaseUrl) {
+      this.initializesdk(storedApiKey, storedBaseUrl);
     } else {
-      console.warn(
-        'No API key selected. Please configure an API key in settings.'
-      );
+      console.warn('No API key or base URL selected. Please configure in settings.');
     }
   }
 
@@ -273,11 +268,10 @@ export class HomePage implements OnInit {
 
   async sendMessage() {
     if (!this.client) {
-      await this.initializeOpenAIClient();
+      // Try to initialize again if client is not initialized
+      await this.initializeOpenAIClient(); 
       if (!this.client) {
-        alert(
-          'API client not initialized. Please check your API key settings.'
-        );
+        alert('API client not initialized. Please check your API key settings.');
         return;
       }
     }
@@ -707,7 +701,6 @@ export class HomePage implements OnInit {
     return this.messages.find((m) => m.isToolCallInProgress)?.content || '';
   }
 
-
   deleteMessage(index: number) {
     this.messages.splice(index, 1);
     this.saveCurrentSession();
@@ -748,7 +741,6 @@ export class HomePage implements OnInit {
       }
     }
   }
-
 
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;

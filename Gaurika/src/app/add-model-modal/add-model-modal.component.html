@@ -17,6 +17,22 @@
       <ion-label position="floating">Model Value</ion-label>
       <ion-input [(ngModel)]="model.value"></ion-input>
     </ion-item>
+    <ion-item>
+      <ion-label>API Key</ion-label>
+      <ion-select [(ngModel)]="model.apiKeyIndex" interface="action-sheet">
+        <ion-select-option *ngFor="let key of apiKeys; let i = index" [value]="i">
+          {{ key.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item>
+      <ion-label>API Provider</ion-label>
+      <ion-select [(ngModel)]="model.apiProviderIndex" interface="action-sheet">
+        <ion-select-option *ngFor="let provider of apiProviders; let i = index" [value]="i">
+          {{ provider.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
   </ion-list>
 
   <div class="ion-padding">

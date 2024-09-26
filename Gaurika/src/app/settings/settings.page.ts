@@ -5,8 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { AddApiKeyModalComponent } from '../add-api-key-modal/add-api-key-modal.component';
-
-// Assuming you have components for adding/editing providers and models
 import { AddApiProviderModalComponent } from '../add-api-provider-modal/add-api-provider-modal.component';
 import { AddModelModalComponent } from '../add-model-modal/add-model-modal.component';
 
@@ -24,7 +22,7 @@ export class SettingsPage implements OnInit {
   apiProviders: { name: string; baseUrl?: string }[] = [];
   selectedApiProviderIndex: number = 0;
 
-  models: { name: string; value: string }[] = [];
+  models: { name: string; value: string; apiKeyIndex?: number; apiProviderIndex?: number }[] = [];
   selectedModelIndex: number = 0;
 
   systemPrompt = '';
@@ -32,6 +30,9 @@ export class SettingsPage implements OnInit {
   isSingleTurnCotEnabled = false;
   isWebGroundingEnabled = false;
   isMultimodalEnabled = false;
+
+  showAdvancedSettings = false;
+  showFeatures = false;
 
   constructor(
     private router: Router,
@@ -61,22 +62,11 @@ export class SettingsPage implements OnInit {
       (await this.storage.get('isWebGroundingEnabled')) || false;
     this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
 
-    // Ensure selectedApiKeyIndex is within bounds
-    if (this.selectedApiKeyIndex >= this.apiKeys.length) {
-      this.selectedApiKeyIndex =
-        this.apiKeys.length > 0 ? this.apiKeys.length - 1 : 0;
-    }
+    // Ensure selected indices are within bounds
+    this.ensureSelectedIndicesWithinBounds();
 
-    // Ensure selectedApiProviderIndex is within bounds
-    if (this.selectedApiProviderIndex >= this.apiProviders.length) {
-      this.selectedApiProviderIndex =
-        this.apiProviders.length > 0 ? this.apiProviders.length - 1 : 0;
-    }
-
-    // Ensure selectedModelIndex is within bounds
-    if (this.selectedModelIndex >= this.models.length) {
-      this.selectedModelIndex = this.models.length > 0 ? this.models.length - 1 : 0;
-    }
+    // Update API Key and API Provider based on selected model
+    this.onModelChange();
   }
 
   async showAddApiKeyModal() {
@@ -118,6 +108,16 @@ export class SettingsPage implements OnInit {
     if (this.selectedApiKeyIndex === index) {
       this.selectedApiKeyIndex = this.apiKeys.length > 0 ? 0 : 0;
     }
+
+    // Update model references if needed
+    this.models.forEach(model => {
+      if (model.apiKeyIndex === index) {
+        delete model.apiKeyIndex;
+      } else if (model.apiKeyIndex !== undefined && model.apiKeyIndex > index) {
+        model.apiKeyIndex--;
+      }
+    });
+
     this.saveSettings();
   }
 
@@ -160,16 +160,32 @@ export class SettingsPage implements OnInit {
     if (this.selectedApiProviderIndex === index) {
       this.selectedApiProviderIndex = this.apiProviders.length > 0 ? 0 : 0;
     }
+
+    // Update model references if needed
+    this.models.forEach(model => {
+      if (model.apiProviderIndex === index) {
+        delete model.apiProviderIndex;
+      } else if (model.apiProviderIndex !== undefined && model.apiProviderIndex > index) {
+        model.apiProviderIndex--;
+      }
+    });
+
     this.saveSettings();
   }
 
   async showAddModelModal() {
     const modal = await this.modalController.create({
       component: AddModelModalComponent,
+      componentProps: {
+        apiKeys: this.apiKeys,
+        apiProviders: this.apiProviders,
+        selectedApiKeyIndex: this.selectedApiKeyIndex, 
+        selectedApiProviderIndex: this.selectedApiProviderIndex 
+      }
     });
 
     modal.onDidDismiss().then((data) => {
-      if (data.data && data.data.name && data.data.value) {
+      if (data.data && data.data.name && data.data.value && data.data.apiKeyIndex !== undefined && data.data.apiProviderIndex !== undefined) {
         this.models.push(data.data);
         this.saveSettings();
       }
@@ -184,11 +200,13 @@ export class SettingsPage implements OnInit {
       componentProps: {
         model: this.models[index],
         index: index,
+        apiKeys: this.apiKeys,
+        apiProviders: this.apiProviders,
       },
     });
 
     modal.onDidDismiss().then((data) => {
-      if (data.data && data.data.name && data.data.value) {
+      if (data.data && data.data.name && data.data.value && data.data.apiKeyIndex !== undefined && data.data.apiProviderIndex !== undefined) {
         this.models[index] = data.data;
         this.saveSettings();
       }
@@ -206,15 +224,6 @@ export class SettingsPage implements OnInit {
   }
 
   async saveSettings() {
-    await this.storage.set('apiKeys', this.apiKeys);
-    await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
-
-    await this.storage.set('apiProviders', this.apiProviders);
-    await this.storage.set(
-      'selectedApiProviderIndex',
-      this.selectedApiProviderIndex
-    );
-
     await this.storage.set('models', this.models);
     await this.storage.set('selectedModelIndex', this.selectedModelIndex);
 
@@ -224,38 +233,21 @@ export class SettingsPage implements OnInit {
     await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
     await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
 
-    // Select and save the active API provider and model
+    // Select and save the active API provider and model based on selectedModelIndex
+    const selectedModel = this.models[this.selectedModelIndex];
+    this.selectedApiKeyIndex = selectedModel.apiKeyIndex || 0;
+    this.selectedApiProviderIndex = selectedModel.apiProviderIndex || 0;
+
+    await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
+    await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
+
     const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
     await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
 
-    const selectedModel = this.models[this.selectedModelIndex];
     await this.storage.set('model', selectedModel.value);
+    await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
 
-    window.location.reload();
-  }
-
-  getSelectedApiKey(): string | null {
-    if (this.apiKeys.length > 0 && this.selectedApiKeyIndex < this.apiKeys.length) {
-      return this.apiKeys[this.selectedApiKeyIndex].key;
-    } else {
-      return null;
-    }
-  }
-
-  getSelectedApiProviderName(): string {
-    return this.apiProviders[this.selectedApiProviderIndex].name;
-  }
-
-  getSelectedApiProviderBaseUrl(): string {
-    return this.apiProviders[this.selectedApiProviderIndex].baseUrl || '';
-  }
-
-  getSelectedModelName(): string {
-    return this.models[this.selectedModelIndex].name;
-  }
-
-  getSelectedModelValue(): string {
-    return this.models[this.selectedModelIndex].value;
+    window.location.reload(); 
   }
 
   onCotToggleChange() {
@@ -278,6 +270,28 @@ export class SettingsPage implements OnInit {
     if (this.isWebGroundingEnabled) {
       this.isMultiTurnCotEnabled = false;
       this.isSingleTurnCotEnabled = false;
+    }
+  }
+
+  onModelChange() {
+    const selectedModel = this.models[this.selectedModelIndex];
+    if (selectedModel) {
+      this.selectedApiKeyIndex = selectedModel.apiKeyIndex || 0;
+      this.selectedApiProviderIndex = selectedModel.apiProviderIndex || 0;
+    }
+  }
+
+  ensureSelectedIndicesWithinBounds() {
+    if (this.selectedApiKeyIndex >= this.apiKeys.length) {
+      this.selectedApiKeyIndex = this.apiKeys.length > 0 ? this.apiKeys.length - 1 : 0;
+    }
+
+    if (this.selectedApiProviderIndex >= this.apiProviders.length) {
+      this.selectedApiProviderIndex = this.apiProviders.length > 0 ? this.apiProviders.length - 1 : 0;
+    }
+
+    if (this.selectedModelIndex >= this.models.length) {
+      this.selectedModelIndex = this.models.length > 0 ? this.models.length - 1 : 0;
     }
   }
 }
