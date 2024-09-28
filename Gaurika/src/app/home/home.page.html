@@ -69,18 +69,17 @@
 
       <div class="bottom-bar">
         <div class="bottom-toolbar">
-          <ion-input [(ngModel)]="userInput" placeholder="Enter your message..." [disabled]="isStreaming"></ion-input> 
-          <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming"> 
+          <ion-input [(ngModel)]="userInput" placeholder="Enter your message..." [disabled]="isStreaming"></ion-input>
+          <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
             <ion-icon name="attach-outline"></ion-icon>
           </ion-button>
           <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
+          <!-- CORRECTED BUTTON LOGIC -->
           <ion-button class="send-button" 
-            (click)="isStreaming ? stopStream() : sendMessage()"
-            [disabled]="(userInput === '' && !selectedImage)"> <div class="send-button" 
-            (click)="isStreaming ? stopStream() : sendMessage()"
-            [disabled]="(userInput === '' && !selectedImage)"> 
-  {{ isStreaming ? 'Stop' : 'Send' }} 
-</ion-button>
+                      (click)="isStreaming ? stopStream() : sendMessage()"
+                      [disabled]="userInput === ''"> <!-- Disabled only if input is empty  -->
+            {{ isStreaming ? 'Stop' : 'Send' }} 
+          </ion-button>
         </div>
         <div *ngIf="selectedImage" class="image-preview">
           <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
