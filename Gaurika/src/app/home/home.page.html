@@ -74,9 +74,10 @@
             <ion-icon name="attach-outline"></ion-icon>
           </ion-button>
           <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
-          <ion-button class="send-button" (click)="sendMessage()"
-            [disabled]="isStreaming || (userInput === '' && !selectedImage)">
-            Send
+          <ion-button class="send-button" 
+                      (click)="isStreaming ? stopStream() : sendMessage()"
+                      [disabled]="(userInput === '' && !selectedImage)"> 
+            {{ isStreaming ? 'Stop' : 'Send' }} 
           </ion-button>
         </div>
         <div *ngIf="selectedImage" class="image-preview">

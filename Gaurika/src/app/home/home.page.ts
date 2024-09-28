@@ -6,6 +6,8 @@ import {
   ModalController,
   IonContent,
   Platform,
+  LoadingController,
+  ToastController
 } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -18,12 +20,6 @@ interface Message {
   image?: string;
   tool_call_id?: string;
   isToolCallInProgress?: boolean;
-}
-
-interface PromptModule {
-  role: string;
-  content: string;
-  contextVariables?: { [key: string]: string };
 }
 
 @Component({
@@ -49,12 +45,12 @@ export class HomePage implements OnInit {
   isCreateSessionModalOpen = false;
   presentingElement: any;
   isStreaming = false;
-  isMultiTurnCotEnabled = false;
-  isSingleTurnCotEnabled = false;
   isMultimodalEnabled = false;
   isWebGroundingEnabled = false;
   selectedImage: string | null = null;
   showTemplatesPage = true;
+  abortController: AbortController | null = null;
+  isStreamStopped = false;
 
   templateConversations: { name: string; prompt: string }[] = [
     {
@@ -73,132 +69,13 @@ export class HomePage implements OnInit {
     },
   ];
 
-  initialPrompt: PromptModule = {
-    role: 'system',
-    content: `You are a highly intelligent AI assistant, adept at logical reasoning and problem-solving. 
-             Your task is to answer the user's question in a comprehensive and insightful manner, 
-             showcasing your ability to think step-by-step. Please follow this structure: 
-
-             ## Reasoning:
-             1. [Clearly state the first step]
-                Explanation: [Provide a detailed explanation of this step, including relevant background knowledge or logic.]
-             2. [Clearly state the second step]
-                Explanation: [Offer a thorough explanation of this step, connecting it to the previous step(s) and showing how it contributes to the solution.]
-             ... [Continue with as many steps as needed]
-
-             ## Answer:
-             [Present your final answer here, concisely and clearly derived from the step-by-step reasoning process above.]`,
-  };
-
-  followupPrompt: PromptModule = {
-    role: 'system',
-    content: `You are an exceptional AI assistant, gifted with analytical skills and the ability to improve 
-             upon existing solutions. Consider the original question and the previous turn's reasoning, 
-             which is provided below.
-
-             ## Previous Reasoning:
-             {{previousReasoning}} 
-
-             Your new task is threefold:
-
-             ## Analysis:
-             ### Critique:
-             [Concisely evaluate the strengths and weaknesses of the previous reasoning. What was effective? 
-              Where could it be improved or expanded?] 
-
-             ### New Reasoning:
-             1. [State the first step of your revised or enhanced approach]
-                Explanation: [Thoroughly explain this step, referring back to the previous reasoning if necessary. 
-                             Highlight what's new or different in your approach.]
-             2. [State the second step of your refined reasoning]
-                Explanation: [Offer a clear explanation, indicating how this step builds upon, corrects, or deviates 
-                             from the earlier reasoning path.]
-             ... [Continue with additional steps as required] 
-
-             ## Answer:
-             [Present your updated and refined answer based on the analysis and new reasoning steps.]`,
-    contextVariables: { previousReasoning: '' },
-  };
-
-  synthesisPrompt: PromptModule = {
-    role: 'system',
-    content: `You are an expert AI synthesizer, skilled at combining and refining multiple lines of thought. 
-             You will receive three distinct turns of reasoning aimed at solving a problem. Your objective 
-             is to synthesize them into a final, conclusive answer.
-
-             ## Turns of Reasoning:
-             {{turn1}}
-             {{turn2}}
-             {{turn3}}
-
-             Follow these steps:
-
-             ## Synthesis:
-             ### Analysis:
-             [Provide a concise analysis of each turn of reasoning. Briefly summarize its core approach and 
-              highlight its main strengths and limitations.] 
-
-             ### Comparison:
-             [Compare and contrast the three turns. What are the key differences and similarities in their 
-              strategies? Did they arrive at similar conclusions through different paths? Which turn offered 
-              the most insightful or valid points?]
-
-             ### Final Reasoning:
-             [Based on your analysis and comparison, construct a final, integrated line of reasoning. Draw upon 
-              the most compelling aspects of each turn to create a comprehensive and well-supported argument. 
-              Present it in a clear step-by-step manner.]
-
-             ## Final Answer:
-             [Present your final, synthesized answer. This answer should be clear, concise, and easily 
-              understood by a general audience.]`,
-    contextVariables: { turn1: '', turn2: '', turn3: '' },
-  };
-
-  initialSingleTurnPrompt: PromptModule = {
-    role: 'system',
-    content: `You are an AI assistant with exceptional analytical capabilities and a commitment to accuracy. Follow this precise structure:
-
-    1. INITIAL BRAINSTORMING (200-300 words):
-    Generate diverse ideas related to the question. Include conventional wisdom, expert opinions, and relevant facts. Prioritize accuracy but don't filter out unconventional thoughts.
-
-    2. INITIAL REASONING (400-500 words):
-    Develop a logical, fact-based argument to answer the question. Use credible information and sound logic. Present in numbered steps:
-    Step 1: [Statement based on verified information]
-        Explanation: [Detailed reasoning with supporting evidence]
-    Step 2: [Statement building on previous step]
-        Explanation: [Detailed reasoning with additional facts or expert insights]
-    [Continue for at least 5 steps, ensuring each step is logically sound and factually accurate]
-
-    3. CRITICAL ANALYSIS AND ALTERNATIVE APPROACH (500-600 words):
-    Rigorously examine your initial reasoning for potential flaws or oversights. Then, construct an alternative approach that:
-    a) Addresses any weaknesses in the initial reasoning
-    b) Considers the problem from a different, yet equally valid perspective
-    c) Incorporates any overlooked facts or alternative interpretations of data
-    Present this new reasoning in numbered steps:
-    Step 1: [Statement presenting a different, factually-supported viewpoint]
-        Explanation: [Detailed justification using credible information]
-    Step 2: [Statement building on the new approach]
-        Explanation: [Detailed reasoning with additional evidence]
-    [Continue for at least 6 steps, ensuring each step is logical and based on accurate information]
-
-    4. INITIAL ANSWER (100-150 words):
-    Based on your alternative approach, provide a clear, accurate answer to the question. Ensure it's supported by the facts and logic presented in your revised reasoning.
-
-    5. FINAL, COMPREHENSIVE, AND CORRECT ANSWER (200-250 words):
-    Formulate a final answer that MUST:
-    a) Synthesize the most accurate elements from both reasoning processes
-    b) Be more comprehensive and precise than the initial answer
-    c) Address any remaining uncertainties or potential objections
-    d) Be firmly grounded in factual information and sound logic
-
-    Throughout this process, prioritize accuracy and logical consistency. If at any point you realize you've made an error or have access to conflicting information, acknowledge it explicitly and correct your reasoning before moving to the next step.`,
-  };
-
   constructor(
     private router: Router,
     private storage: Storage,
     private modalCtrl: ModalController,
-    private platform: Platform
+    private platform: Platform,
+    private loadingController: LoadingController,
+    private toastController: ToastController
   ) {}
 
   async ngOnInit() {
@@ -207,10 +84,6 @@ export class HomePage implements OnInit {
     const storedModel = await this.storage.get('model');
     const storedSystemPrompt = await this.storage.get('systemPrompt');
     const storedSessions = await this.storage.get('sessions');
-    this.isMultiTurnCotEnabled =
-      (await this.storage.get('isMultiTurnCotEnabled')) || false;
-    this.isSingleTurnCotEnabled =
-      (await this.storage.get('isSingleTurnCotEnabled')) || false;
     this.isMultimodalEnabled =
       (await this.storage.get('isMultimodalEnabled')) || false;
     this.isWebGroundingEnabled =
@@ -235,7 +108,6 @@ export class HomePage implements OnInit {
       StatusBar.setBackgroundColor({ color: '#0a0a0a' });
     }
 
-    // Get selected API Key and base URL from storage
     const storedApiKey = await this.storage.get('apiKey');
     const storedBaseUrl = await this.storage.get('baseUrl');
 
@@ -243,13 +115,13 @@ export class HomePage implements OnInit {
       this.initializesdk(storedApiKey, storedBaseUrl);
     } else {
       console.warn('API Key or base URL not found in storage. Initializing with default values.');
-      await this.initializeOpenAIClient(); // Fallback to initialize with default if not found in storage
+      await this.initializeOpenAIClient();
     }
   }
 
   async initializeOpenAIClient() {
-    const storedApiKey = await this.storage.get('apiKey'); // Get selected API Key
-    const storedBaseUrl = await this.storage.get('baseUrl'); // Get selected base URL
+    const storedApiKey = await this.storage.get('apiKey');
+    const storedBaseUrl = await this.storage.get('baseUrl');
 
     if (storedApiKey && storedBaseUrl) {
       this.initializesdk(storedApiKey, storedBaseUrl);
@@ -268,13 +140,15 @@ export class HomePage implements OnInit {
 
   async sendMessage() {
     if (!this.client) {
-      // Try to initialize again if client is not initialized
-      await this.initializeOpenAIClient(); 
+      await this.initializeOpenAIClient();
       if (!this.client) {
-        alert('API client not initialized. Please check your API key settings.');
+        await this.showErrorToast('API client not initialized. Please check your API key settings.');
         return;
       }
     }
+
+    this.isStreaming = true;
+    this.isStreamStopped = false;
 
     let messageContent = this.userInput;
     let imageContent = this.selectedImage;
@@ -284,7 +158,7 @@ export class HomePage implements OnInit {
       this.messages.push({
         role: 'user',
         content: messageContent,
-        image: imageContent,
+        image: base64Image,
       });
 
       const apiMessage = [
@@ -302,39 +176,6 @@ export class HomePage implements OnInit {
           model: this.model,
           messages: [{ role: 'user', content: apiMessage }],
           max_tokens: 4096,
-        });
-
-        this.messages.push({
-          role: 'assistant',
-          content: response.choices[0].message.content,
-        });
-      } catch (error) {
-        console.error('Error calling OpenAI API:', error);
-        this.messages.push({
-          role: 'assistant',
-          content: 'Sorry, I encountered an error processing your image.',
-        });
-      }
-    } else if (this.isMultiTurnCotEnabled) {
-      this.messages.push({ role: 'user', content: messageContent });
-      this.isStreaming = true;
-
-      let turns = [];
-      let currentPrompt = this.initialPrompt;
-
-      for (let i = 0; i < 5; i++) {
-        let promptToSend = { ...currentPrompt };
-        if (currentPrompt.contextVariables) {
-          promptToSend.content = this.replaceContextVariables(
-            promptToSend.content,
-            currentPrompt.contextVariables
-          );
-        }
-
-        const response = await this.client.chat.completions.create({
-          messages: [promptToSend, ...this.messages],
-          model: this.model,
-          temperature: 0.25,
           stream: true,
         });
 
@@ -342,76 +183,29 @@ export class HomePage implements OnInit {
         this.messages.push(assistantMessage);
 
         for await (const part of response) {
-          if (part.choices[0].delta?.content) {
-            assistantMessage.content += part.choices[0].delta.content;
+          if (this.isStreamStopped) {
+            break;
           }
 
-          setTimeout(() => {
-            this.content.scrollToBottom(300);
-          });
+          if (part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
+            setTimeout(() => {
+              this.content.scrollToBottom(300);
+            });
+          }
         }
 
-        turns.push(assistantMessage.content);
-
-        if (i > 0 && this.calculateCosineSimilarity(turns[i - 1], turns[i]) > 0.9) {
-          break;
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
         }
 
-        currentPrompt = this.followupPrompt;
-        currentPrompt.contextVariables!['previousReasoning'] =
-          assistantMessage.content;
+      } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        await this.showErrorToast('Sorry, I encountered an error processing your image.');
       }
 
-      let synthesisPromptToSend = { ...this.synthesisPrompt };
-      synthesisPromptToSend.contextVariables!['turn1'] = turns[0];
-      synthesisPromptToSend.contextVariables!['turn2'] = turns[1];
-      synthesisPromptToSend.contextVariables!['turn3'] = turns[2];
-
-      synthesisPromptToSend.content = this.replaceContextVariables(
-        synthesisPromptToSend.content,
-        synthesisPromptToSend.contextVariables!
-      );
-
-      const synthesisResponse = await this.client.chat.completions.create({
-        messages: [synthesisPromptToSend],
-        model: this.model,
-        temperature: 0.5,
-        max_tokens: 4096,
-      });
-
-      const finalAnswer = synthesisResponse.choices[0].message.content;
-      this.messages.push({ role: 'assistant', content: finalAnswer });
-
-      this.isStreaming = false;
-    } else if (this.isSingleTurnCotEnabled) {
-      this.messages.push({ role: 'user', content: messageContent });
-      this.isStreaming = true;
-
-      const response = await this.client.chat.completions.create({
-        messages: [this.initialSingleTurnPrompt, ...this.messages],
-        model: this.model,
-        temperature: 0.5,
-        top_p: 1,
-        stream: true,
-      });
-
-      let assistantMessage = { role: 'assistant', content: '' };
-      this.messages.push(assistantMessage);
-
-      for await (const part of response) {
-        if (part.choices[0].delta?.content) {
-          assistantMessage.content += part.choices[0].delta.content;
-        }
-
-        setTimeout(() => {
-          this.content.scrollToBottom(300);
-        });
-      }
-
-      this.isStreaming = false;
     } else if (this.isWebGroundingEnabled) {
       this.messages.push({ role: 'user', content: messageContent });
-      this.isStreaming = true;
 
       const tools = [
         {
@@ -438,100 +232,135 @@ export class HomePage implements OnInit {
         const messagesToSend = isInitialCall
           ? this.messages.filter((m) => m.role !== 'abc')
           : this.messages;
+
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(this.systemPrompt
+                ? [{ role: 'system', content: this.systemPrompt }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+
+          this.messages = this.messages.filter((m) => m.role !== 'tool');
+
+          let assistantMessage = { role: 'assistant', content: '' };
+          this.messages.push(assistantMessage);
+
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
+              if (toolCall.function.name === 'webgroundtool') {
+                const args = JSON.parse(toolCall.function.arguments);
+                const query = args.query;
+
+                this.messages.push({
+                  role: 'tool',
+                  content: 'Scraping the web...',
+                  tool_call_id: toolCall.id,
+                  isToolCallInProgress: true,
+                });
+
+                if (query) {
+                  const webgroundingResult = await this.webgroundtool(query);
+
+                  this.messages = this.messages.filter(
+                    (m) => m.tool_call_id !== toolCall.id
+                  );
+
+                  this.messages.push({
+                    role: 'tool',
+                    content: webgroundingResult,
+                    tool_call_id: toolCall.id,
+                  });
+                  await runConversation(false);
+                  return;
+                }
+              }
+            }
+
+            setTimeout(() => {
+              this.content.scrollToBottom(300);
+            });
+          }
+
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+
+        } catch (error) {
+          console.error('Error in web grounding:', error);
+          await this.showErrorToast('Sorry, I encountered an error during web grounding.');
+        }
+      };
+
+      await runConversation();
+
+    } else {
+      this.messages.push({ role: 'user', content: messageContent });
+
+      this.abortController = new AbortController();
+
+      try {
         const response = await this.client.chat.completions.create({
           messages: [
             ...(this.systemPrompt
               ? [{ role: 'system', content: this.systemPrompt }]
               : []),
-            ...messagesToSend,
+            ...this.messages,
           ],
           model: this.model,
           temperature: 0.75,
-          stream: true,
-          tools: isInitialCall ? tools : undefined,
+          stream: true
         });
-        this.messages = this.messages.filter((m) => m.role !== 'tool');
 
         let assistantMessage = { role: 'assistant', content: '' };
         this.messages.push(assistantMessage);
 
         for await (const part of response) {
+          if (this.isStreamStopped) {
+            break;
+          }
+
           if (part.choices[0].delta?.content) {
             assistantMessage.content += part.choices[0].delta.content;
-          } else if (part.choices[0].delta?.tool_calls) {
-            const toolCall = part.choices[0].delta.tool_calls[0];
-            if (toolCall.function.name === 'webgroundtool') {
-              const args = JSON.parse(toolCall.function.arguments);
-              const query = args.query;
-
-              this.messages.push({
-                role: 'tool',
-                content: 'Scraping the web...',
-                tool_call_id: toolCall.id,
-                isToolCallInProgress: true,
-              });
-
-              if (query) {
-                const webgroundingResult = await this.webgroundtool(query);
-
-                this.messages = this.messages.filter(
-                  (m) => m.tool_call_id !== toolCall.id
-                );
-
-                this.messages.push({
-                  role: 'tool',
-                  content: webgroundingResult,
-                  tool_call_id: toolCall.id,
-                });
-                await runConversation(false);
-                return;
-              }
-            }
           }
 
           setTimeout(() => {
             this.content.scrollToBottom(300);
           });
         }
-      };
 
-      await runConversation();
-      this.isStreaming = false;
-    } else {
-      this.messages.push({ role: 'user', content: messageContent });
-      this.isStreaming = true;
-
-      const response = await this.client.chat.completions.create({
-        messages: [
-          ...(this.systemPrompt
-            ? [{ role: 'system', content: this.systemPrompt }]
-            : []),
-          ...this.messages,
-        ],
-        model: this.model,
-        temperature: 0.75,
-        stream: true,
-      });
-
-      let assistantMessage = { role: 'assistant', content: '' };
-      this.messages.push(assistantMessage);
-
-      for await (const part of response) {
-        if (part.choices[0].delta?.content) {
-          assistantMessage.content += part.choices[0].delta.content;
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
         }
-
-        setTimeout(() => {
-          this.content.scrollToBottom(300);
-        });
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('Request aborted');
+        } else {
+          console.error('Error calling OpenAI API:', error);
+          await this.showErrorToast('Sorry, I encountered an error processing your request.');
+        }
+      } finally {
+        this.abortController = null;
       }
-
-      this.isStreaming = false;
     }
 
     this.userInput = '';
     this.selectedImage = null;
     this.saveCurrentSession();
+    this.isStreaming = false;
     setTimeout(() => {
       this.content.scrollToBottom(300);
     });
@@ -561,14 +390,23 @@ export class HomePage implements OnInit {
       return imgUrl;
     }
 
-    const response = await fetch(imgUrl);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+    try {
+      const response = await fetch(imgUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error getting base64 image:', error);
+      await this.showErrorToast('Error loading image.');
+      return '';
+    }
   }
 
   openSettings() {
@@ -706,10 +544,10 @@ export class HomePage implements OnInit {
   get lastAssistantMessage(): Message | undefined {
     let lastMessage: Message | undefined;
     for (let i = this.messages.length - 1; i >= 0; i--) {
-        if (this.messages[i].role === "assistant") {
-            lastMessage = this.messages[i];
-            break;
-        }
+      if (this.messages[i].role === "assistant") {
+        lastMessage = this.messages[i];
+        break;
+      }
     }
     return lastMessage;
   }
@@ -719,20 +557,17 @@ export class HomePage implements OnInit {
       const lastAssistantMessageIndex = this.messages.lastIndexOf(this.lastAssistantMessage);
 
       if (lastAssistantMessageIndex !== -1) {
-        // Find the index of the user message immediately before the last assistant message
-        const lastUserMessageIndex = lastAssistantMessageIndex - 1; 
+        const lastUserMessageIndex = lastAssistantMessageIndex - 1;
 
         if (lastUserMessageIndex >= 0 && this.messages[lastUserMessageIndex].role === 'user') {
-          // Store the content of the last user message before deleting
           const lastUserMessageContent = this.messages[lastUserMessageIndex].content;
+          const lastUserMessageImage = this.messages[lastUserMessageIndex].image;
 
-          // Delete both the last assistant and the user message before it
-          this.messages.splice(lastUserMessageIndex, 2); 
+          this.messages.splice(lastUserMessageIndex, 2);
 
-          // Set the userInput to the stored content of the last user message
-          this.userInput = lastUserMessageContent; 
+          this.userInput = lastUserMessageContent;
+          this.selectedImage = lastUserMessageImage || null;
 
-          // Resend the message
           this.sendMessage();
         }
       }
@@ -760,8 +595,7 @@ export class HomePage implements OnInit {
     this.loadCurrentSession();
     this.saveCurrentSession();
 
-    // This line is crucial to actually send the message
-    await this.sendMessage();  
+    await this.sendMessage();
   }
 
   getIconForTemplate(templateName: string): string {
@@ -775,5 +609,34 @@ export class HomePage implements OnInit {
       default:
         return 'chatbubbles-outline';
     }
+  }
+
+  stopStream() {
+    this.isStreamStopped = true;
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+  }
+
+  async showErrorToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      position: 'top',
+      color: 'danger'
+    });
+    toast.present();
+  }
+
+  async showLoading() {
+    const loading = await this.loadingController.create({
+      message: 'Please wait...',
+      spinner: 'crescent'
+    });
+    await loading.present();
+  }
+
+  async hideLoading() {
+    await this.loadingController.dismiss();
   }
 }
