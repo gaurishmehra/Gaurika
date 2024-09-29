@@ -1,287 +1,300 @@
 // Variables
 $primary-pink: #bf006f;
-$secondary-pink: darken($primary-pink, 10%); 
+$secondary-pink: #8c0052;
 $background-color: #0a0a0a;
 $text-color: #ffffff;
 $input-background: #141414;
 $divider-color: #2a2a2a;
-$border-radius: 16px; 
-$item-padding: 20px; 
+$border-radius: 16px;
+$item-padding: 16px;
 
 // Mixins
-@mixin smooth-transition {
-  transition: all 0.3s ease-in-out;
+@mixin smooth-transition($property: all, $duration: 0.2s) {
+  transition: $property $duration ease;
 }
 
 // Global Styles
-* {
-  font-family: 'Roboto', sans-serif; 
+body {
+  background-color: $background-color;
+  color: $text-color;
+  font-family: 'SF Pro Text', 'Roboto', sans-serif;
 }
 
 ion-content {
   --background: #{$background-color};
-  padding: 48px 32px; 
-  backdrop-filter: blur(10px); 
+  --padding-top: 20px;
+  --padding-bottom: 20px;
+  --padding-start: 16px;
+  --padding-end: 16px;
 }
 
-ion-header {
-  ion-toolbar {
-    --background: #{$background-color};
-    --color: #{$text-color};
+ion-header ion-toolbar {
+  --background: #{$background-color};
+  --color: #{$text-color};
 
-    ion-back-button {
-      --color: #{$text-color};
-    }
-
-    ion-title {
-      font-size: 22px; 
-      font-weight: 600; 
-    }
+  ion-title {
+    font-size: 20px;
+    font-weight: 600;
   }
 }
 
 // List Styles
 ion-list {
   background: transparent;
-  margin: 0 16px 48px 16px; 
+  padding: 0;
+  margin: 0 0 20px 0;
 
   ion-item-group {
-    margin-bottom: 32px;
+    margin-bottom: 20px;
     background-color: $input-background;
     border-radius: $border-radius;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(5px); 
-    @include smooth-transition;
-
-    &:last-of-type {
-      margin-bottom: 0;
-    }
+    overflow: hidden;
 
     ion-item-divider {
-      --background: transparent;
+      --background: #{darken($input-background, 3%)};
       --color: #{$text-color};
-      font-weight: 600; 
-      text-transform: uppercase;
-      letter-spacing: 1.5px; 
+      --padding-start: #{$item-padding};
+      --padding-end: #{$item-padding};
+      font-weight: 600;
       font-size: 14px;
-      padding: 16px $item-padding; 
-      border-top-left-radius: $border-radius; 
-      border-top-right-radius: $border-radius;
-      border-bottom: 1px solid $divider-color;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-height: 44px;
     }
 
     ion-item {
-      margin-left: 10px;
-      margin-right: 10px;
       --background: transparent;
-      --border-color: transparent; 
+      --border-color: #{$divider-color};
+      --border-width: 0 0 1px 0;
       --color: #{$text-color};
-      --padding-start: $item-padding;
-      --padding-end: $item-padding;
-      --inner-padding-end: 0;
-      position: relative; 
-      transition: background-color 0.2s ease;
-      padding-top: 12px;
-      padding-bottom: 12px;
+      --padding-start: #{$item-padding};
+      --padding-end: #{$item-padding};
+      --min-height: 48px;
 
-      &:last-of-type {
-        border-bottom-left-radius: $border-radius;
-        border-bottom-right-radius: $border-radius;
-        &::after {
-          display: none;
-        }
-      }
-
-      &::after { 
-        content: '';
-        position: absolute;
-        left: $item-padding;
-        right: $item-padding;
-        bottom: 0;
-        height: 1px;
-        background-color: $divider-color;
+      &:last-child {
+        --border-width: 0;
       }
 
       ion-label {
-        color: #{$text-color};
-        opacity: 0.8; 
+        margin: 8px 0;
 
         h2 {
+          font-size: 16px;
           font-weight: 500;
-          font-size: 18px; 
-          margin-bottom: 8px; 
+          margin-bottom: 4px;
         }
 
         p {
-          font-size: 16px; 
-          opacity: 0.6; 
+          font-size: 14px;
+          color: rgba($text-color, 0.7);
+        }
+      }
+
+      ion-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 12px;
+
+        &[color="primary"] {
+          background-color: $primary-pink;
+          color: $text-color;
+        }
+      }
+
+      ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        height: 36px;
+
+        ion-icon {
+          font-size: 18px;
         }
       }
 
       ion-input, ion-select, ion-textarea {
-        --color: #{$text-color};
-        --placeholder-color: #{rgba($text-color, 0.6)}; 
-        --placeholder-opacity: 1;
+        --padding-start: 0;
+        --padding-end: 0;
         font-size: 16px;
-        padding: 10px 0; 
-        margin-top: 8px; 
-
-        &::part(native) {
-          border-bottom: 1px solid $divider-color;
-        }
       }
 
       ion-select::part(icon) {
-        color: #{$primary-pink};
+        color: $primary-pink;
         opacity: 1;
       }
 
-      // Style for API Key items
-      &[ngfor] {
-        ion-label {
-          flex: 1;
-        }
-        ion-radio {
-          display: none; 
-        }
-        ion-button {
-          --background: transparent;
-          --color: #{$primary-pink};
-          ion-icon {
-            font-size: 20px;
-          }
-        }
-      }
-
-      // Hover effect 
       &:hover {
-        --background: darken($input-background, 5%);
+        --background: #{lighten($input-background, 3%)};
       }
     }
   }
+}
 
-  // Drop Down Styles
-  ion-item[button] {
-    --background: transparent;
-    --color: #{$text-color};
-    --padding-start: $item-padding;
-    --padding-end: $item-padding;
-    --inner-padding-end: 0;
-    position: relative;
-    transition: background-color 0.2s ease;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    margin-left: 10px;
-    margin-right: 10px;
-    border-radius: $border-radius;
+// Drop Down Styles
+ion-item[button] {
+  --background: #{$input-background};
+  --color: #{$text-color};
+  --padding-start: #{$item-padding};
+  --padding-end: #{$item-padding};
+  --inner-padding-end: 0;
+  border-radius: $border-radius;
+  margin-bottom: 12px;
 
-    &:hover {
-      --background: darken($input-background, 5%);
-    }
-
-    ion-label {
-      font-weight: 500; 
-      font-size: 18px; 
-    }
-
-    ion-icon {
-      @include smooth-transition;
-      font-size: 20px; 
-      color: #{$text-color};
-    }
-
-    &[ng-reflect-ng-if="showAdvancedSettings"] ion-icon,
-    &[ng-reflect-ng-if="showFeatures"] ion-icon {
-      transform: rotate(180deg);
-    }
+  ion-label {
+    font-weight: 500;
+    font-size: 16px;
   }
 
-  .collapsible-content {
-    overflow: hidden;
-    max-height: 0;
-    @include smooth-transition;
+  ion-icon {
+    @include smooth-transition(transform);
+    font-size: 20px;
+  }
 
-    &.expanded {
-      max-height: 500px; // Adjust as needed
-    }
+  &[aria-expanded="true"] ion-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.collapsible-content {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  @include smooth-transition(all, 0.3s);
+
+  &.expanded {
+    max-height: 1000px;
+    opacity: 1;
   }
 }
 
 // Button Styles
 ion-button {
   --background: #{$primary-pink};
-  --background-activated: #{$secondary-pink};
+  --background-hover: #{$secondary-pink};
   --color: #{$text-color};
-  --border-radius: 8px; 
-  margin-top: 32px; 
+  --border-radius: 12px;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  margin-top: 20px;
+  height: 44px;
   font-weight: 600;
+  font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 1.2px; 
-  font-size: 16px; 
-
-  // Hover effect
-  &:hover {
-    filter: brightness(1.1);
-  }
+  letter-spacing: 0.5px;
 }
 
-// Custom styles for select and textarea
-ion-select, ion-textarea {
-  background-color: transparent;
-  --padding-start: 0;
-  --padding-end: 0;
-}
-
-// Style for focused inputs
-ion-item.item-has-focus {
-  --highlight-background: #{$primary-pink};
-}
-
-// Custom scrollbar for textarea
-ion-textarea::part(native) {
-  padding: 8px 0;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #{$secondary-pink};
-    border-radius: 4px;
-  }
-}
-
-// Style for the action sheet interface
-ion-action-sheet {
-  --background: #{$background-color};
-  --button-background: #{$input-background};
-  --button-color: #{$text-color};
-  --color: #{$text-color};
-  --border-radius: $border-radius;
-
-  ion-action-sheet-button {
-    --border-radius: 0;
-
-    &:first-of-type {
-      border-top-left-radius: $border-radius;
-      border-top-right-radius: $border-radius;
-    }
-
-    &:last-of-type {
-      border-bottom-left-radius: $border-radius;
-      border-bottom-right-radius: $border-radius;
-    }
-  }
-}
-
-// Improved CoT Toggle Button Styles
+// Toggle Button Styles
 ion-toggle {
   --background: #{$input-background};
   --background-checked: #{$primary-pink};
   --handle-background: #{$text-color};
   --handle-background-checked: #{$text-color};
+  padding: 6px;
+  width: 40px;
+  height: 24px;
 
-  &:focus-visible {
-    outline: 2px solid #{$primary-pink};
+  &::part(track) {
+    border-radius: 12px;
+    background: #{darken($input-background, 5%)};
+  }
+
+  &::part(handle) {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+  }
+}
+
+// Multimodal Badge Style
+.multimodal-badge {
+  background-color: $secondary-pink;
+  color: $text-color;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+}
+
+// Add Model Button Style
+.add-model-item {
+  --color: #{$primary-pink};
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 20px;
+    margin-right: 8px;
+  }
+}
+
+// System Prompt Textarea Style
+.system-prompt {
+  background-color: #{lighten($input-background, 2%)};
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: 6px;
+
+  &:focus {
+    background-color: #{lighten($input-background, 4%)};
+  }
+}
+
+// API Key and Provider Item Styles
+.api-item {
+  --background: #{lighten($input-background, 1%)};
+  border-radius: 12px;
+  margin-bottom: 6px;
+
+  ion-select {
+    max-width: 100%;
+  }
+
+  ion-buttons[slot="end"] ion-button {
+    --color: #{$text-color};
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+ion-content::part(scroll) {
+  animation: fadeIn 0.3s ease-out;
+}
+
+// Media Query for Mobile Devices
+@media (max-width: 768px) {
+  ion-content {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+
+  ion-item-group {
+    border-radius: 12px;
+  }
+
+  ion-item {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+
+  ion-button {
+    --border-radius: 10px;
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+// Accessibility
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
