@@ -12,18 +12,18 @@ import { CommonModule } from '@angular/common';
   imports: [IonicModule, FormsModule, CommonModule]
 })
 export class AddModelModalComponent {
-  @Input() model: { name: string; value: string; apiKeyIndex?: number; apiProviderIndex?: number } = { name: '', value: '' };
+  @Input() model: { name: string; value: string; apiKeyIndex?: number; apiProviderIndex?: number; isMultimodal?: boolean } = { name: '', value: '' };
   @Input() index: number | null = null;
   @Input() apiKeys: { name: string; key: string }[] = [];
   @Input() apiProviders: { name: string; baseUrl?: string }[] = [];
-  @Input() selectedApiKeyIndex: number = 0; 
-  @Input() selectedApiProviderIndex: number = 0; 
+  @Input() selectedApiKeyIndex: number = 0;
+  @Input() selectedApiProviderIndex: number = 0;
 
   constructor(private modalController: ModalController) {
-    // Initialize apiKeyIndex and apiProviderIndex for new models 
-    if (this.index === null) { 
+    if (this.index === null) {
       this.model.apiKeyIndex = this.selectedApiKeyIndex;
       this.model.apiProviderIndex = this.selectedApiProviderIndex;
+      this.model.isMultimodal = false; // Default to false for new models
     }
   }
 
@@ -32,7 +32,7 @@ export class AddModelModalComponent {
   }
 
   saveModel() {
-    console.log('Model data being saved:', this.model); // Check the console
-    this.modalController.dismiss({ data: this.model }); 
+    console.log('Model data being saved:', this.model);
+    this.modalController.dismiss({ data: this.model });
   }
 }

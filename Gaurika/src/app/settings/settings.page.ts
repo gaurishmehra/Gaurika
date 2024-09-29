@@ -22,17 +22,22 @@ export class SettingsPage implements OnInit {
   apiProviders: { name: string; baseUrl?: string }[] = [];
   selectedApiProviderIndex: number = 0;
 
-  models: { name: string; value: string; apiKeyIndex?: number; apiProviderIndex?: number }[] = [];
+  models: {
+    name: string;
+    value: string;
+    apiKeyIndex?: number;
+    apiProviderIndex?: number;
+    isMultimodal?: boolean;
+  }[] = [];
   selectedModelIndex: number = 0;
 
   systemPrompt = '';
   isMultiTurnCotEnabled = false;
   isSingleTurnCotEnabled = false;
   isWebGroundingEnabled = false;
-  isMultimodalEnabled = false;
+  isMultimodalEnabled = false; 
 
   showAdvancedSettings = false;
-  showFeatures = false;
 
   constructor(
     private router: Router,
@@ -47,26 +52,19 @@ export class SettingsPage implements OnInit {
     this.selectedApiKeyIndex = (await this.storage.get('selectedApiKeyIndex')) || 0;
 
     this.apiProviders = (await this.storage.get('apiProviders')) || [];
-    this.selectedApiProviderIndex =
-      (await this.storage.get('selectedApiProviderIndex')) || 0;
+    this.selectedApiProviderIndex = (await this.storage.get('selectedApiProviderIndex')) || 0;
 
     this.models = (await this.storage.get('models')) || [];
     this.selectedModelIndex = (await this.storage.get('selectedModelIndex')) || 0;
 
     this.systemPrompt = (await this.storage.get('systemPrompt')) || '';
-    this.isMultiTurnCotEnabled =
-      (await this.storage.get('isMultiTurnCotEnabled')) || false;
-    this.isSingleTurnCotEnabled =
-      (await this.storage.get('isSingleTurnCotEnabled')) || false;
-    this.isWebGroundingEnabled =
-      (await this.storage.get('isWebGroundingEnabled')) || false;
-    this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
+    this.isMultiTurnCotEnabled = (await this.storage.get('isMultiTurnCotEnabled')) || false;
+    this.isSingleTurnCotEnabled = (await this.storage.get('isSingleTurnCotEnabled')) || false;
+    this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
+    this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false; 
 
-    // Ensure selected indices are within bounds
     this.ensureSelectedIndicesWithinBounds();
-
-    // Update API Key and API Provider based on selected model
-    this.onModelChange();
+    this.onModelChange(); 
   }
 
   async showAddApiKeyModal() {
@@ -109,7 +107,6 @@ export class SettingsPage implements OnInit {
       this.selectedApiKeyIndex = this.apiKeys.length > 0 ? 0 : 0;
     }
 
-    // Update model references if needed
     this.models.forEach(model => {
       if (model.apiKeyIndex === index) {
         delete model.apiKeyIndex;
@@ -161,7 +158,6 @@ export class SettingsPage implements OnInit {
       this.selectedApiProviderIndex = this.apiProviders.length > 0 ? 0 : 0;
     }
 
-    // Update model references if needed
     this.models.forEach(model => {
       if (model.apiProviderIndex === index) {
         delete model.apiProviderIndex;
@@ -179,7 +175,7 @@ export class SettingsPage implements OnInit {
       componentProps: {
         apiKeys: this.apiKeys,
         apiProviders: this.apiProviders,
-        selectedApiKeyIndex: this.selectedApiKeyIndex, 
+        selectedApiKeyIndex: this.selectedApiKeyIndex,
         selectedApiProviderIndex: this.selectedApiProviderIndex,
         models: this.models,
         selectedModelIndex: this.selectedModelIndex,
@@ -187,7 +183,6 @@ export class SettingsPage implements OnInit {
     });
 
     modal.onDidDismiss().then((data) => {
-
       if (
         data.data.data &&
         data.data.data.name &&
@@ -234,40 +229,35 @@ export class SettingsPage implements OnInit {
 
   async saveSettings() {
     try {
-      // 1. Ensure Storage is Created:
       await this.storage.create();
-  
-      // 2. Save Individual Settings:
+
       await this.storage.set('apiKeys', this.apiKeys);
       await this.storage.set('apiProviders', this.apiProviders);
-      await this.storage.set('models', this.models); // Saving models explicitly
-  
+      await this.storage.set('models', this.models); 
+
       await this.storage.set('selectedModelIndex', this.selectedModelIndex);
       await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
       await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
-  
+
       await this.storage.set('systemPrompt', this.systemPrompt);
       await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
       await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
       await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
-      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
-  
-      // 3. Derive and Save Active Model and API Details:
+      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled); 
+
       const selectedModel = this.models[this.selectedModelIndex];
       const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
-  
+
       await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
       await this.storage.set('model', selectedModel.value);
       await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
-  
+
       console.log('Settings saved successfully!');
-  
-      // Optional: Reload to reflect changes 
-      window.location.reload();
-  
+
+      window.location.reload(); 
+
     } catch (error) {
       console.error('Error saving settings:', error);
-      // Handle the error (e.g., show an error message)
     }
   }
 
@@ -280,14 +270,12 @@ export class SettingsPage implements OnInit {
       }
     }
 
-    // Ensure only one CoT or Web Grounding is enabled at a time
     if (this.isMultiTurnCotEnabled || this.isSingleTurnCotEnabled) {
       this.isWebGroundingEnabled = false;
     }
   }
 
   onWebGroundingToggleChange() {
-    // Ensure only one CoT or Web Grounding is enabled at a time
     if (this.isWebGroundingEnabled) {
       this.isMultiTurnCotEnabled = false;
       this.isSingleTurnCotEnabled = false;
@@ -299,6 +287,7 @@ export class SettingsPage implements OnInit {
     if (selectedModel) {
       this.selectedApiKeyIndex = selectedModel.apiKeyIndex || 0;
       this.selectedApiProviderIndex = selectedModel.apiProviderIndex || 0;
+      this.isMultimodalEnabled = selectedModel.isMultimodal || false;
     }
   }
 

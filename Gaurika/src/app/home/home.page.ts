@@ -17,7 +17,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 interface Message {
   role: string;
   content: string;
-  image?: string;
+  image?: string | null;
   tool_call_id?: string;
   isToolCallInProgress?: boolean;
 }
@@ -146,67 +146,69 @@ export class HomePage implements OnInit {
         return;
       }
     }
-
+  
     this.isStreaming = true;
     this.isStreamStopped = false;
-
+  
     let messageContent = this.userInput;
     let imageContent = this.selectedImage;
-
-    if (this.isMultimodalEnabled && imageContent) {
-      const base64Image = await this.getBase64Image(imageContent);
-      this.messages.push({
+  
+    if (this.isMultimodalEnabled) {
+      let newMessage: Message = {
         role: 'user',
         content: messageContent,
-        image: base64Image,
+        image: imageContent || undefined,
+      };
+      this.messages.push(newMessage);
+  
+      let apiMessages = this.messages.map(msg => {
+        if (msg.image) {
+          return {
+            role: msg.role,
+            content: [
+              { type: 'text', text: msg.content },
+              { type: 'image_url', image_url: { url: msg.image } }
+            ]
+          };
+        } else {
+          return { role: msg.role, content: msg.content };
+        }
       });
-
-      const apiMessage = [
-        { type: 'text', text: messageContent },
-        {
-          type: 'image_url',
-          image_url: {
-            url: base64Image,
-          },
-        },
-      ];
-
+  
       try {
         const response = await this.client.chat.completions.create({
           model: this.model,
-          messages: [{ role: 'user', content: apiMessage }],
+          messages: apiMessages,
           max_tokens: 4096,
           stream: true,
         });
-
-        let assistantMessage = { role: 'assistant', content: '' };
+  
+        let assistantMessage: Message = { role: 'assistant', content: '' };
         this.messages.push(assistantMessage);
-
+  
         for await (const part of response) {
           if (this.isStreamStopped) {
             break;
           }
-
-          if (part.choices[0].delta?.content) {
+  
+          if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
             assistantMessage.content += part.choices[0].delta.content;
-            setTimeout(() => {
-              this.content.scrollToBottom(300);
-            });
+            this.content.scrollToBottom(300);
           }
         }
-
+  
         if (this.isStreamStopped) {
           assistantMessage.content += " [aborted]";
         }
-
+  
       } catch (error) {
         console.error('Error calling OpenAI API:', error);
-        await this.showErrorToast('Sorry, I encountered an error processing your image.');
+        await this.showErrorToast('Sorry, I encountered an error processing your request.');
       }
-
+  
     } else if (this.isWebGroundingEnabled) {
       this.messages.push({ role: 'user', content: messageContent });
-
+  
       const tools = [
         {
           type: 'function',
@@ -227,12 +229,12 @@ export class HomePage implements OnInit {
           },
         },
       ];
-
+  
       const runConversation = async (isInitialCall = true) => {
         const messagesToSend = isInitialCall
           ? this.messages.filter((m) => m.role !== 'abc')
           : this.messages;
-
+  
         try {
           const response = await this.client.chat.completions.create({
             messages: [
@@ -246,17 +248,17 @@ export class HomePage implements OnInit {
             stream: true,
             tools: isInitialCall ? tools : undefined,
           });
-
+  
           this.messages = this.messages.filter((m) => m.role !== 'tool');
-
+  
           let assistantMessage = { role: 'assistant', content: '' };
           this.messages.push(assistantMessage);
-
+  
           for await (const part of response) {
             if (this.isStreamStopped) {
               break;
             }
-
+  
             if (part.choices[0].delta?.content) {
               assistantMessage.content += part.choices[0].delta.content;
             } else if (part.choices[0].delta?.tool_calls) {
@@ -264,21 +266,21 @@ export class HomePage implements OnInit {
               if (toolCall.function.name === 'webgroundtool') {
                 const args = JSON.parse(toolCall.function.arguments);
                 const query = args.query;
-
+  
                 this.messages.push({
                   role: 'tool',
                   content: 'Scraping the web...',
                   tool_call_id: toolCall.id,
                   isToolCallInProgress: true,
                 });
-
+  
                 if (query) {
                   const webgroundingResult = await this.webgroundtool(query);
-
+  
                   this.messages = this.messages.filter(
                     (m) => m.tool_call_id !== toolCall.id
                   );
-
+  
                   this.messages.push({
                     role: 'tool',
                     content: webgroundingResult,
@@ -289,29 +291,29 @@ export class HomePage implements OnInit {
                 }
               }
             }
-
+  
             setTimeout(() => {
               this.content.scrollToBottom(300);
             });
           }
-
+  
           if (this.isStreamStopped) {
             assistantMessage.content += " [aborted]";
           }
-
+  
         } catch (error) {
           console.error('Error in web grounding:', error);
           await this.showErrorToast('Sorry, I encountered an error during web grounding.');
         }
       };
-
+  
       await runConversation();
-
+  
     } else {
       this.messages.push({ role: 'user', content: messageContent });
-
+  
       this.abortController = new AbortController();
-
+  
       try {
         const response = await this.client.chat.completions.create({
           messages: [
@@ -324,24 +326,24 @@ export class HomePage implements OnInit {
           temperature: 0.75,
           stream: true
         });
-
+  
         let assistantMessage = { role: 'assistant', content: '' };
         this.messages.push(assistantMessage);
-
+  
         for await (const part of response) {
           if (this.isStreamStopped) {
             break;
           }
-
+  
           if (part.choices[0].delta?.content) {
             assistantMessage.content += part.choices[0].delta.content;
           }
-
+  
           setTimeout(() => {
             this.content.scrollToBottom(300);
           });
         }
-
+  
         if (this.isStreamStopped) {
           assistantMessage.content += " [aborted]";
         }
@@ -356,14 +358,12 @@ export class HomePage implements OnInit {
         this.abortController = null;
       }
     }
-
+  
     this.userInput = '';
     this.selectedImage = null;
     this.saveCurrentSession();
     this.isStreaming = false;
-    setTimeout(() => {
-      this.content.scrollToBottom(300);
-    });
+    this.content.scrollToBottom(300);
   }
 
   triggerImageUpload() {

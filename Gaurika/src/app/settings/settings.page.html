@@ -19,6 +19,7 @@
           <h2>{{ model.name }}</h2>
           <p>{{ model.value }}</p>
         </ion-label>
+        <ion-badge color="primary" *ngIf="model.isMultimodal">Multimodal</ion-badge> 
         <ion-button slot="end" fill="clear" (click)="editModel(i)">
           <ion-icon name="create-outline"></ion-icon>
         </ion-button>
@@ -101,7 +102,7 @@
       <ion-icon [name]="showAdvancedSettings ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
     </ion-item>
 
-    <ion-item-group *ngIf="showFeatures">
+    <ion-item-group> 
       <ion-item-divider>
         <ion-label>Features</ion-label>
       </ion-item-divider>
@@ -117,16 +118,7 @@
         <ion-label>Enable Web Grounding</ion-label>
         <ion-toggle [(ngModel)]="isWebGroundingEnabled" (ionChange)="onWebGroundingToggleChange()"></ion-toggle>
       </ion-item>
-      <ion-item>
-        <ion-label>Enable Multimodal</ion-label>
-        <ion-toggle [(ngModel)]="isMultimodalEnabled"></ion-toggle>
-      </ion-item>
     </ion-item-group>
-
-    <ion-item button (click)="showFeatures = !showFeatures">
-      <ion-label>Features</ion-label>
-      <ion-icon [name]="showFeatures ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
-    </ion-item>
 
   </ion-list>
 
