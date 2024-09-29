@@ -138,247 +138,20 @@ export class HomePage implements OnInit {
     });
   }
 
-  async sendMessage() {
-    if (!this.client) {
-      await this.initializeOpenAIClient();
-      if (!this.client) {
-        await this.showErrorToast('API client not initialized. Please check your API key settings.');
-        return;
-      }
-    }
-  
-    this.isStreaming = true;
-    this.isStreamStopped = false;
-  
-    let messageContent = this.userInput;
-    let imageContent = this.selectedImage;
-  
-    if (this.isMultimodalEnabled) {
-      let newMessage: Message = {
-        role: 'user',
-        content: messageContent,
-        image: imageContent || undefined,
-      };
-      this.messages.push(newMessage);
-  
-      let apiMessages = this.messages.map(msg => {
-        if (msg.image) {
-          return {
-            role: msg.role,
-            content: [
-              { type: 'text', text: msg.content },
-              { type: 'image_url', image_url: { url: msg.image } }
-            ]
-          };
-        } else {
-          return { role: msg.role, content: msg.content };
-        }
-      });
-  
-      try {
-        const response = await this.client.chat.completions.create({
-          model: this.model,
-          messages: apiMessages,
-          max_tokens: 4096,
-          stream: true,
-        });
-  
-        let assistantMessage: Message = { role: 'assistant', content: '' };
-        this.messages.push(assistantMessage);
-  
-        for await (const part of response) {
-          if (this.isStreamStopped) {
-            break;
-          }
-  
-          if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
-            assistantMessage.content += part.choices[0].delta.content;
-            this.content.scrollToBottom(300);
-          }
-        }
-  
-        if (this.isStreamStopped) {
-          assistantMessage.content += " [aborted]";
-        }
-  
-      } catch (error) {
-        console.error('Error calling OpenAI API:', error);
-        await this.showErrorToast('Sorry, I encountered an error processing your request.');
-      }
-  
-    } else if (this.isWebGroundingEnabled) {
-      this.messages.push({ role: 'user', content: messageContent });
-  
-      const tools = [
-        {
-          type: 'function',
-          function: {
-            name: 'webgroundtool',
-            description:
-              "Use this tool to search the web for factual information related to the user's request.",
-            parameters: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'string',
-                  description: 'query to search the web',
-                },
-              },
-              required: ['query'],
-            },
-          },
-        },
-      ];
-  
-      const runConversation = async (isInitialCall = true) => {
-        const messagesToSend = isInitialCall
-          ? this.messages.filter((m) => m.role !== 'abc')
-          : this.messages;
-  
-        try {
-          const response = await this.client.chat.completions.create({
-            messages: [
-              ...(this.systemPrompt
-                ? [{ role: 'system', content: this.systemPrompt }]
-                : []),
-              ...messagesToSend,
-            ],
-            model: this.model,
-            temperature: 0.75,
-            stream: true,
-            tools: isInitialCall ? tools : undefined,
-          });
-  
-          this.messages = this.messages.filter((m) => m.role !== 'tool');
-  
-          let assistantMessage = { role: 'assistant', content: '' };
-          this.messages.push(assistantMessage);
-  
-          for await (const part of response) {
-            if (this.isStreamStopped) {
-              break;
-            }
-  
-            if (part.choices[0].delta?.content) {
-              assistantMessage.content += part.choices[0].delta.content;
-            } else if (part.choices[0].delta?.tool_calls) {
-              const toolCall = part.choices[0].delta.tool_calls[0];
-              if (toolCall.function.name === 'webgroundtool') {
-                const args = JSON.parse(toolCall.function.arguments);
-                const query = args.query;
-  
-                this.messages.push({
-                  role: 'tool',
-                  content: 'Scraping the web...',
-                  tool_call_id: toolCall.id,
-                  isToolCallInProgress: true,
-                });
-  
-                if (query) {
-                  const webgroundingResult = await this.webgroundtool(query);
-  
-                  this.messages = this.messages.filter(
-                    (m) => m.tool_call_id !== toolCall.id
-                  );
-  
-                  this.messages.push({
-                    role: 'tool',
-                    content: webgroundingResult,
-                    tool_call_id: toolCall.id,
-                  });
-                  await runConversation(false);
-                  return;
-                }
-              }
-            }
-  
-            setTimeout(() => {
-              this.content.scrollToBottom(300);
-            });
-          }
-  
-          if (this.isStreamStopped) {
-            assistantMessage.content += " [aborted]";
-          }
-  
-        } catch (error) {
-          console.error('Error in web grounding:', error);
-          await this.showErrorToast('Sorry, I encountered an error during web grounding.');
-        }
-      };
-  
-      await runConversation();
-  
-    } else {
-      this.messages.push({ role: 'user', content: messageContent });
-  
-      this.abortController = new AbortController();
-  
-      try {
-        const response = await this.client.chat.completions.create({
-          messages: [
-            ...(this.systemPrompt
-              ? [{ role: 'system', content: this.systemPrompt }]
-              : []),
-            ...this.messages,
-          ],
-          model: this.model,
-          temperature: 0.75,
-          stream: true
-        });
-  
-        let assistantMessage = { role: 'assistant', content: '' };
-        this.messages.push(assistantMessage);
-  
-        for await (const part of response) {
-          if (this.isStreamStopped) {
-            break;
-          }
-  
-          if (part.choices[0].delta?.content) {
-            assistantMessage.content += part.choices[0].delta.content;
-          }
-  
-          setTimeout(() => {
-            this.content.scrollToBottom(300);
-          });
-        }
-  
-        if (this.isStreamStopped) {
-          assistantMessage.content += " [aborted]";
-        }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.log('Request aborted');
-        } else {
-          console.error('Error calling OpenAI API:', error);
-          await this.showErrorToast('Sorry, I encountered an error processing your request.');
-        }
-      } finally {
-        this.abortController = null;
-      }
-    }
-  
-    this.userInput = '';
-    this.selectedImage = null;
-    this.saveCurrentSession();
-    this.isStreaming = false;
-    this.content.scrollToBottom(300);
-  }
-
-  triggerImageUpload() {
-    this.fileInput.nativeElement.click();
-  }
-
   async onFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.selectedImage = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      this.selectedImage = await this.readFileAsDataURL(file);
     }
+  }
+
+  private async readFileAsDataURL(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   removeSelectedImage() {
@@ -611,6 +384,229 @@ export class HomePage implements OnInit {
     }
   }
 
+  async sendMessage() {
+    if (!this.client) {
+      await this.initializeOpenAIClient();
+      if (!this.client) {
+        await this.showErrorToast('API client not initialized. Please check your API key settings.');
+        return;
+      }
+    }
+
+    this.isStreaming = true;
+    this.isStreamStopped = false;
+
+    let messageContent = this.userInput;
+    let imageContent = this.selectedImage;
+
+    if (this.isMultimodalEnabled) {
+      let newMessage: Message = {
+        role: 'user',
+        content: messageContent,
+        image: imageContent || undefined,
+      };
+      this.messages.push(newMessage);
+
+      let apiMessages = await Promise.all(this.messages.map(async (msg) => {
+        if (msg.image) {
+          return {
+            role: msg.role,
+            content: [
+              { type: 'text', text: msg.content },
+              { type: 'image_url', image_url: { url: msg.image } } // Use data URL directly
+            ]
+          };
+        } else {
+          return { role: msg.role, content: msg.content };
+        }
+      }));
+
+      try {
+        const response = await this.client.chat.completions.create({
+          model: this.model,
+          messages: apiMessages,
+          max_tokens: 4096,
+          stream: true,
+        });
+
+        let assistantMessage: Message = { role: 'assistant', content: '' };
+        this.messages.push(assistantMessage);
+
+        for await (const part of response) {
+          if (this.isStreamStopped) {
+            break;
+          }
+
+          if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
+            this.content.scrollToBottom(300);
+          }
+        }
+
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
+        }
+
+      } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        await this.showErrorToast('Sorry, I encountered an error processing your request.');
+      }
+
+    } else if (this.isWebGroundingEnabled) {
+      this.messages.push({ role: 'user', content: messageContent });
+
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'webgroundtool',
+            description: "Use this tool to search the web for factual information related to the user's request.",
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'query to search the web',
+                },
+              },
+              required: ['query'],
+            },
+          },
+        },
+      ];
+
+      const runConversation = async (isInitialCall = true) => {
+        const messagesToSend = isInitialCall
+          ? this.messages.filter((m) => m.role !== 'abc')
+          : this.messages;
+
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(this.systemPrompt
+                ? [{ role: 'system', content: this.systemPrompt }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+
+          this.messages = this.messages.filter((m) => m.role !== 'tool');
+
+          let assistantMessage = { role: 'assistant', content: '' };
+          this.messages.push(assistantMessage);
+
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
+              if (toolCall.function.name === 'webgroundtool') {
+                const args = JSON.parse(toolCall.function.arguments);
+                const query = args.query;
+
+                this.messages.push({
+                  role: 'tool',
+                  content: 'Scraping the web...',
+                  tool_call_id: toolCall.id,
+                  isToolCallInProgress: true,
+                });
+
+                if (query) {
+                  const webgroundingResult = await this.webgroundtool(query);
+
+                  this.messages = this.messages.filter(
+                    (m) => m.tool_call_id !== toolCall.id
+                  );
+
+                  this.messages.push({
+                    role: 'tool',
+                    content: webgroundingResult,
+                    tool_call_id: toolCall.id,
+                  });
+                  await runConversation(false);
+                  return;
+                }
+              }
+            }
+
+            this.content.scrollToBottom(300);
+          }
+
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+
+        } catch (error) {
+          console.error('Error in web grounding:', error);
+          await this.showErrorToast('Sorry, I encountered an error during web grounding.');
+        }
+      };
+
+      await runConversation();
+
+    } else {
+      this.messages.push({ role: 'user', content: messageContent });
+
+      this.abortController = new AbortController();
+
+      try {
+        const response = await this.client.chat.completions.create({
+          messages: [
+            ...(this.systemPrompt
+              ? [{ role: 'system', content: this.systemPrompt }]
+              : []),
+            ...this.messages,
+          ],
+          model: this.model,
+          temperature: 0.75,
+          stream: true
+        });
+
+        let assistantMessage = { role: 'assistant', content: '' };
+        this.messages.push(assistantMessage);
+
+        for await (const part of response) {
+          if (this.isStreamStopped) {
+            break;
+          }
+
+          if (part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
+          }
+
+          this.content.scrollToBottom(300);
+        }
+
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('Request aborted');
+        } else {
+          console.error('Error calling OpenAI API:', error);
+          await this.showErrorToast('Sorry, I encountered an error processing your request.');
+        }
+      } finally {
+        this.abortController = null;
+      }
+    }
+
+    this.userInput = '';
+    this.selectedImage = null;
+    this.saveCurrentSession();
+    this.isStreaming = false;
+    this.content.scrollToBottom(300);
+  }
+
   stopStream() {
     this.isStreamStopped = true;
     if (this.abortController) {
@@ -639,4 +635,8 @@ export class HomePage implements OnInit {
   async hideLoading() {
     await this.loadingController.dismiss();
   }
+  triggerImageUpload() {
+    this.fileInput.nativeElement.click();
+  }
+  
 }
