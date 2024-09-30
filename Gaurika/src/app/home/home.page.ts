@@ -67,6 +67,10 @@ export class HomePage implements OnInit {
       name: 'Physics',
       prompt: 'What is the theory of general relativity and how is it different from the theory of special relativity?',
     },
+    {
+      name: 'Chemistry',
+      prompt: 'What was the Bohr model of the atom and how was it proven wrong?',
+    },
   ];
 
   constructor(
