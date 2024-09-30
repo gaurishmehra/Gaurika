@@ -74,10 +74,9 @@
             <ion-icon name="attach-outline"></ion-icon>
           </ion-button>
           <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
-          <!-- CORRECTED BUTTON LOGIC -->
           <ion-button class="send-button" 
                       (click)="isStreaming ? stopStream() : sendMessage()"
-                      [disabled]="userInput === ''"> <!-- Disabled only if input is empty  -->
+                      [disabled]="userInput === ''">
             {{ isStreaming ? 'Stop' : 'Send' }} 
           </ion-button>
         </div>
@@ -107,6 +106,7 @@
       <ion-list>
         <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
           {{ session.name }}
+          <ion-icon *ngIf="session.messages.some(m => m.image)" name="images" slot="end"></ion-icon> 
           <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
             <ion-icon name="trash-outline"></ion-icon>
           </ion-button>

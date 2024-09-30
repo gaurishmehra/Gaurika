@@ -234,6 +234,11 @@ export class HomePage implements OnInit {
   }
 
   switchSession(index: number) {
+    if (!this.isMultimodalEnabled && this.sessions[index].messages.some(m => m.image)) {
+      this.showErrorToast('This session contains images and cannot be accessed with the current model. Please enable multimodal mode in settings.');
+      return;
+    }
+
     this.currentSessionIndex = index;
     this.loadCurrentSession();
     this.toggleSessionMenu();
