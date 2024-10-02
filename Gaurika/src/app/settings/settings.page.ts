@@ -35,7 +35,7 @@ export class SettingsPage implements OnInit {
   isMultiTurnCotEnabled = false;
   isSingleTurnCotEnabled = false;
   isWebGroundingEnabled = false;
-  isMultimodalEnabled = false; 
+  isMultimodalEnabled = false;
 
   showAdvancedSettings = false;
 
@@ -61,10 +61,13 @@ export class SettingsPage implements OnInit {
     this.isMultiTurnCotEnabled = (await this.storage.get('isMultiTurnCotEnabled')) || false;
     this.isSingleTurnCotEnabled = (await this.storage.get('isSingleTurnCotEnabled')) || false;
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
-    this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false; 
+    this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
 
     this.ensureSelectedIndicesWithinBounds();
-    this.onModelChange(); 
+    this.onModelChange();
+
+    // Add default entries if they don't exist
+    this.addDefaultEntriesIfNotPresent();
   }
 
   async showAddApiKeyModal() {
@@ -233,7 +236,7 @@ export class SettingsPage implements OnInit {
 
       await this.storage.set('apiKeys', this.apiKeys);
       await this.storage.set('apiProviders', this.apiProviders);
-      await this.storage.set('models', this.models); 
+      await this.storage.set('models', this.models);
 
       await this.storage.set('selectedModelIndex', this.selectedModelIndex);
       await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
@@ -243,7 +246,7 @@ export class SettingsPage implements OnInit {
       await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
       await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
       await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
-      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled); 
+      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
 
       const selectedModel = this.models[this.selectedModelIndex];
       const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
@@ -254,7 +257,7 @@ export class SettingsPage implements OnInit {
 
       console.log('Settings saved successfully!');
 
-      window.location.reload(); 
+      window.location.reload();
 
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -302,6 +305,30 @@ export class SettingsPage implements OnInit {
 
     if (this.selectedModelIndex >= this.models.length) {
       this.selectedModelIndex = this.models.length > 0 ? this.models.length - 1 : 0;
+    }
+  }
+
+  addDefaultEntriesIfNotPresent() {
+    const defaultApiKeyExists = this.apiKeys.some(key => key.name === 'Default API Key');
+    if (!defaultApiKeyExists) {
+      this.apiKeys.push({ name: 'Default API Key', key: '123' });
+    }
+
+    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Cerebras + proxy'); 
+    if (!defaultApiProviderExists) {
+      this.apiProviders.push({ name: 'Cerebras + proxy', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' });
+    }
+
+    const defaultModelExists = this.models.some(model => model.name === 'default');
+    if (!defaultModelExists) {
+      const defaultModelIndex = this.models.push({
+        name: 'default',
+        value: 'llama3.1-8b',
+        apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key'),
+        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Cerebras + proxy'), 
+        isMultimodal: false
+      }) - 1;
+      this.selectedModelIndex = defaultModelIndex; 
     }
   }
 }
