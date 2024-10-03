@@ -134,7 +134,7 @@ export class HomePage implements OnInit {
 
   async showFirstTimeToast() {
     const toast = await this.toastController.create({
-      message: "Welcome! If you're using this for the first time, go to settings and select the default model, then click save at the bottom. Advanced users can add custom OpenAI-compatible base URLs and endpoints in the strings menu. Note: webgrounding and some features are still in development. This message will only appear once.",
+      message: "Welcome! If you're using this for the first time, go to settings and select the default model, then click save at the bottom. Advanced users can add custom OpenAI-compatible base URLs and endpoints in the adv settings menu. Note: webgrounding and some features are still in development. This message will only appear once.",
       duration: 20000, // 10 seconds
       position: 'middle',
       buttons: [
