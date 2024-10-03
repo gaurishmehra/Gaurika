@@ -63,11 +63,11 @@ export class SettingsPage implements OnInit {
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
     this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
 
+    // Add default entries and save if necessary
+    await this.addDefaultEntriesIfNotPresent();
+    
     this.ensureSelectedIndicesWithinBounds();
     this.onModelChange();
-
-    // Add default entries if they don't exist
-    this.addDefaultEntriesIfNotPresent();
   }
 
   async showAddApiKeyModal() {
@@ -308,27 +308,45 @@ export class SettingsPage implements OnInit {
     }
   }
 
-  addDefaultEntriesIfNotPresent() {
+  async addDefaultEntriesIfNotPresent() {
+    let needsSaving = false;
+
     const defaultApiKeyExists = this.apiKeys.some(key => key.name === 'Default API Key');
     if (!defaultApiKeyExists) {
       this.apiKeys.push({ name: 'Default API Key', key: '123' });
+      needsSaving = true;
     }
 
-    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Cerebras + proxy'); 
+    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Cerebras + proxy');
     if (!defaultApiProviderExists) {
       this.apiProviders.push({ name: 'Cerebras + proxy', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' });
+      needsSaving = true;
     }
 
     const defaultModelExists = this.models.some(model => model.name === 'default');
     if (!defaultModelExists) {
-      const defaultModelIndex = this.models.push({
+      const defaultApiKeyIndex = this.apiKeys.findIndex(key => key.name === 'Default API Key');
+      const defaultProviderIndex = this.apiProviders.findIndex(provider => provider.name === 'Cerebras + proxy');
+      
+      this.models.push({
         name: 'default',
-        value: 'llama3.1-8b',
-        apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key'),
-        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Cerebras + proxy'), 
+        value: 'llama3.1-70b', // Changed from 8b to 70b
+        apiKeyIndex: defaultApiKeyIndex,
+        apiProviderIndex: defaultProviderIndex,
         isMultimodal: false
-      }) - 1;
-      this.selectedModelIndex = defaultModelIndex; 
+      });
+      needsSaving = true;
+    }
+
+    // If this is the only model, ensure it's selected
+    if (this.models.length === 1) {
+      this.selectedModelIndex = 0;
+      needsSaving = true;
+    }
+
+    // If any default entries were added, save the settings
+    if (needsSaving) {
+      await this.saveSettings();
     }
   }
 }

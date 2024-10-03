@@ -33,6 +33,18 @@
           </div>
         </div>
       </div>
+
+      <!-- Bottom bar for starting chat from templates -->
+      <div class="bottom-bar" *ngIf="showTemplatesPage">
+        <div class="bottom-toolbar">
+          <ion-input [(ngModel)]="userInput" placeholder="Enter your message..." [disabled]="isStreaming"
+            (ngModelChange)="showTemplatesPage = userInput.trim() !== ''">
+          </ion-input>
+          <ion-button class="send-button" (click)="sendMessage()" [disabled]="userInput === ''">
+            {{ isStreaming ? 'Stop' : 'Send' }}
+          </ion-button>
+        </div>
+      </div>
     </div>
 
     <div *ngIf="!showTemplatesPage" class="chat-page">

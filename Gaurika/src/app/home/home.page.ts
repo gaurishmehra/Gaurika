@@ -190,6 +190,12 @@ export class HomePage implements OnInit {
     this.router.navigate(['/settings']);
   }
 
+  onUserInput() {
+    if (this.showTemplatesPage && this.userInput.trim() !== '') {
+      this.showTemplatesPage = false;
+    }
+  }
+
   toggleSessionMenu() {
     this.isSessionMenuOpen = !this.isSessionMenuOpen;
     if (this.isSessionMenuOpen) {
@@ -201,6 +207,51 @@ export class HomePage implements OnInit {
     this.isCreateSessionModalOpen = !this.isCreateSessionModalOpen;
     if (this.isCreateSessionModalOpen) {
       this.isSessionMenuOpen = false;
+    }
+  }
+
+  async createNewSessionFromMessage(message: string) {
+    try {
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant. Based on the user\'s message, generate a concise 1-3 word title that captures the essence of what might be discussed. Respond with ONLY the title, nothing else.'
+          },
+          {
+            role: 'user',
+            content: message
+          }
+        ],
+        max_tokens: 10
+      });
+
+      let sessionName = response.choices[0].message.content?.trim() || 'New Chat';
+      
+      if (sessionName.length > 20) {
+        sessionName = sessionName.substring(0, 20) + '...';
+      }
+
+      this.sessions.push({
+        name: sessionName,
+        messages: []
+      });
+      
+      this.currentSessionIndex = this.sessions.length - 1;
+      this.currentSessionName = sessionName;
+      this.showTemplatesPage = false;
+      
+      this.saveCurrentSession();
+    } catch (error) {
+      console.error('Error generating session name:', error);
+      this.sessions.push({
+        name: 'New Chat',
+        messages: []
+      });
+      this.currentSessionIndex = this.sessions.length - 1;
+      this.currentSessionName = 'New Chat';
+      this.showTemplatesPage = false;
     }
   }
 
@@ -257,55 +308,6 @@ export class HomePage implements OnInit {
     }
   }
 
-  replaceContextVariables(
-    text: string,
-    variables: { [key: string]: string }
-  ): string {
-    for (const key in variables) {
-      text = text.replace(`{{${key}}}`, variables[key]);
-    }
-    return text;
-  }
-
-  calculateCosineSimilarity(str1: string, str2: string): number {
-    const words1 = str1.toLowerCase().split(/\s+/);
-    const words2 = str2.toLowerCase().split(/\s+/);
-
-    const wordCounts1: { [word: string]: number } = {};
-    const wordCounts2: { [word: string]: number } = {};
-
-    for (const word of words1) {
-      wordCounts1[word] = (wordCounts1[word] || 0) + 1;
-    }
-    for (const word of words2) {
-      wordCounts2[word] = (wordCounts2[word] || 0) + 1;
-    }
-
-    const allWords = new Set([...words1, ...words2]);
-    let dotProduct = 0;
-    let magnitude1 = 0;
-    let magnitude2 = 0;
-
-    for (const word of allWords) {
-      const count1 = wordCounts1[word] || 0;
-      const count2 = wordCounts2[word] || 0;
-      dotProduct += count1 * count2;
-      magnitude1 += count1 * count1;
-      magnitude2 += count2 * count2;
-    }
-
-    if (magnitude1 === 0 || magnitude2 === 0) {
-      return 0;
-    }
-
-    return dotProduct / (Math.sqrt(magnitude1) * Math.sqrt(magnitude2));
-  }
-
-  async webgroundtool(query: string): Promise<string> {
-    console.log('webgroundtool called with query:', query);
-    return `sam altman is gay`;
-  }
-
   getFilteredMessages(): Message[] {
     return this.messages.filter((m) => m.role !== 'tool');
   }
@@ -358,25 +360,17 @@ export class HomePage implements OnInit {
 
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
-
-    if (this.userInput.trim() === '') {
-      this.sessions.push({
-        name: template.name,
-        messages: [{ role: 'user', content: template.prompt }],
-      });
-    } else {
-      this.sessions.push({
-        name: template.name,
-        messages: [
-          { role: 'user', content: this.userInput },
-          { role: 'user', content: template.prompt },
-        ],
-      });
-    }
+    
+    this.sessions.push({
+      name: template.name,
+      messages: []
+    });
+    
     this.currentSessionIndex = this.sessions.length - 1;
+    this.currentSessionName = template.name;
     this.loadCurrentSession();
-    this.saveCurrentSession();
-
+    
+    this.userInput = template.prompt;
     await this.sendMessage();
   }
 
@@ -386,8 +380,10 @@ export class HomePage implements OnInit {
         return 'create-outline';
       case 'Code Generation':
         return 'code-slash-outline';
-      case 'Problem Solving':
-        return 'bulb-outline';
+      case 'Physics':
+        return 'flask-outline';
+      case 'Chemistry':
+        return 'flask-outline';
       default:
         return 'chatbubbles-outline';
     }
@@ -402,10 +398,16 @@ export class HomePage implements OnInit {
       }
     }
 
+    const messageContent = this.userInput.trim();
+    if (messageContent === '') return;
+
+    if (this.showTemplatesPage || this.sessions.length === 0) {
+      await this.createNewSessionFromMessage(messageContent);
+    }
+
     this.isStreaming = true;
     this.isStreamStopped = false;
 
-    let messageContent = this.userInput;
     let imageContent = this.selectedImage;
 
     if (this.isMultimodalEnabled) {
@@ -422,7 +424,7 @@ export class HomePage implements OnInit {
             role: msg.role,
             content: [
               { type: 'text', text: msg.content },
-              { type: 'image_url', image_url: { url: msg.image } } // Use data URL directly
+              { type: 'image_url', image_url: { url: msg.image } }
             ]
           };
         } else {
@@ -616,6 +618,11 @@ export class HomePage implements OnInit {
     this.content.scrollToBottom(300);
   }
 
+  async webgroundtool(query: string): Promise<string> {
+    console.log('webgroundtool called with query:', query);
+    return `sam altman is gay`;
+  }
+
   stopStream() {
     this.isStreamStopped = true;
     if (this.abortController) {
@@ -644,8 +651,8 @@ export class HomePage implements OnInit {
   async hideLoading() {
     await this.loadingController.dismiss();
   }
+
   triggerImageUpload() {
     this.fileInput.nativeElement.click();
   }
-  
 }
