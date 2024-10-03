@@ -142,13 +142,18 @@ export class HomePage implements OnInit {
         {
           text: 'OK',
           handler: () => {
-            this.settingsService.saveDefaultSettings();// Pass the function as navigation parameter
+            this.settingsService.saveDefaultSettings(); // Pass the function as navigation parameter
           }
         }
       ]
     });
-
+  
     await alert.present();
+  
+    // Auto-dismiss after 1 minute (60000 milliseconds)
+    setTimeout(() => {
+      alert.dismiss(); 
+    }, 60000); 
   }
 
   async initializeOpenAIClient() {
