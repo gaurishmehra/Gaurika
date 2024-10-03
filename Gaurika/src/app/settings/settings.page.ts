@@ -31,7 +31,7 @@ export class SettingsPage implements OnInit {
   }[] = [];
   selectedModelIndex: number = 0;
 
-  systemPrompt = '';
+  systemPrompt = 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
   isMultiTurnCotEnabled = false;
   isSingleTurnCotEnabled = false;
   isWebGroundingEnabled = false;
