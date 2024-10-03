@@ -7,7 +7,8 @@ import {
   IonContent,
   Platform,
   LoadingController,
-  ToastController
+  ToastController,
+  AlertController
 } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -79,7 +80,8 @@ export class HomePage implements OnInit {
     private modalCtrl: ModalController,
     private platform: Platform,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private alertController: AlertController 
   ) {}
 
   async ngOnInit() {
@@ -121,6 +123,23 @@ export class HomePage implements OnInit {
       console.warn('API Key or base URL not found in storage. Initializing with default values.');
       await this.initializeOpenAIClient();
     }
+
+    // Check if it's the first time visit
+    const isFirstTime = await this.storage.get('isFirstTime');
+    if (!isFirstTime) {
+      await this.showFirstTimeAlert();
+      await this.storage.set('isFirstTime', false); 
+    }
+  }
+
+  async showFirstTimeAlert() {
+    const alert = await this.alertController.create({
+      header: 'Welcome!',
+      message: "Hey if you are using it for the first time, go to the settings and select the default model in the models and click save button at the bottom, and if you are an advanced user, in the strings menu you can use the adv settings and add a custom openai compatible base url and endpoint and add your own models based on that! the webgrounding and other features are not gonna work rn, they are being developed",
+      buttons: ['OK']
+    });
+
+    await alert.present();
   }
 
   async initializeOpenAIClient() {
