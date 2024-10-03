@@ -57,7 +57,9 @@ export class SettingsPage implements OnInit {
     this.models = (await this.storage.get('models')) || [];
     this.selectedModelIndex = (await this.storage.get('selectedModelIndex')) || 0;
 
-    this.systemPrompt = (await this.storage.get('systemPrompt')) || '';
+    // Use the default system prompt if it's not already stored
+    this.systemPrompt = (await this.storage.get('systemPrompt')) || 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
+
     this.isMultiTurnCotEnabled = (await this.storage.get('isMultiTurnCotEnabled')) || false;
     this.isSingleTurnCotEnabled = (await this.storage.get('isSingleTurnCotEnabled')) || false;
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
@@ -242,8 +244,7 @@ export class SettingsPage implements OnInit {
       await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
       await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
 
-      this.systemPrompt = (await this.storage.get('systemPrompt')) || 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.'; 
-
+      await this.storage.set('systemPrompt', this.systemPrompt);
       await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
       await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
       await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
@@ -315,7 +316,7 @@ export class SettingsPage implements OnInit {
       this.apiKeys.push({ name: 'Default API Key', key: '123' });
     }
 
-    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Cerebras + proxy'); 
+    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Cerebras + proxy');
     if (!defaultApiProviderExists) {
       this.apiProviders.push({ name: 'Cerebras + proxy', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' });
     }
@@ -326,10 +327,10 @@ export class SettingsPage implements OnInit {
         name: 'default',
         value: 'llama3.1-70b',
         apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key'),
-        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Cerebras + proxy'), 
+        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Cerebras + proxy'),
         isMultimodal: false
       }) - 1;
-      this.selectedModelIndex = defaultModelIndex; 
+      this.selectedModelIndex = defaultModelIndex;
     }
   }
 }
