@@ -4,9 +4,13 @@ A simple chat application built with Ionic that utilizes Large Language Models (
 
 ## About
 
-This application provides a basic chat interface powered by LLMs. It's designed to be easily adaptable to any LLM API that's compatible with the OpenAI SDK. While it can be used as a website, it's primarily intended for Android devices.
+This application provides a basic chat interface powered by LLMs. It's designed to be easily adaptable to any LLM API that's compatible with the OpenAI SDK. While it can be used as a website, it's primarily intended for Android devices. 
 
-## How to Use
+**Try it out:** [https://chat.gaurish.xyz/](https://chat.gaurish.xyz/)
+
+The default model uses a proxy to Cerebras 70B, allowing free usage with a slight latency. You can select the default model in the settings or add models from any OpenAI-compatible endpoint via the advanced settings menu.
+
+## How to Use Locally
 
 1. **Clone the Repository:**
    ```bash
@@ -51,14 +55,7 @@ Contributions are welcome! If you'd like to enhance the application, feel free t
 
 ## Features
 
-* Basic chat interface.
-* Compatibility with OpenAI SDK-compatible LLMs.
-* Android build using Ionic Capacitor.
-* Customizable system prompt.
-* Support for multiple chat sessions.
-* Local storage of data.
-* UI for adding custom LLM providers and models.
-* Multi Turn COT (uses cosine similatiry to dynamically determine the number of turns to be used in the conversation)[Todo - add more information in the readme about the multi turn cot]
+**TODO**
 
 ## Future Enhancements
 
