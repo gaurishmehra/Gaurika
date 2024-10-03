@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { SettingsService } from '../services/settings.service'; // Import the service
 
 interface Message {
   role: string;
@@ -34,7 +35,7 @@ export class HomePage implements OnInit {
   userInput = '';
   messages: Message[] = [];
   client: any;
-  model = 'llama3.1-8b';
+  model = 'llama3.1-70b';
   systemPrompt = '';
   sessions: { name: string; messages: Message[] }[] = [];
   currentSessionIndex = 0;
@@ -81,7 +82,8 @@ export class HomePage implements OnInit {
     private platform: Platform,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private alertController: AlertController 
+    private alertController: AlertController,
+    private settingsService: SettingsService // Inject the service
   ) {}
 
   async ngOnInit() {
@@ -133,19 +135,20 @@ export class HomePage implements OnInit {
   }
 
   async showFirstTimeToast() {
-    const toast = await this.toastController.create({
-      message: "Welcome! If you're using this for the first time, go to settings and select the default model, then click save at the bottom. Advanced users can add custom OpenAI-compatible base URLs and endpoints in the adv settings menu. Note: webgrounding and some features are still in development. This message will only appear once.",
-      duration: 20000, // 10 seconds
-      position: 'middle',
+    const alert = await this.alertController.create({
+      header: 'Welcome!',
+      message: "If you're using this for the first time, please review the settings and click 'Save Settings' at the bottom to apply the default configuration. Advanced users can add custom OpenAI-compatible base URLs and endpoints in the advanced settings menu. Note: web grounding and some features are still in development.",
       buttons: [
         {
           text: 'OK',
-          role: 'cancel'
+          handler: () => {
+            this.settingsService.saveDefaultSettings();// Pass the function as navigation parameter
+          }
         }
       ]
     });
 
-    await toast.present();
+    await alert.present();
   }
 
   async initializeOpenAIClient() {

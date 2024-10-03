@@ -7,6 +7,8 @@ import { CommonModule } from '@angular/common';
 import { AddApiKeyModalComponent } from '../add-api-key-modal/add-api-key-modal.component';
 import { AddApiProviderModalComponent } from '../add-api-provider-modal/add-api-provider-modal.component';
 import { AddModelModalComponent } from '../add-model-modal/add-model-modal.component';
+import { SettingsService } from '../services/settings.service';
+
 
 @Component({
   selector: 'app-settings',
@@ -42,7 +44,8 @@ export class SettingsPage implements OnInit {
   constructor(
     private router: Router,
     private storage: Storage,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private settingsService: SettingsService
   ) {}
 
   async ngOnInit() {
@@ -70,6 +73,15 @@ export class SettingsPage implements OnInit {
 
     // Add default entries if they don't exist
     this.addDefaultEntriesIfNotPresent();
+
+  }
+  ionViewDidEnter() {
+    console.log('SettingsPage ionViewDidEnter() executed');
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras?.state?.['saveSettings']) {
+      const saveSettingsFn = navigation.extras.state['saveSettings'];
+      saveSettingsFn(); // Call the passed function 
+    }
   }
 
   async showAddApiKeyModal() {
@@ -231,6 +243,40 @@ export class SettingsPage implements OnInit {
     }
     this.saveSettings();
   }
+  async saveSettingsnorel() {
+    try {
+      await this.storage.create();
+
+      await this.storage.set('apiKeys', this.apiKeys);
+      await this.storage.set('apiProviders', this.apiProviders);
+      await this.storage.set('models', this.models);
+
+      await this.storage.set('selectedModelIndex', this.selectedModelIndex);
+      await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
+      await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
+
+      await this.storage.set('systemPrompt', this.systemPrompt);
+      await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
+      await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
+      await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
+      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
+
+      const selectedModel = this.models[this.selectedModelIndex];
+      const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
+
+      await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
+      await this.storage.set('model', selectedModel.value);
+      await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
+
+      console.log('Settings saved successfully!');
+
+      // window.location.reload();
+      this.router.navigate(['/home']);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    }
+    
+  }
 
   async saveSettings() {
     try {
@@ -264,6 +310,7 @@ export class SettingsPage implements OnInit {
     } catch (error) {
       console.error('Error saving settings:', error);
     }
+    
   }
 
   onCotToggleChange() {
