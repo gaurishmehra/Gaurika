@@ -242,7 +242,8 @@ export class SettingsPage implements OnInit {
       await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
       await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
 
-      await this.storage.set('systemPrompt', this.systemPrompt);
+      this.systemPrompt = (await this.storage.get('systemPrompt')) || 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.'; 
+
       await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
       await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
       await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
