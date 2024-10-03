@@ -41,19 +41,20 @@
       </ion-item>
     </ion-item-group>
 
-    <ion-item-group>
-      <ion-item-divider>
-        <ion-label>System Prompt</ion-label>
-      </ion-item-divider>
-      <ion-item>
-        <ion-textarea [(ngModel)]="systemPrompt" placeholder="Enter system prompt" rows="3"></ion-textarea>
-      </ion-item>
-    </ion-item-group>
+
 
     <ion-item-group *ngIf="showAdvancedSettings">
       <ion-item-divider>
         <ion-label>Advanced Settings</ion-label>
       </ion-item-divider>
+      <ion-item-group>
+        <ion-item-divider>
+          <ion-label>System Prompt</ion-label>
+        </ion-item-divider>
+        <ion-item>
+          <ion-textarea [(ngModel)]="systemPrompt" placeholder="Enter system prompt" rows="3"></ion-textarea>
+        </ion-item>
+      </ion-item-group>
 
       <ion-item>
         <ion-label>API Key:</ion-label>
