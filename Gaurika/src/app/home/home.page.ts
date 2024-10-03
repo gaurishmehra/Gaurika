@@ -125,21 +125,27 @@ export class HomePage implements OnInit {
     }
 
     // Check if it's the first time visit
-    const isFirstTime = await this.storage.get('isFirstTime');
-    if (!isFirstTime) {
-      await this.showFirstTimeAlert();
-      await this.storage.set('isFirstTime', false); 
+    const hasShownFirstTimeMessage = await this.storage.get('hasShownFirstTimeMessage');
+    if (!hasShownFirstTimeMessage) {
+      await this.showFirstTimeToast();
+      await this.storage.set('hasShownFirstTimeMessage', true);
     }
   }
 
-  async showFirstTimeAlert() {
-    const alert = await this.alertController.create({
-      header: 'Welcome!',
-      message: "Hey if you are using it for the first time, go to the settings and select the default model in the models and click save button at the bottom, and if you are an advanced user, in the strings menu you can use the adv settings and add a custom openai compatible base url and endpoint and add your own models based on that! the webgrounding and other features are not gonna work rn, they are being developed",
-      buttons: ['OK']
+  async showFirstTimeToast() {
+    const toast = await this.toastController.create({
+      message: "Welcome! If you're using this for the first time, go to settings and select the default model, then click save at the bottom. Advanced users can add custom OpenAI-compatible base URLs and endpoints in the strings menu. Note: webgrounding and some features are still in development. This message will only appear once.",
+      duration: 10000, // 10 seconds
+      position: 'middle',
+      buttons: [
+        {
+          text: 'OK',
+          role: 'cancel'
+        }
+      ]
     });
 
-    await alert.present();
+    await toast.present();
   }
 
   async initializeOpenAIClient() {
