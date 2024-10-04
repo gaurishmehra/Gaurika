@@ -33,6 +33,8 @@
     "@ionic/storage-angular": "^4.0.0",
     "@mistralai/mistralai": "^1.0.4",
     "cordova-res": "^0.15.4",
+    "google-it": "^1.6.4",
+    "google-search-results-nodejs": "^2.1.0",
     "ionicons": "^7.0.0",
     "openai": "^4.59.0",
     "rxjs": "~7.8.0",

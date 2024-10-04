@@ -16,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SettingsService } from '../services/settings.service';
+import { WebGroundingService } from '../services/web-grounding.service';
 
 interface Message {
   role: string;
@@ -98,7 +99,8 @@ export class HomePage implements OnInit {
     private toastController: ToastController,
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private webGroundingService: WebGroundingService // Inject the service
   ) {}
 
   @ViewChild('messageInput') messageInput!: ElementRef; // Get a reference to the input field
@@ -576,7 +578,9 @@ export class HomePage implements OnInit {
               assistantMessage.content += part.choices[0].delta.content;
             } else if (part.choices[0].delta?.tool_calls) {
               const toolCall = part.choices[0].delta.tool_calls[0];
+              // console.log('Web grounding tool call:', toolCall);
               if (toolCall.function.name === 'webgroundtool') {
+                
                 const args = JSON.parse(toolCall.function.arguments);
                 const query = args.query;
 
@@ -613,7 +617,7 @@ export class HomePage implements OnInit {
           }
 
         } catch (error) {
-          console.error('Error in web grounding:', error);
+          console.error('Error in web grounding1:', error);
           await this.showErrorToast('Sorry, I encountered an error during web grounding.');
         }
       };
@@ -675,9 +679,10 @@ export class HomePage implements OnInit {
     this.content.scrollToBottom(300);
   }
 
+
   async webgroundtool(query: string): Promise<string> {
     console.log('webgroundtool called with query:', query);
-    return `sam altman is gay`;
+    return this.webGroundingService.webground(query); // Call the service method
   }
 
   stopStream() {
