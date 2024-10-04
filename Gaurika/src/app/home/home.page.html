@@ -36,7 +36,7 @@
 
       <div class="bottom-bar" *ngIf="showTemplatesPage">
         <div class="bottom-toolbar">
-          <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)"></ion-input>
+          <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
           <ion-button class="send-button" (click)="sendMessage()" [disabled]="userInput === ''">
             {{ isStreaming ? 'Stop' : 'Send' }}
           </ion-button>
@@ -91,7 +91,7 @@
 
       <div class="bottom-bar">
         <div class="bottom-toolbar">
-          <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)"></ion-input>
+          <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
           <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
             <ion-icon name="attach-outline"></ion-icon>
           </ion-button>
