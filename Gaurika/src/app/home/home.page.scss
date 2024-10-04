@@ -543,21 +543,34 @@ ion-item {
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: $background-light;
-  padding: 20px;
+  /* Increase padding for mobile */
+  padding: 10px; 
   border-radius: 16px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 11; // Ensure it's on top of other elements
+  z-index: 11; 
+
+  /* Make the dialog take up more screen space on mobile */
+  width: 90%; 
+  max-width: 500px; /* Limit the maximum width */
+  max-height: 80vh; /* Limit the maximum height to 80% of viewport height */
+  overflow-y: auto; /* Add vertical scroll if content overflows */
 
   .message-being-edited {
     background-color: rgba($secondary-color, 0.1); 
     border-radius: 12px;
-    padding: 12px;
+    padding: 10px;
     margin-bottom: 16px;
+
+    /* Limit the message to 5 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
 
     ion-label {
       color: $text-color;
-      font-size: 1rem; // Adjust font size if needed
-      white-space: pre-wrap; // Preserve whitespace and line breaks
+      font-size: 1.1rem; /* Slightly larger font size for mobile */
+      white-space: pre-wrap; 
       margin: 10px;
     }
   }
@@ -565,7 +578,6 @@ ion-item {
   ion-item {
     --background: transparent;
     margin-bottom: 16px;
-    
 
     ion-label {
       color: $text-color;
@@ -577,26 +589,33 @@ ion-item {
       --color: $text-color;
       --placeholder-color: $muted-text;
       border-radius: 12px;
-      font-size: 1rem; // Adjust font size if needed
+      font-size: 1.1rem; /* Slightly larger font size for mobile */
       margin: 10px;
     }
   }
 
   ion-button {
     margin-top: 8px;
-    height: 48px;
-    font-size: 1rem; // Adjust font size if needed
+    height: 26px; /* Slightly taller buttons for mobile */
+    font-size: 1.1rem; /* Slightly larger font size for mobile */
     --background: green;
 
-    &:first-of-type { // "Apply Changes" button
+    &:first-of-type { 
       --background: $secondary-color;
       --color: $text-color;
       margin-right: 8px;
     }
 
-    &:last-of-type { // "Cancel" button
+    &:last-of-type { 
       --background: rgba($accent-color, 0.2);
       --color: $accent-color;
     }
+  }
+}
+
+/* Optional: Add media queries for finer control on different screen sizes */
+@media (max-width: 400px) { 
+  #editMessageDialog {
+    padding: 20px; // Reduce padding on very small screens
   }
 }
