@@ -34,7 +34,6 @@
         </div>
       </div>
 
-      <!-- Bottom bar for starting chat from templates -->
       <div class="bottom-bar" *ngIf="showTemplatesPage">
         <div class="bottom-toolbar">
           <ion-input [(ngModel)]="userInput" placeholder="Enter your message..." [disabled]="isStreaming"
@@ -59,9 +58,14 @@
             </span>
             <p class="message-content">{{ message.content }}</p>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
-            <ion-buttons *ngIf="message.role === 'user' || message.role === 'assistant'" slot="end">
+            <ion-buttons *ngIf="message.role === 'user'" slot="end">
               <ion-button (click)="deleteMessage(i)" fill="clear" color="danger">
                 <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+            <ion-buttons *ngIf="message.role === 'assistant'" slot="end"> 
+              <ion-button (click)="showAssistantMessageOptions(message, i)" fill="clear">
+                <ion-icon name="ellipsis-vertical"></ion-icon>
               </ion-button>
             </ion-buttons>
           </ion-label>
@@ -72,12 +76,20 @@
             <p class="message-content">Writing...</p> 
           </ion-label>
         </ion-item>
-
-        <ion-button *ngIf="lastAssistantMessage && !isStreaming" (click)="retryLastAssistantMessage()" expand="block" class="retry-button">
-          Retry Last Response
-        </ion-button>
-
       </ion-list>
+      <div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage">
+        <div class="message-being-edited">
+          <ion-label class="assistant-message">
+            {{ messages[selectedAssistantMessageIndex || 0].content }} 
+          </ion-label>
+        </div>
+        <ion-item>
+          <ion-label position="floating">Edit Message</ion-label>
+          <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
+        </ion-item>
+        <ion-button (click)="selectedAssistantMessageIndex !== undefined ? applyMessageChanges(selectedAssistantMessageIndex, editMessageInput) : null">Apply Changes</ion-button>
+        <ion-button color="danger" (click)="cancelEdit()">Cancel</ion-button>
+      </div>
 
       <div class="bottom-bar">
         <div class="bottom-toolbar">
@@ -86,10 +98,9 @@
             <ion-icon name="attach-outline"></ion-icon>
           </ion-button>
           <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
-          <!-- CORRECTED BUTTON LOGIC -->
           <ion-button class="send-button" 
                       (click)="isStreaming ? stopStream() : sendMessage()"
-                      [disabled]="userInput === ''"> <!-- Disabled only if input is empty  -->
+                      [disabled]="userInput === ''">
             {{ isStreaming ? 'Stop' : 'Send' }} 
           </ion-button>
         </div>
@@ -151,3 +162,10 @@
     </ion-content>
   </ng-template>
 </ion-modal>
+
+<ion-action-sheet
+  [isOpen]="isAssistantMessageOptionsOpen"
+  (didDismiss)="isAssistantMessageOptionsOpen = false"
+  [buttons]="actionSheetButtons"
+>
+</ion-action-sheet>

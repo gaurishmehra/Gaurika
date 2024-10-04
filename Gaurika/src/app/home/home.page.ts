@@ -8,13 +8,14 @@ import {
   Platform,
   LoadingController,
   ToastController,
-  AlertController
+  AlertController,
+  ActionSheetController
 } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
-import { SettingsService } from '../services/settings.service'; // Import the service
+import { SettingsService } from '../services/settings.service';
 
 interface Message {
   role: string;
@@ -22,6 +23,13 @@ interface Message {
   image?: string | null;
   tool_call_id?: string;
   isToolCallInProgress?: boolean;
+}
+interface ActionSheetButton {
+  text: string;
+  role?: 'destructive' | 'cancel';
+  icon?: string;
+  handler?: () => void;
+  disabled?: boolean;
 }
 
 @Component({
@@ -54,6 +62,12 @@ export class HomePage implements OnInit {
   abortController: AbortController | null = null;
   isStreamStopped = false;
 
+  isAssistantMessageOptionsOpen = false;
+  selectedAssistantMessageIndex: number | undefined = undefined;
+
+  isEditingMessage = false;
+  editMessageInput = '';
+
   templateConversations: { name: string; prompt: string }[] = [
     {
       name: 'Creative Writing',
@@ -83,7 +97,8 @@ export class HomePage implements OnInit {
     private loadingController: LoadingController,
     private toastController: ToastController,
     private alertController: AlertController,
-    private settingsService: SettingsService // Inject the service
+    private actionSheetController: ActionSheetController,
+    private settingsService: SettingsService
   ) {}
 
   async ngOnInit() {
@@ -126,7 +141,6 @@ export class HomePage implements OnInit {
       await this.initializeOpenAIClient();
     }
 
-    // Check if it's the first time visit
     const hasShownFirstTimeMessage = await this.storage.get('hasShownFirstTimeMessage');
     if (!hasShownFirstTimeMessage) {
       await this.showFirstTimeToast();
@@ -142,18 +156,17 @@ export class HomePage implements OnInit {
         {
           text: 'OK',
           handler: () => {
-            this.settingsService.saveDefaultSettings(); // Pass the function as navigation parameter
+            this.settingsService.saveDefaultSettings();
           }
         }
       ]
     });
-  
+
     await alert.present();
-  
-    // Auto-dismiss after 1 minute (60000 milliseconds)
+
     setTimeout(() => {
-      alert.dismiss(); 
-    }, 60000); 
+      alert.dismiss();
+    }, 60000);
   }
 
   async initializeOpenAIClient() {
@@ -261,7 +274,7 @@ export class HomePage implements OnInit {
       });
 
       let sessionName = response.choices[0].message.content?.trim() || 'New Chat';
-      
+
       if (sessionName.length > 20) {
         sessionName = sessionName.substring(0, 20) + '...';
       }
@@ -270,11 +283,11 @@ export class HomePage implements OnInit {
         name: sessionName,
         messages: []
       });
-      
+
       this.currentSessionIndex = this.sessions.length - 1;
       this.currentSessionName = sessionName;
       this.showTemplatesPage = false;
-      
+
       this.saveCurrentSession();
     } catch (error) {
       console.error('Error generating session name:', error);
@@ -337,7 +350,7 @@ export class HomePage implements OnInit {
       this.loadCurrentSession();
       this.saveCurrentSession();
     } else {
-      alert('You cannot delete the last session.');
+      this.showErrorToast('You cannot delete the last session.'); 
     }
   }
 
@@ -354,8 +367,10 @@ export class HomePage implements OnInit {
   }
 
   deleteMessage(index: number) {
-    this.messages.splice(index, 1);
-    this.saveCurrentSession();
+    if (index >= 0 && index < this.messages.length) {
+      this.messages.splice(index, 1);
+      this.saveCurrentSession();
+    }
   }
 
   get lastAssistantMessage(): Message | undefined {
@@ -393,16 +408,16 @@ export class HomePage implements OnInit {
 
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
-    
+
     this.sessions.push({
       name: template.name,
       messages: []
     });
-    
+
     this.currentSessionIndex = this.sessions.length - 1;
     this.currentSessionName = template.name;
     this.loadCurrentSession();
-    
+
     this.userInput = template.prompt;
     await this.sendMessage();
   }
@@ -687,5 +702,155 @@ export class HomePage implements OnInit {
 
   triggerImageUpload() {
     this.fileInput.nativeElement.click();
+  }
+  
+
+  actionSheetButtons: ActionSheetButton[] = [];
+  async showAssistantMessageOptions(message: Message, index: number) {
+    this.selectedAssistantMessageIndex = index;
+    this.actionSheetButtons = [
+      {
+        text: 'Delete Message',
+        role: 'destructive',
+        icon: 'trash',
+        handler: () => {
+          if (this.selectedAssistantMessageIndex !== undefined) {
+            this.deleteMessage(this.selectedAssistantMessageIndex);
+          }
+        }
+      },
+      {
+        text: 'Redo Message',
+        icon: 'refresh',
+        handler: () => {
+          if (this.selectedAssistantMessageIndex !== undefined) {
+            this.redoAssistantMessage(this.selectedAssistantMessageIndex);
+          }
+        }
+      },
+      {
+        text: 'Edit Message',
+        icon: 'create',
+        handler: () => {
+          this.startEditMessage(index); // Show the custom dialog
+        }
+      },
+      {
+        text: 'Cancel',
+        role: 'cancel',
+        icon: 'close'
+      }
+    ]
+    this.isAssistantMessageOptionsOpen = true;
+  }
+
+  startEditMessage(index: number) {
+    this.selectedAssistantMessageIndex = index;
+    this.editMessageInput = ' '; // Initialize to an empty string
+    this.isEditingMessage = true;
+  }
+
+  cancelEdit() {
+    this.isEditingMessage = false;
+    this.editMessageInput = '';
+  }
+
+  async applyMessageChanges(index: number, changes: string) {
+    this.isEditingMessage = false; // Hide the dialog after applying changes
+    const originalMessage = this.messages[index].content;
+    
+    this.isStreaming = true;
+    this.isStreamStopped = false;
+
+    try {
+      const response = await this.client.chat.completions.create({
+        messages: [
+          ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
+          { role: 'user', content: `Here's an existing response: "${originalMessage}". ${changes}. Please provide an updated version. Reply with nothing but the updated version without adding quotes around the update, quotes inside are fine.` }
+        ],
+        model: this.model,
+        temperature: 0.75,
+        stream: true
+      });
+
+      let newContent = '';
+
+      for await (const part of response) {
+        if (this.isStreamStopped) break;
+
+        if (part.choices[0].delta?.content) {
+          newContent += part.choices[0].delta.content;
+          // Update the message in real-time
+          this.messages[index].content = newContent;
+        }
+
+        this.content.scrollToBottom(300);
+      }
+
+      if (this.isStreamStopped) {
+        this.messages[index].content += " [aborted]";
+      }
+
+    } catch (error) {
+      console.error('Error updating message:', error);
+      await this.showErrorToast('Sorry, I encountered an error updating the message.');
+      // Revert to original message on error
+      this.messages[index].content = originalMessage;
+    } finally {
+      this.isStreaming = false;
+      this.saveCurrentSession();
+    }
+  }
+
+  async redoAssistantMessage(index: number) {
+    if (index === this.messages.length - 1) {
+      this.retryLastAssistantMessage();
+      return;
+    }
+
+    const messagesToSend = this.messages.slice(0, index);
+    const originalMessage = this.messages[index].content; // Get the content string
+
+    this.isStreaming = true;
+    this.isStreamStopped = false;
+
+    try {
+      const response = await this.client.chat.completions.create({
+        messages: [
+          ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
+          ...messagesToSend
+        ],
+        model: this.model,
+        temperature: 0.75,
+        stream: true
+      });
+
+      let newContent = '';
+
+      for await (const part of response) {
+        if (this.isStreamStopped) break;
+
+        if (part.choices[0].delta?.content) {
+          newContent += part.choices[0].delta.content;
+          // Update the message in real-time
+          this.messages[index].content = newContent;
+        }
+
+        this.content.scrollToBottom(300);
+      }
+
+      if (this.isStreamStopped) {
+        this.messages[index].content += " [aborted]";
+      }
+
+    } catch (error) {
+      console.error('Error redoing message:', error);
+      await this.showErrorToast('Sorry, I encountered an error redoing the message.');
+      // Revert to original message content on error
+      this.messages[index].content = originalMessage; 
+    } finally {
+      this.isStreaming = false;
+      this.saveCurrentSession();
+    }
   }
 }

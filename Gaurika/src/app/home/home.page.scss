@@ -534,3 +534,69 @@ ion-item {
     overflow-y:scroll;
   }
 }
+
+
+// Edit Message Dialog Styles
+#editMessageDialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $background-light;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 11; // Ensure it's on top of other elements
+
+  .message-being-edited {
+    background-color: rgba($secondary-color, 0.1); 
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+
+    ion-label {
+      color: $text-color;
+      font-size: 1rem; // Adjust font size if needed
+      white-space: pre-wrap; // Preserve whitespace and line breaks
+      margin: 10px;
+    }
+  }
+
+  ion-item {
+    --background: transparent;
+    margin-bottom: 16px;
+    
+
+    ion-label {
+      color: $text-color;
+      margin: 10px;
+    }
+
+    ion-input {
+      --background: rgba($primary-color, 0.15);
+      --color: $text-color;
+      --placeholder-color: $muted-text;
+      border-radius: 12px;
+      font-size: 1rem; // Adjust font size if needed
+      margin: 10px;
+    }
+  }
+
+  ion-button {
+    margin-top: 8px;
+    height: 48px;
+    font-size: 1rem; // Adjust font size if needed
+    --background: green;
+
+    &:first-of-type { // "Apply Changes" button
+      --background: $secondary-color;
+      --color: $text-color;
+      margin-right: 8px;
+    }
+
+    &:last-of-type { // "Cancel" button
+      --background: rgba($accent-color, 0.2);
+      --color: $accent-color;
+    }
+  }
+}
