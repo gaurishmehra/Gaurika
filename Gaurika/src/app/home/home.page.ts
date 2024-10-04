@@ -101,6 +101,15 @@ export class HomePage implements OnInit {
     private settingsService: SettingsService
   ) {}
 
+  @ViewChild('messageInput') messageInput!: ElementRef; // Get a reference to the input field
+
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) { // Enter key without Shift
+      event.preventDefault(); // Prevent default Enter behavior (new line)
+      this.sendMessage(); // Call your sendMessage function
+    } 
+  }
+
   async ngOnInit() {
     await this.storage.create();
 
