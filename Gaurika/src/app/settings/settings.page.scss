@@ -1,300 +1,277 @@
-// Variables
-$primary-pink: #bf006f;
-$secondary-pink: #8c0052;
-$background-color: #0a0a0a;
-$text-color: #ffffff;
-$input-background: #141414;
-$divider-color: #2a2a2a;
-$border-radius: 16px;
-$item-padding: 16px;
-
-// Mixins
-@mixin smooth-transition($property: all, $duration: 0.2s) {
-  transition: $property $duration ease;
-}
-
-// Global Styles
-body {
-  background-color: $background-color;
-  color: $text-color;
-  font-family: 'SF Pro Text', 'Roboto', sans-serif;
-}
-
-ion-content {
-  --background: #{$background-color};
-  --padding-top: 20px;
-  --padding-bottom: 20px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-}
-
-ion-header ion-toolbar {
-  --background: #{$background-color};
-  --color: #{$text-color};
-
-  ion-title {
-    font-size: 20px;
-    font-weight: 600;
+// Settings Page Specific Styles
+.settings-page {
+  ion-content {
+    --background: #{$background-color};
   }
-}
 
-// List Styles
-ion-list {
-  background: transparent;
-  padding: 0;
-  margin: 0 0 20px 0;
+  // Settings Section Styles
+  .settings-section {
+    margin-bottom: 24px;
 
-  ion-item-group {
-    margin-bottom: 20px;
-    background-color: $input-background;
-    border-radius: $border-radius;
-    overflow: hidden;
-
-    ion-item-divider {
-      --background: #{darken($input-background, 3%)};
-      --color: #{$text-color};
-      --padding-start: #{$item-padding};
-      --padding-end: #{$item-padding};
-      font-weight: 600;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      min-height: 44px;
+    .section-header {
+      padding: 0 $item-padding 8px;
+      
+      h2 {
+        color: $primary-pink;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+      }
     }
 
-    ion-item {
-      --background: transparent;
-      --border-color: #{$divider-color};
-      --border-width: 0 0 1px 0;
-      --color: #{$text-color};
-      --padding-start: #{$item-padding};
-      --padding-end: #{$item-padding};
-      --min-height: 48px;
+    ion-item-group {
+      background-color: $input-background;
+      border-radius: $border-radius;
+      overflow: hidden;
 
-      &:last-child {
-        --border-width: 0;
+      ion-item {
+        --background: transparent;
+        --border-color: #{$divider-color};
+        --border-width: 0 0 1px 0;
+        --color: #{$text-color};
+        --padding-start: #{$item-padding};
+        --padding-end: #{$item-padding};
+        --min-height: 56px;
+        
+        &:last-child {
+          --border-width: 0;
+        }
+
+        &.clickable {
+          cursor: pointer;
+          @include smooth-transition(background-color);
+
+          &:hover {
+            --background: #{lighten($input-background, 3%)};
+          }
+
+          &:active {
+            --background: #{lighten($input-background, 5%)};
+          }
+        }
+
+        ion-label {
+          h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+          }
+
+          p {
+            font-size: 14px;
+            color: rgba($text-color, 0.7);
+          }
+        }
+
+        ion-toggle {
+          --background: #{darken($input-background, 5%)};
+          --background-checked: #{$primary-pink};
+          --handle-background: #{$text-color};
+          --handle-background-checked: #{$text-color};
+        }
+
+        ion-select {
+          --placeholder-color: rgba(#{$text-color}, 0.6);
+          
+          &::part(icon) {
+            color: $primary-pink;
+            opacity: 1;
+          }
+        }
+
+        &.danger-zone {
+          --color: #ff3b30;
+          
+          ion-icon {
+            color: #ff3b30;
+          }
+        }
       }
+    }
+  }
 
-      ion-label {
-        margin: 8px 0;
+  // Model Settings Styles
+  .model-card {
+    background: lighten($input-background, 2%);
+    border-radius: $border-radius;
+    margin-bottom: 16px;
+    overflow: hidden;
 
-        h2 {
-          font-size: 16px;
-          font-weight: 500;
-          margin-bottom: 4px;
-        }
+    .model-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: lighten($input-background, 4%);
 
-        p {
-          font-size: 14px;
-          color: rgba($text-color, 0.7);
-        }
-      }
-
-      ion-badge {
-        font-size: 12px;
-        padding: 4px 8px;
-        border-radius: 12px;
-
-        &[color="primary"] {
-          background-color: $primary-pink;
-          color: $text-color;
-        }
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
       }
 
       ion-button {
         --padding-start: 8px;
         --padding-end: 8px;
+        --color: #{rgba($text-color, 0.7)};
+        margin: 0;
         height: 36px;
 
-        ion-icon {
-          font-size: 18px;
+        &:hover {
+          --color: #{$text-color};
         }
       }
+    }
 
-      ion-input, ion-select, ion-textarea {
-        --padding-start: 0;
-        --padding-end: 0;
-        font-size: 16px;
+    .model-content {
+      padding: 16px;
+
+      .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .setting-label {
+          font-size: 14px;
+          color: rgba($text-color, 0.9);
+        }
+
+        ion-range {
+          --bar-background: #{darken($input-background, 5%)};
+          --bar-background-active: #{$primary-pink};
+          --knob-background: #{$text-color};
+          --pin-background: #{$primary-pink};
+          --pin-color: #{$text-color};
+        }
+
+        ion-input {
+          --background: #{darken($input-background, 2%)};
+          --color: #{$text-color};
+          --placeholder-color: #{rgba($text-color, 0.5)};
+          --padding-start: 12px;
+          --padding-end: 12px;
+          border-radius: 8px;
+          height: 36px;
+          max-width: 100px;
+        }
+      }
+    }
+  }
+
+  // API Settings Styles
+  .api-key-input {
+    ion-item {
+      --background: #{lighten($input-background, 2%)};
+      border-radius: $border-radius;
+      margin-bottom: 12px;
+
+      ion-input {
+        --padding-start: 12px;
+        --padding-end: 12px;
+        --placeholder-color: rgba(#{$text-color}, 0.5);
       }
 
-      ion-select::part(icon) {
-        color: $primary-pink;
-        opacity: 1;
+      ion-button {
+        margin: 0;
       }
+    }
+  }
+
+  // Theme Selection Styles
+  .theme-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 16px;
+
+    .theme-option {
+      background: lighten($input-background, 2%);
+      border: 2px solid transparent;
+      border-radius: $border-radius;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      @include smooth-transition;
+
+      &.active {
+        border-color: $primary-pink;
+        background: lighten($input-background, 4%);
+      }
+
+      .color-preview {
+        height: 60px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      .theme-name {
+        font-size: 14px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Responsive Adjustments
+  @media (max-width: 768px) {
+    .settings-section {
+      margin-bottom: 20px;
+
+      ion-item-group {
+        border-radius: 12px;
+      }
+    }
+
+    .theme-options {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .model-card {
+      border-radius: 12px;
+
+      .model-header {
+        padding: 12px;
+      }
+
+      .model-content {
+        padding: 12px;
+      }
+    }
+  }
+}
+
+// Action Sheet Customization for Settings
+.settings-action-sheet {
+  --background: #{$input-background};
+  
+  .action-sheet-group {
+    background: #{$input-background};
+
+    .action-sheet-button {
+      color: $text-color;
+      font-size: 16px;
 
       &:hover {
-        --background: #{lighten($input-background, 3%)};
+        background: #{lighten($input-background, 3%)};
+      }
+
+      &.danger {
+        color: #ff3b30;
       }
     }
   }
-}
 
-// Drop Down Styles
-ion-item[button] {
-  --background: #{$input-background};
-  --color: #{$text-color};
-  --padding-start: #{$item-padding};
-  --padding-end: #{$item-padding};
-  --inner-padding-end: 0;
-  border-radius: $border-radius;
-  margin-bottom: 12px;
-
-  ion-label {
-    font-weight: 500;
-    font-size: 16px;
-  }
-
-  ion-icon {
-    @include smooth-transition(transform);
-    font-size: 20px;
-  }
-
-  &[aria-expanded="true"] ion-icon {
-    transform: rotate(180deg);
-  }
-}
-
-.collapsible-content {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  @include smooth-transition(all, 0.3s);
-
-  &.expanded {
-    max-height: 1000px;
-    opacity: 1;
-  }
-}
-
-// Button Styles
-ion-button {
-  --background: #{$primary-pink};
-  --background-hover: #{$secondary-pink};
-  --color: #{$text-color};
-  --border-radius: 12px;
-  --padding-top: 0;
-  --padding-bottom: 0;
-  margin-top: 20px;
-  height: 44px;
-  font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-// Toggle Button Styles
-ion-toggle {
-  --background: #{$input-background};
-  --background-checked: #{$primary-pink};
-  --handle-background: #{$text-color};
-  --handle-background-checked: #{$text-color};
-  padding: 6px;
-  width: 40px;
-  height: 24px;
-
-  &::part(track) {
-    border-radius: 12px;
-    background: #{darken($input-background, 5%)};
-  }
-
-  &::part(handle) {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-  }
-}
-
-// Multimodal Badge Style
-.multimodal-badge {
-  background-color: $secondary-pink;
-  color: $text-color;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 6px;
-  border-radius: 8px;
-  margin-left: 6px;
-}
-
-// Add Model Button Style
-.add-model-item {
-  --color: #{$primary-pink};
-  font-weight: 500;
-
-  ion-icon {
-    font-size: 20px;
-    margin-right: 8px;
-  }
-}
-
-// System Prompt Textarea Style
-.system-prompt {
-  background-color: #{lighten($input-background, 2%)};
-  border-radius: 12px;
-  padding: 10px;
-  margin-top: 6px;
-
-  &:focus {
-    background-color: #{lighten($input-background, 4%)};
-  }
-}
-
-// API Key and Provider Item Styles
-.api-item {
-  --background: #{lighten($input-background, 1%)};
-  border-radius: 12px;
-  margin-bottom: 6px;
-
-  ion-select {
-    max-width: 100%;
-  }
-
-  ion-buttons[slot="end"] ion-button {
-    --color: #{$text-color};
-    opacity: 0.7;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
-}
-
-// Animations
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-ion-content::part(scroll) {
-  animation: fadeIn 0.3s ease-out;
-}
-
-// Media Query for Mobile Devices
-@media (max-width: 768px) {
-  ion-content {
-    --padding-start: 12px;
-    --padding-end: 12px;
-  }
-
-  ion-item-group {
-    border-radius: 12px;
-  }
-
-  ion-item {
-    --padding-start: 12px;
-    --padding-end: 12px;
-  }
-
-  ion-button {
-    --border-radius: 10px;
-    height: 40px;
-    font-size: 13px;
-  }
-}
-
-// Accessibility
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+  .action-sheet-group-cancel button {
+    background: #{darken($input-background, 2%)};
+    color: $primary-pink;
+    font-weight: 600;
   }
 }
