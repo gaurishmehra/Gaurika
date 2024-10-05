@@ -428,6 +428,7 @@ export class HomePage implements OnInit {
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
 
+    // Always create a new session when starting from a template
     this.sessions.push({
       name: template.name,
       messages: []
@@ -438,7 +439,7 @@ export class HomePage implements OnInit {
     this.loadCurrentSession();
 
     this.userInput = template.prompt;
-    await this.sendMessage();
+    await this.sendMessage(); 
   }
 
   getIconForTemplate(templateName: string): string {
@@ -468,6 +469,7 @@ export class HomePage implements OnInit {
     const messageContent = this.userInput.trim();
     if (messageContent === '') return;
 
+    // Ensure a new session is created if starting from templates or no sessions exist
     if (this.showTemplatesPage || this.sessions.length === 0) {
       await this.createNewSessionFromMessage(messageContent);
     }
@@ -1053,5 +1055,9 @@ export class HomePage implements OnInit {
       console.error('Failed to copy code:', error);
       this.showErrorToast('Failed to copy code. Please try again.');
     }
+  }
+  showTemplatesAndRefresh() {
+    this.showTemplates();
+    window.location.reload();
   }
 }
