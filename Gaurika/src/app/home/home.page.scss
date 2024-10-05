@@ -424,9 +424,10 @@ ion-item {
   }
 
   ion-button[expand="block"] {
-    --background: #{$secondary-color};
+    --background: #73737382;
     --color: #{$text-color};
-    @include rounded-corners(16px);
+    // @include rounded-corners(46px);
+    --border-radius: 26px;
     margin: 20px 14px;
     height: 54px;
     font-size: 17px;

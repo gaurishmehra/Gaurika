@@ -246,6 +246,11 @@ export class HomePage implements OnInit {
   openSettings() {
     this.router.navigate(['/settings']);
   }
+  showTemplates() {
+    this.showTemplatesPage = true;
+    this.toggleSessionMenu(); // Close the session menu
+  }
+
 
   onUserInput() {
     if (this.showTemplatesPage && this.userInput.trim() !== '') {

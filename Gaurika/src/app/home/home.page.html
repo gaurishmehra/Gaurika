@@ -37,8 +37,20 @@
       <div class="bottom-bar" *ngIf="showTemplatesPage">
         <div class="bottom-toolbar">
           <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
-          <ion-button class="send-button" (click)="sendMessage()" [disabled]="userInput === ''">
-            {{ isStreaming ? 'Stop' : 'Send' }}
+          <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
+            <ion-icon name="attach-outline"></ion-icon>
+          </ion-button>
+          <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
+          <ion-button class="send-button" 
+                      (click)="isStreaming ? stopStream() : sendMessage()"
+                      [disabled]="userInput === ''">
+            {{ isStreaming ? 'Stop' : 'Send' }} 
+          </ion-button>
+        </div>
+        <div *ngIf="selectedImage" class="image-preview">
+          <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
+          <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+            <ion-icon name="close-circle"></ion-icon>
           </ion-button>
         </div>
       </div>
@@ -125,6 +137,9 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
+      <ion-button expand="block" (click)="showTemplates()">
+        Home Page
+      </ion-button>
       <ion-list>
         <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
           {{ session.name }}
