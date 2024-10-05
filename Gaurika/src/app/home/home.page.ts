@@ -17,6 +17,8 @@ import { IonicModule } from '@ionic/angular';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SettingsService } from '../services/settings.service';
 import { WebGroundingService } from '../services/web-grounding.service';
+import { Clipboard } from '@capacitor/clipboard';
+
 
 interface Message {
   role: string;
@@ -62,12 +64,13 @@ export class HomePage implements OnInit {
   showTemplatesPage = true;
   abortController: AbortController | null = null;
   isStreamStopped = false;
+  isMagicDoneButtonVisible = false;
 
   isAssistantMessageOptionsOpen = false;
   selectedAssistantMessageIndex: number | undefined = undefined;
 
   isEditingMessage = false;
-  editMessageInput = '';
+  editMessageInput = ' ';
 
   templateConversations: { name: string; prompt: string }[] = [
     {
@@ -723,6 +726,32 @@ export class HomePage implements OnInit {
     this.fileInput.nativeElement.click();
   }
   
+  isMagicSelectionMode = false;
+  selectedLines: number[] = [];
+  
+  toggleMagicSelectionMode() {
+    this.isMagicSelectionMode = !this.isMagicSelectionMode;
+    if (!this.isMagicSelectionMode) {
+      this.selectedLines = []; // Clear selected lines when exiting selection mode
+    }
+  }
+  
+  toggleLineSelection(lineNumber: number) {
+    if (this.isMagicSelectionMode) {
+      const index = this.selectedLines.indexOf(lineNumber);
+      if (index > -1) {
+        this.selectedLines.splice(index, 1);
+      } else {
+        this.selectedLines.push(lineNumber);
+      }
+      this.selectedLines.sort(); // Keep selected lines sorted
+    }
+  }
+  
+  isLineSelected(lineNumber: number): boolean {
+    return this.selectedLines.includes(lineNumber);
+  }
+
 
   actionSheetButtons: ActionSheetButton[] = [];
   async showAssistantMessageOptions(message: Message, index: number) {
@@ -751,7 +780,14 @@ export class HomePage implements OnInit {
         text: 'Revamp Message',
         icon: 'create',
         handler: () => {
-          this.startEditMessage(index); // Show the custom dialog
+          this.startEditMessage(index); 
+        }
+      },
+      {
+        text: 'Magic Select', 
+        icon: 'create-outline',
+        handler: () => {
+          this.startMagicSelect(index);
         }
       },
       {
@@ -765,13 +801,133 @@ export class HomePage implements OnInit {
 
   startEditMessage(index: number) {
     this.selectedAssistantMessageIndex = index;
-    this.editMessageInput = ' '; // Initialize to an empty string
+    this.editMessageInput = ' '; 
     this.isEditingMessage = true;
   }
 
   cancelEdit() {
     this.isEditingMessage = false;
-    this.editMessageInput = '';
+    this.editMessageInput = ' ';
+  }
+  
+  startMagicSelect(index: number) {
+    this.selectedAssistantMessageIndex = index;
+    this.isMagicSelectionMode = true;
+    this.isMagicDoneButtonVisible = true;
+    this.selectedLines = [];
+  }
+
+  completeMagicSelect() {
+    this.isMagicDoneButtonVisible = false;
+    this.editMessageInput = ' ';
+    this.isEditingMessage = true;
+  }
+
+  async applyMagicSelectChanges(index: number, changes: string) {
+    // Reset magic select mode immediately
+    this.isMagicSelectionMode = false;
+    this.isMagicDoneButtonVisible = false;
+    this.isEditingMessage = false;
+    
+    const originalMessage = this.messages[index].content;
+    const lines = originalMessage.split('\n');
+    
+    let selectedText = "";
+    let isInCodeBlock = false;
+    let codeBlockLines: number[] = [];
+    
+    // First pass: identify code blocks
+    lines.forEach((line, i) => {
+      if (line.trim().startsWith('```')) {
+        isInCodeBlock = !isInCodeBlock;
+        if (isInCodeBlock) {
+          codeBlockLines.push(i);
+        }
+      } else if (isInCodeBlock) {
+        codeBlockLines.push(i);
+      }
+    });
+    
+    // Second pass: collect selected text and expand selection for code blocks
+    this.selectedLines.forEach(lineNumber => {
+      if (codeBlockLines.includes(lineNumber)) {
+        // If this line is part of a code block, select the entire block
+        const blockStart = codeBlockLines[0];
+        const blockEnd = codeBlockLines[codeBlockLines.length - 1];
+        for (let i = blockStart; i <= blockEnd; i++) {
+          if (!this.selectedLines.includes(i)) {
+            this.selectedLines.push(i);
+          }
+        }
+      }
+    });
+    
+    // Sort and deduplicate selected lines
+    this.selectedLines = [...new Set(this.selectedLines)].sort((a, b) => a - b);
+    
+    // Now collect the text with the expanded selection
+    this.selectedLines.forEach(lineNumber => {
+      selectedText += lines[lineNumber] + "\n";
+    });
+  
+    this.isStreaming = true;
+    this.isStreamStopped = false;
+  
+    try {
+      const contextMessages = this.messages.slice(0, index).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+  
+      const response = await this.client.chat.completions.create({
+        messages: [
+          ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
+          ...contextMessages,
+          { 
+            role: 'user', 
+            content: `Original response: "${originalMessage}"
+            
+  I want to specifically edit these lines:
+  ${selectedText}
+  
+  Changes to make: ${changes}
+  
+  Please provide the COMPLETE updated response, with ONLY the specified lines edited. Keep all other parts of the response exactly the same. Make sure to properly handle any code blocks, preserving their formatting.`
+          }
+        ],
+        model: this.model,
+        temperature: 0.75,
+        stream: true
+      });
+  
+      let newContent = ' ';
+  
+      for await (const part of response) {
+        if (this.isStreamStopped) break;
+  
+        if (part.choices[0].delta?.content) {
+          newContent += part.choices[0].delta.content;
+          this.messages[index].content = newContent;
+        }
+  
+        this.content.scrollToBottom(300);
+      }
+  
+      if (this.isStreamStopped) {
+        this.messages[index].content += " [aborted]";
+      }
+  
+    } catch (error) {
+      console.error('Error updating message:', error);
+      await this.showErrorToast('Sorry, I encountered an error updating the message.');
+      this.messages[index].content = originalMessage;
+    } finally {
+      this.isStreaming = false;
+      this.saveCurrentSession();
+      this.selectedLines = []; 
+      this.editMessageInput = ' ';
+      this.selectedAssistantMessageIndex = undefined; // Reset the selected message index
+    }
   }
 
   async applyMessageChanges(index: number, changes: string) {
@@ -884,6 +1040,18 @@ export class HomePage implements OnInit {
     } finally {
       this.isStreaming = false;
       this.saveCurrentSession();
+    }
+  }
+  
+  async copyCode(code: string) {
+    try {
+      await Clipboard.write({
+        string: code
+      });
+      this.showErrorToast('Code copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+      this.showErrorToast('Failed to copy code. Please try again.');
     }
   }
 }

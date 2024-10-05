@@ -66,8 +66,33 @@
             <span class="message-sender">
               {{ message.role === 'user' ? 'User' : model }}:
             </span>
-            <p class="message-content">{{ message.content }}</p>
+            
+            <!-- Assistant Message Content -->
+            <div *ngIf="message.role === 'assistant'" class="message-content">
+              <ng-container *ngFor="let line of message.content.split('\n'); let j = index">
+                <div [ngClass]="{
+                     'selected-line': selectedAssistantMessageIndex === i && isLineSelected(j),
+                     'selectable-line': selectedAssistantMessageIndex === i && isMagicSelectionMode
+                   }"
+                   (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j) : null">
+                  <ng-container *ngIf="line.trim().startsWith('```')">
+                    <pre><code>{{ line.substring(3) }}</code></pre>
+                    <ion-button fill="clear" size="small" (click)="copyCode(line.substring(3))">
+                      <ion-icon name="copy-outline"></ion-icon>
+                    </ion-button>
+                  </ng-container>
+                  <ng-container *ngIf="!line.trim().startsWith('```')">
+                    {{ line }}
+                  </ng-container>
+                </div>
+              </ng-container>
+            </div>
+            
+            <!-- User Message Content -->
+            <p *ngIf="message.role === 'user'" class="message-content">{{ message.content }}</p>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
+            
+            <!-- Message Action Buttons -->
             <ion-buttons *ngIf="message.role === 'user'" slot="end">
               <ion-button (click)="deleteMessage(i)" fill="clear" color="danger">
                 <ion-icon name="trash-outline"></ion-icon>
@@ -80,6 +105,8 @@
             </ion-buttons>
           </ion-label>
         </ion-item>
+        
+        <!-- Writing Indicator -->
         <ion-item *ngIf="isStreaming"> 
           <ion-label class="writing-message">
             <span class="message-sender">{{ model }}: </span>
@@ -87,20 +114,42 @@
           </ion-label>
         </ion-item>
       </ion-list>
-      <div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage">
+      
+      <!-- Magic Selection Done Button -->
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isMagicSelectionMode && isMagicDoneButtonVisible && selectedLines.length > 0">
+        <ion-fab-button (click)="completeMagicSelect()">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+
+      <!-- Edit Message Dialog -->
+      <div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
         <div class="message-being-edited">
           <ion-label class="assistant-message">
-            {{ messages[selectedAssistantMessageIndex || 0].content }} 
+            <div *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
+                 [ngClass]="{'selected-line': isLineSelected(j)}">
+              <ng-container *ngIf="line.trim().startsWith('```')">
+                <pre><code>{{ line.substring(3) }}</code></pre>
+              </ng-container>
+              <ng-container *ngIf="!line.trim().startsWith('```')">
+                {{ line }}
+              </ng-container>
+            </div>
           </ion-label>
         </div>
         <ion-item>
-          <ion-label position="floating">Edit Message</ion-label>
+          <ion-label position="floating">Edit Selected Lines</ion-label>
           <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
         </ion-item>
-        <ion-button (click)="selectedAssistantMessageIndex !== undefined ? applyMessageChanges(selectedAssistantMessageIndex, editMessageInput) : null">Apply Changes</ion-button>
-        <ion-button color="danger" (click)="cancelEdit()">Cancel</ion-button>
+        <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
+          Apply Changes
+        </ion-button>
+        <ion-button color="danger" (click)="cancelEdit()">
+          Cancel
+        </ion-button>
       </div>
 
+      <!-- Bottom Input Bar -->
       <div class="bottom-bar">
         <div class="bottom-toolbar">
           <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
@@ -125,6 +174,7 @@
   </div>
 </ion-content>
 
+<!-- Session Menu Modal -->
 <ion-modal [isOpen]="isSessionMenuOpen" class="session-menu" [presentingElement]="presentingElement" [canDismiss]="true"
   (ionModalDidDismiss)="isSessionMenuOpen = false">
   <ng-template>
@@ -155,6 +205,7 @@
   </ng-template>
 </ion-modal>
 
+<!-- Create Session Modal -->
 <ion-modal [isOpen]="isCreateSessionModalOpen" class="create-session-modal" [presentingElement]="presentingElement"
   [canDismiss]="true" (ionModalDidDismiss)="isCreateSessionModalOpen = false">
   <ng-template>
@@ -176,6 +227,7 @@
   </ng-template>
 </ion-modal>
 
+<!-- Assistant Message Options Action Sheet -->
 <ion-action-sheet
   [isOpen]="isAssistantMessageOptionsOpen"
   (didDismiss)="isAssistantMessageOptionsOpen = false"

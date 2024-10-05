@@ -726,3 +726,49 @@ ion-item {
     background-color: rgba($accent-color, 0.4);
   }
 }
+.selectable-line {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: $background-light;
+  }
+}
+
+.selected-line {
+  background-color: $background-light;
+}
+
+pre {
+  background-color: var(--ion-color-light);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+  
+  code {
+    font-family: 'Courier New', Courier, monospace;
+  }
+}
+
+ion-fab-button {
+  margin-bottom: 70px;
+}
+
+.custom-dialog {
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  background: var(--ion-background-color);
+  z-index: 1000;
+  padding: 16px;
+  border-top: 1px solid var(--ion-color-medium);
+}
+
+.message-being-edited {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
