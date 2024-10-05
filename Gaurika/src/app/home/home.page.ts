@@ -748,7 +748,7 @@ export class HomePage implements OnInit {
         }
       },
       {
-        text: 'Edit Message',
+        text: 'Revamp Message',
         icon: 'create',
         handler: () => {
           this.startEditMessage(index); // Show the custom dialog
@@ -775,41 +775,55 @@ export class HomePage implements OnInit {
   }
 
   async applyMessageChanges(index: number, changes: string) {
-    this.isEditingMessage = false; // Hide the dialog after applying changes
+    this.isEditingMessage = false;
     const originalMessage = this.messages[index].content;
     
     this.isStreaming = true;
     this.isStreamStopped = false;
-
+  
     try {
+      // Create a context array with all messages up to the edited message
+      const contextMessages = this.messages.slice(0, index).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+  
       const response = await this.client.chat.completions.create({
         messages: [
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-          { role: 'user', content: `Here's an existing response: "${originalMessage}". ${changes}. Please provide an updated version. Reply with nothing but the updated version without adding quotes around the update, quotes inside are fine.` }
+          ...contextMessages,
+          { 
+            role: 'user', 
+            content: `Here's an existing response: "${originalMessage}". ${changes}. 
+                     Please provide an updated version of ONLY this specific response, 
+                     taking into account all the context above. 
+                     Reply with nothing but the updated version without adding quotes 
+                     around the update, quotes inside are fine.` 
+          }
         ],
         model: this.model,
         temperature: 0.75,
         stream: true
       });
-
+  
       let newContent = '';
-
+  
       for await (const part of response) {
         if (this.isStreamStopped) break;
-
+  
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
           // Update the message in real-time
           this.messages[index].content = newContent;
         }
-
+  
         this.content.scrollToBottom(300);
       }
-
+  
       if (this.isStreamStopped) {
         this.messages[index].content += " [aborted]";
       }
-
+  
     } catch (error) {
       console.error('Error updating message:', error);
       await this.showErrorToast('Sorry, I encountered an error updating the message.');
