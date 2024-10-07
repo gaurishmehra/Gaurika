@@ -160,6 +160,15 @@ export class HomePage implements OnInit {
       await this.showFirstTimeToast();
       await this.storage.set('hasShownFirstTimeMessage', true);
     }
+
+    // Check and apply light/dark mode from settings
+    const isLightMode = await this.storage.get('isLightMode');
+    this.applyTheme(isLightMode === true ? 'light' : 'dark'); 
+  }
+
+  applyTheme(theme: 'light' | 'dark') {
+    document.body.classList.toggle('light-mode', theme === 'light');
+    document.body.classList.toggle('dark-mode', theme === 'dark');
   }
 
   async showFirstTimeToast() {
@@ -673,9 +682,21 @@ export class HomePage implements OnInit {
       } catch (error: any) {
         if (error.name === 'AbortError') {
           console.log('Request aborted');
+        } else if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error('Server Error:', error.response.data);
+          await this.showErrorToast(`Server Error: ${error.response.data.error.message || 'Unknown error'}`);
+        } else if (error.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          console.error('Network Error:', error.request);
+          await this.showErrorToast('Network Error: Could not connect to the server.');
         } else {
-          console.error('Error calling OpenAI API:', error);
-          await this.showErrorToast('Sorry, I encountered an error processing your request.');
+          // Something happened in setting up the request that triggered an Error
+          console.error('Client Error:', error.message);
+          await this.showErrorToast(`Client Error: ${error.message}`);
         }
       } finally {
         this.abortController = null;
@@ -1057,6 +1078,6 @@ export class HomePage implements OnInit {
   }
   showTemplatesAndRefresh() {
     this.showTemplates();
-    window.location.reload();
+    window.location.reload(); 
   }
 }

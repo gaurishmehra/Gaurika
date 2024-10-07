@@ -33,27 +33,6 @@
           </div>
         </div>
       </div>
-
-      <div class="bottom-bar" *ngIf="showTemplatesPage">
-        <div class="bottom-toolbar">
-          <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
-          <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
-            <ion-icon name="attach-outline"></ion-icon>
-          </ion-button>
-          <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
-          <ion-button class="send-button" 
-                      (click)="isStreaming ? stopStream() : sendMessage()"
-                      [disabled]="userInput === ''">
-            {{ isStreaming ? 'Stop' : 'Send' }} 
-          </ion-button>
-        </div>
-        <div *ngIf="selectedImage" class="image-preview">
-          <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
-          <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
-            <ion-icon name="close-circle"></ion-icon>
-          </ion-button>
-        </div>
-      </div>
     </div>
 
     <div *ngIf="!showTemplatesPage" class="chat-page">
@@ -121,58 +100,60 @@
           <ion-icon name="checkmark-outline"></ion-icon>
         </ion-fab-button>
       </ion-fab>
-
-      <!-- Edit Message Dialog -->
-      <div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
-        <div class="message-being-edited">
-          <ion-label class="assistant-message">
-            <div *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
-                 [ngClass]="{'selected-line': isLineSelected(j)}">
-              <ng-container *ngIf="line.trim().startsWith('```')">
-                <pre><code>{{ line.substring(3) }}</code></pre>
-              </ng-container>
-              <ng-container *ngIf="!line.trim().startsWith('```')">
-                {{ line }}
-              </ng-container>
-            </div>
-          </ion-label>
-        </div>
-        <ion-item>
-          <ion-label position="floating">Edit Selected Lines</ion-label>
-          <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
-        </ion-item>
-        <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
-          Apply Changes
-        </ion-button>
-        <ion-button color="danger" (click)="cancelEdit()">
-          Cancel
-        </ion-button>
-      </div>
-
-      <!-- Bottom Input Bar -->
-      <div class="bottom-bar">
-        <div class="bottom-toolbar">
-          <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
-          <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
-            <ion-icon name="attach-outline"></ion-icon>
-          </ion-button>
-          <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
-          <ion-button class="send-button" 
-                      (click)="isStreaming ? stopStream() : sendMessage()"
-                      [disabled]="userInput === ''">
-            {{ isStreaming ? 'Stop' : 'Send' }} 
-          </ion-button>
-        </div>
-        <div *ngIf="selectedImage" class="image-preview">
-          <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
-          <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
-            <ion-icon name="close-circle"></ion-icon>
-          </ion-button>
-        </div>
-      </div>
     </div>
   </div>
 </ion-content>
+
+
+<!-- Bottom Input Bar (Common for both templates and chat) -->
+<div class="bottom-bar" *ngIf="!isEditingMessage">
+  <div class="bottom-toolbar">
+    <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
+    <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
+      <ion-icon name="attach-outline"></ion-icon>
+    </ion-button>
+    <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
+    <ion-button class="send-button" 
+                (click)="isStreaming ? stopStream() : sendMessage()"
+                [disabled]="userInput === '' || isToolCallInProgress()">
+      {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }} 
+    </ion-button>
+  </div>
+  <div *ngIf="selectedImage" class="image-preview">
+    <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
+    <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+      <ion-icon name="close-circle"></ion-icon>
+    </ion-button>
+  </div>
+</div>
+
+
+<!-- Edit Message Dialog -->
+<div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
+  <div class="message-being-edited">
+    <ion-label class="assistant-message">
+      <div *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
+           [ngClass]="{'selected-line': isLineSelected(j)}">
+        <ng-container *ngIf="line.trim().startsWith('```')">
+          <pre><code>{{ line.substring(3) }}</code></pre>
+        </ng-container>
+        <ng-container *ngIf="!line.trim().startsWith('```')">
+          {{ line }}
+        </ng-container>
+      </div>
+    </ion-label>
+  </div>
+  <ion-item>
+    <ion-label position="floating">Edit Selected Lines</ion-label>
+    <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
+  </ion-item>
+  <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
+    Apply Changes
+  </ion-button>
+  <ion-button color="danger" (click)="cancelEdit()">
+    Cancel
+  </ion-button>
+</div>
 
 <!-- Session Menu Modal -->
 <ion-modal [isOpen]="isSessionMenuOpen" class="session-menu" [presentingElement]="presentingElement" [canDismiss]="true"

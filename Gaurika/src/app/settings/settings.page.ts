@@ -9,7 +9,6 @@ import { AddApiProviderModalComponent } from '../add-api-provider-modal/add-api-
 import { AddModelModalComponent } from '../add-model-modal/add-model-modal.component';
 import { SettingsService } from '../services/settings.service';
 
-
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.page.html',
@@ -40,6 +39,7 @@ export class SettingsPage implements OnInit {
   isMultimodalEnabled = false;
 
   showAdvancedSettings = false;
+  themeMode: 'light' | 'dark' = 'dark';
 
   constructor(
     private router: Router,
@@ -60,7 +60,6 @@ export class SettingsPage implements OnInit {
     this.models = (await this.storage.get('models')) || [];
     this.selectedModelIndex = (await this.storage.get('selectedModelIndex')) || 0;
 
-    // Use the default system prompt if it's not already stored
     this.systemPrompt = (await this.storage.get('systemPrompt')) || 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
 
     this.isMultiTurnCotEnabled = (await this.storage.get('isMultiTurnCotEnabled')) || false;
@@ -68,19 +67,41 @@ export class SettingsPage implements OnInit {
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
     this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
 
+    this.themeMode = (await this.storage.get('themeMode')) || 'dark';
+
     this.ensureSelectedIndicesWithinBounds();
     this.onModelChange();
-
-    // Add default entries if they don't exist
     this.addDefaultEntriesIfNotPresent();
-
+    this.applyTheme();
   }
+  onCotToggleChange() {
+    if (this.isMultiTurnCotEnabled && this.isSingleTurnCotEnabled) {
+      if (this.isMultiTurnCotEnabled) {
+        this.isSingleTurnCotEnabled = false;
+      } else {
+        this.isMultiTurnCotEnabled = false;
+      }
+    }
+
+    if (this.isMultiTurnCotEnabled || this.isSingleTurnCotEnabled) {
+      this.isWebGroundingEnabled = false;
+    }
+  }
+
+  onWebGroundingToggleChange() {
+    if (this.isWebGroundingEnabled) {
+      this.isMultiTurnCotEnabled = false;
+      this.isSingleTurnCotEnabled = false;
+    }
+  }
+
+
   ionViewDidEnter() {
     console.log('SettingsPage ionViewDidEnter() executed');
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras?.state?.['saveSettings']) {
       const saveSettingsFn = navigation.extras.state['saveSettings'];
-      saveSettingsFn(); // Call the passed function 
+      saveSettingsFn();
     }
   }
 
@@ -243,39 +264,17 @@ export class SettingsPage implements OnInit {
     }
     this.saveSettings();
   }
-  async saveSettingsnorel() {
-    try {
-      await this.storage.create();
 
-      await this.storage.set('apiKeys', this.apiKeys);
-      await this.storage.set('apiProviders', this.apiProviders);
-      await this.storage.set('models', this.models);
+  async toggleTheme() {
+    this.themeMode = this.themeMode === 'dark' ? 'light' : 'dark';
+    await this.applyTheme();
+    await this.saveSettings();
+  }
 
-      await this.storage.set('selectedModelIndex', this.selectedModelIndex);
-      await this.storage.set('selectedApiKeyIndex', this.selectedApiKeyIndex);
-      await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
-
-      await this.storage.set('systemPrompt', this.systemPrompt);
-      await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
-      await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
-      await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
-      await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
-
-      const selectedModel = this.models[this.selectedModelIndex];
-      const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
-
-      await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
-      await this.storage.set('model', selectedModel.value);
-      await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
-
-      console.log('Settings saved successfully!');
-
-      // window.location.reload();
-      this.router.navigate(['/home']);
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
-    
+  async applyTheme() {
+    document.body.classList.remove('dark-mode', 'light-mode');
+    document.body.classList.add(`${this.themeMode}-mode`);
+    await this.storage.set('themeMode', this.themeMode);
   }
 
   async saveSettings() {
@@ -295,6 +294,7 @@ export class SettingsPage implements OnInit {
       await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
       await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
       await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
+      await this.storage.set('themeMode', this.themeMode);
 
       const selectedModel = this.models[this.selectedModelIndex];
       const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
@@ -304,33 +304,10 @@ export class SettingsPage implements OnInit {
       await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
 
       console.log('Settings saved successfully!');
-
       window.location.reload();
 
     } catch (error) {
       console.error('Error saving settings:', error);
-    }
-    
-  }
-
-  onCotToggleChange() {
-    if (this.isMultiTurnCotEnabled && this.isSingleTurnCotEnabled) {
-      if (this.isMultiTurnCotEnabled) {
-        this.isSingleTurnCotEnabled = false;
-      } else {
-        this.isMultiTurnCotEnabled = false;
-      }
-    }
-
-    if (this.isMultiTurnCotEnabled || this.isSingleTurnCotEnabled) {
-      this.isWebGroundingEnabled = false;
-    }
-  }
-
-  onWebGroundingToggleChange() {
-    if (this.isWebGroundingEnabled) {
-      this.isMultiTurnCotEnabled = false;
-      this.isSingleTurnCotEnabled = false;
     }
   }
 

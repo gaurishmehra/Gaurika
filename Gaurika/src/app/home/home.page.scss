@@ -9,6 +9,9 @@ $muted-text: #c0c0c0;
 $card-background: rgba(255, 255, 255, 0.04);
 $success-color: #2c614f;
 $error-color: #a13535;
+::host{
+  --text-color: #f8f8f8;
+}
 
 // Typography
 $font-family: 'Inter', system-ui, -apple-system, sans-serif;
