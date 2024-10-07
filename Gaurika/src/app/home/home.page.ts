@@ -894,7 +894,7 @@ export class HomePage implements OnInit {
   
   Changes to make: ${changes}
   
-  Please provide the COMPLETE updated response, with ONLY the specified lines edited. Keep all other parts of the response exactly the same. Make sure to properly handle any code blocks, preserving their formatting.`
+  Please provide the COMPLETE updated response, with ONLY the specified lines edited. Keep all other parts of the response exactly the same. Make sure to properly handle any code blocks, preserving their formatting. DO not mention this is an update or anything of that nature.`
           }
         ],
         model: this.model,
@@ -952,11 +952,10 @@ export class HomePage implements OnInit {
           ...contextMessages,
           { 
             role: 'user', 
-            content: `Here's an existing response: "${originalMessage}". ${changes}. 
-                     Please provide an updated version of ONLY this specific response, 
-                     taking into account all the context above. 
-                     Reply with nothing but the updated version without adding quotes 
-                     around the update, quotes inside are fine.` 
+            content: `Here's an existing response: "${originalMessage}". 
+            I  would like you to make these changes : "${changes}".
+            Reply only with the new updated version, do not mention it is a new response or add quotes around it. 
+                     ` 
           }
         ],
         model: this.model,
