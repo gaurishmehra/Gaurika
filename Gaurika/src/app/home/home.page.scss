@@ -11,23 +11,23 @@ $success-color: #34785f;
 $error-color: #b34040; 
 
 // Typography
-$font-family: 'Inter';
+$font-family: 'Inter', system-ui, -apple-system, sans-serif;
 
 // Enhanced Mixins
 @mixin glass-effect {
-  background: rgba(255, 255, 255, 0.1); 
-  backdrop-filter: blur(28px); 
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 10px -1px rgba(0, 0, 0, 0.32),
-              0 2px 5px -1px rgba(0, 0, 0, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 @mixin rounded-corners($radius: 16px) {
   border-radius: $radius;
 }
 
-@mixin snappy-transition($property: all, $duration: 0.2s) {
+@mixin snappy-transition($property: all, $duration: 0.15s) {
   transition: $property $duration cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -35,7 +35,7 @@ $font-family: 'Inter';
 @keyframes fadeInUp {
   from { 
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -45,13 +45,7 @@ $font-family: 'Inter';
 
 @keyframes subtlePulse {
   0% { transform: scale(1); }
-  50% { transform: scale(0.985); } 
-  100% { transform: scale(1); }
-}
-
-@keyframes buttonPress {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.97); }
+  50% { transform: scale(0.995); }
   100% { transform: scale(1); }
 }
 
@@ -59,11 +53,10 @@ $font-family: 'Inter';
 body {
   font-family: $font-family;
   color: $text-color;
-  background: linear-gradient(135deg, $background-dark, adjust-color($background-dark, $lightness: 4%)); 
+  background: linear-gradient(135deg, $background-dark, adjust-color($background-dark, $lightness: 2%));
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden; // Prevent horizontal scroll on mobile
 }
 
 ion-content {
@@ -85,7 +78,7 @@ ion-header {
     }
 
     ion-title {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 600;
     }
 
@@ -93,14 +86,10 @@ ion-header {
       ion-button {
         --color: #{$accent-color};
         @include snappy-transition;
-        @include rounded-corners(14px);
+        @include rounded-corners(12px);
         
         &:hover {
-          --background: rgba($accent-color, 0.18);
-        }
-
-        &:active { 
-          animation: buttonPress 0.1s ease-in-out;
+          --background: rgba($accent-color, 0.15);
         }
       }
     }
@@ -138,7 +127,7 @@ ion-item {
   --padding-end: 0;
   --inner-padding-end: 0;
   margin-bottom: 16px;
-  animation: fadeInUp 0.3s ease-out forwards;
+  animation: fadeInUp 0.25s ease-out forwards;
 
   ion-label {
     @include rounded-corners;
@@ -147,7 +136,7 @@ ion-item {
     position: relative;
 
     &.user-message {
-      background: linear-gradient(135deg, rgba($primary-color, 0.25), rgba($primary-color, 0.12));
+      background: linear-gradient(135deg, rgba($primary-color, 0.15), rgba($primary-color, 0.05));
       border-top-left-radius: 0;
       animation: subtlePulse 3s ease-in-out infinite;
 
@@ -158,7 +147,7 @@ ion-item {
     }
 
     &.assistant-message {
-      background: linear-gradient(135deg, rgba($secondary-color, 0.3), rgba($secondary-color, 0.18)); 
+      background: linear-gradient(135deg, rgba($secondary-color, 0.15), rgba($secondary-color, 0.05));
       border-top-right-radius: 0;
 
       .message-sender {
@@ -189,12 +178,6 @@ ion-item {
       position: absolute;
       top: 12px;
       right: 12px;
-
-      ion-button {
-        &:active {
-          animation: buttonPress 0.1s ease-in-out;
-        }
-      }
     }
   }
 }
@@ -207,7 +190,7 @@ ion-item {
   right: 16px;
   @include rounded-corners(24px);
   @include glass-effect;
-  background-color: rgba($background-light, 0.8);
+  background-color: rgba($background-light, 0.7);
   padding: 10px;
   z-index: 1000;
   
@@ -242,7 +225,7 @@ ion-item {
       }
 
       &:focus {
-        --background: linear-gradient(135deg, rgba($primary-color, 0.25), rgba($primary-color, 0.15)); 
+        --background: #{rgba($primary-color, 0.15)};
       }
     }
 
@@ -258,7 +241,7 @@ ion-item {
       font-weight: 500;
 
       &:active {
-        animation: buttonPress 0.1s ease-in-out;
+        transform: scale(0.96);
       }
     }
 
@@ -271,13 +254,8 @@ ion-item {
       @include snappy-transition;
 
       &:hover {
-        --background: rgba($accent-color, 0.2);
+        --background: rgba($accent-color, 0.15);
       }
-
-      &:active {
-        animation: buttonPress 0.1s ease-in-out;
-      }
-
 
       ion-icon {
         font-size: 22px;
@@ -292,12 +270,11 @@ ion-item {
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden; // Prevent horizontal scroll on mobile
 
   .templates-header {
     padding: 24px 20px;
     text-align: center;
-    background: linear-gradient(135deg, rgba($secondary-color, 0.95), rgba($secondary-color, 0.8)); 
+    background: linear-gradient(135deg, rgba($secondary-color, 0.9), rgba($secondary-color, 0.75));
     border-bottom-left-radius: 24px;
     border-bottom-right-radius: 24px;
     margin-bottom: 20px;
@@ -338,15 +315,14 @@ ion-item {
       align-items: flex-start;
       justify-content: space-between;
       padding: 20px;
-      border: 1px solid rgba($accent-color, 0.12);
-      background-color: rgba($background-light, 0.6);
+      border: 1px solid rgba($accent-color, 0.1);
+      background-color: rgba($background-light, 0.5);
       cursor: pointer;
 
       &:hover {
-        transform: translateY(-4px);
-        border-color: rgba($secondary-color, 0.4);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        background: linear-gradient(135deg, rgba($background-light, 0.7), rgba($background-light, 0.5)); 
+        transform: translateY(-3px);
+        border-color: rgba($secondary-color, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
       .template-icon {
@@ -357,7 +333,7 @@ ion-item {
         justify-content: center;
         align-items: center;
         margin-bottom: 12px;
-        background: linear-gradient(135deg, rgba($secondary-color, 0.25), rgba($primary-color, 0.25)); 
+        background: linear-gradient(135deg, rgba($secondary-color, 0.2), rgba($primary-color, 0.2));
 
         ion-icon {
           font-size: 2rem;
@@ -384,7 +360,7 @@ ion-item {
 // Modal Styles
 .session-menu,
 .create-session-modal {
-  --background: #{rgba($background-dark, 0.6)};
+  --background: #{rgba($background-light, 0.95)};
   --width: 94%;
   --max-width: 420px;
   --height: 70%;
@@ -412,11 +388,7 @@ ion-item {
         @include snappy-transition;
         
         &:hover {
-          --background: rgba($accent-color, 0.2);
-        }
-
-        &:active {
-          animation: buttonPress 0.1s ease-in-out;
+          --background: rgba($accent-color, 0.15);
         }
       }
     }
@@ -434,7 +406,7 @@ ion-item {
     @include snappy-transition;
 
     &:hover {
-      --background: #{rgba(255, 255, 255, 0.1)};
+      --background: #{rgba(255, 255, 255, 0.08)};
     }
     
     ion-label {
@@ -445,15 +417,16 @@ ion-item {
     ion-input {
       --color: $text-color;
       --placeholder-color: $muted-text;
-      --background: rgba($background-light, 0.6);
+      --background: rgba($background-light, 0.5);
       border-radius: 10px;
       margin-top: 6px;
     }
   }
 
   ion-button[expand="block"] {
-    --background: linear-gradient(135deg, rgba($primary-color, 0.9), rgba($primary-color, 0.7)); 
+    --background: #73737382;
     --color: #{$text-color};
+    // @include rounded-corners(46px);
     --border-radius: 26px;
     margin: 20px 14px;
     height: 54px;
@@ -464,7 +437,7 @@ ion-item {
     @include snappy-transition;
 
     &:active {
-      animation: buttonPress 0.1s ease-in-out;
+      transform: scale(0.98);
     }
   }
 }
@@ -491,7 +464,7 @@ ion-item {
   }
 
   .message-being-edited {
-    background-color: rgba($secondary-color, 0.12);
+    background-color: rgba($secondary-color, 0.1);
     border-radius: 12px;
     padding: 12px;
     margin-bottom: 16px;
@@ -518,7 +491,7 @@ ion-item {
     }
 
     ion-input {
-      --background: rgba($primary-color, 0.2);
+      --background: rgba($primary-color, 0.15);
       --color: $text-color;
       --placeholder-color: $muted-text;
       border-radius: 12px;
@@ -531,7 +504,6 @@ ion-item {
     margin-top: 8px;
     height: 44px;
     font-size: 1.1rem;
-    @include snappy-transition;
 
     &:first-of-type {
       --background: #{$secondary-color};
@@ -540,12 +512,8 @@ ion-item {
     }
 
     &:last-of-type {
-      --background: rgba($accent-color, 0.25);
+      --background: rgba($accent-color, 0.2);
       --color: #{$accent-color};
-    }
-
-    &:active {
-      animation: buttonPress 0.1s ease-in-out;
     }
   }
 }
@@ -561,7 +529,7 @@ ion-item {
   @include snappy-transition;
 
   &:active {
-    animation: buttonPress 0.1s ease-in-out;
+    transform: scale(0.96);
   }
 }
 
@@ -581,7 +549,7 @@ ion-item {
     }
     
     &::-webkit-scrollbar-thumb {
-      background-color: rgba($accent-color, 0.35);
+      background-color: rgba($accent-color, 0.3);
       border-radius: 3px;
     }
     
@@ -650,11 +618,10 @@ ion-item {
     
     .template-item {
       padding: 24px;
-
+      
       &:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-        background: linear-gradient(135deg, rgba($background-light, 0.75), rgba($background-light, 0.6)); 
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
       }
     }
   }
@@ -752,11 +719,11 @@ ion-item {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba($accent-color, 0.4);
+  background-color: rgba($accent-color, 0.3);
   border-radius: 4px;
   
   &:hover {
-    background-color: rgba($accent-color, 0.5);
+    background-color: rgba($accent-color, 0.4);
   }
 }
 .selectable-line {
@@ -787,10 +754,6 @@ pre {
 
 ion-fab-button {
   margin-bottom: 70px;
-
-  &:active {
-    animation: buttonPress 0.1s ease-in-out;
-  }
 }
 
 .custom-dialog {
