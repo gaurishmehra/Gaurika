@@ -114,8 +114,7 @@
     </ion-button>
     <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
     <ion-button class="send-button" 
-                (click)="isStreaming ? stopStream() : sendMessage()"
-                [disabled]="userInput === '' || isToolCallInProgress()">
+                (click)="isStreaming ? stopStream() : sendMessage()">
       {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }} 
     </ion-button>
   </div>

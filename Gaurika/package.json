@@ -39,10 +39,12 @@
     "google-search-results-nodejs": "^2.1.0",
     "ionicons": "^7.0.0",
     "jsdom": "^25.0.1",
+    "node-fetch": "^3.3.2",
     "openai": "^4.59.0",
     "puppeteer": "^23.5.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xmldom": "^0.6.0",
     "zone.js": "~0.14.2"
   },
   "devDependencies": {
