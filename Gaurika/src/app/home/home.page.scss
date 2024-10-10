@@ -42,21 +42,22 @@ $font-family: 'Inter', sans-serif;
 // }
 @keyframes rotatingBorder {
   0% {
-    clip-path: inset(0 0 95% 0);
+    clip-path: inset(0 0 90% 0);
   }
   25% {
-    clip-path: inset(0 0 0 95%);
+    clip-path: inset(0 0 0 90%);
   }
   50% {
-    clip-path: inset(95% 0 0 0);
+    clip-path: inset(90% 0 0 0);
   }
   75% {
-    clip-path: inset(0 95% 0 0);
+    clip-path: inset(0 90% 0 0);
   }
   100% {
-    clip-path: inset(0 0 95% 0);
+    clip-path: inset(0 0 90% 0);
   }
-}
+  }
+
 
 // Global Styles
 body {
