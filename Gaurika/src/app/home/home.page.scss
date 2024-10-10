@@ -32,14 +32,14 @@ $font-family: 'Inter', sans-serif;
 }
 
 // Smooth Snake-like Line Animation
-@keyframes snakeLineAnimation {
-  0% {
-    stroke-dashoffset: 1000;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
+// @keyframes snakeLineAnimation {
+//   0% {
+//     stroke-dashoffset: 1000;
+//   }
+//   100% {
+//     stroke-dashoffset: 0;
+//   }
+// }
 @keyframes rotatingBorder {
   0% {
     clip-path: inset(0 0 95% 0);
@@ -183,9 +183,9 @@ ion-item {
         height: calc(100% + 4px);
         border: 2px solid rgba($secondary-color, 0.6);
         border-radius: inherit;
-        animation: snakeLineAnimation 4s linear infinite;
-        stroke-dasharray: 50 50;
-        stroke-dashoffset: 100;
+        // animation: snakeLineAnimation 4s linear infinite;
+        // stroke-dasharray: 50 50;
+        // stroke-dashoffset: 100;
         pointer-events: none;
         z-index: -1;
         transform: translate(-2px, -2px);
