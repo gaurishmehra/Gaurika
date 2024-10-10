@@ -11,42 +11,51 @@ $success-color: #34785f;
 $error-color: #b34040; 
 
 // Typography
-$font-family: 'Inter';
+$font-family: 'Inter', sans-serif;
 
 // Enhanced Mixins
-@mixin glass-effect {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+@mixin glass-effect($blur: 20px, $opacity: 0.12) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, $opacity * 0.5);
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.15),
+              0 2px 4px -1px rgba(0, 0, 0, 0.08);
 }
 
-@mixin rounded-corners($radius: 16px) {
+@mixin rounded-corners($radius: 20px) { 
   border-radius: $radius;
 }
 
-@mixin snappy-transition($property: all, $duration: 0.15s) {
-  transition: $property $duration cubic-bezier(0.4, 0, 0.2, 1);
+@mixin snappy-transition($property: all, $duration: 0.2s, $easing: cubic-bezier(0.4, 0, 0.2, 1)) {
+  transition: $property $duration $easing;
 }
 
-// Enhanced Animations
-@keyframes fadeInUp {
-  from { 
-    opacity: 0;
-    transform: translateY(12px);
+// Smooth Snake-like Line Animation
+@keyframes snakeLineAnimation {
+  0% {
+    stroke-dashoffset: 1000;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  100% {
+    stroke-dashoffset: 0;
   }
 }
-
-@keyframes subtlePulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.995); }
-  100% { transform: scale(1); }
+@keyframes rotatingBorder {
+  0% {
+    clip-path: inset(0 0 95% 0);
+  }
+  25% {
+    clip-path: inset(0 0 0 95%);
+  }
+  50% {
+    clip-path: inset(95% 0 0 0);
+  }
+  75% {
+    clip-path: inset(0 95% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 95% 0);
+  }
 }
 
 // Global Styles
@@ -57,18 +66,20 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 ion-content {
   --ion-background-color: #{$background-dark};
   --padding-bottom: 100px;
+  overflow-x: hidden;
 }
 
-// Header Styles
+// Header Styles 
 ion-header {
   background-color: $background-dark;
   --background: #{$background-dark};
-  
+
   ion-toolbar {
     background-color: $background-dark;
     --background: #{$background-dark};
@@ -78,7 +89,7 @@ ion-header {
     }
 
     ion-title {
-      font-size: 1.3rem;
+      font-size: 1.5rem; 
       font-weight: 600;
     }
 
@@ -86,23 +97,22 @@ ion-header {
       ion-button {
         --color: #{$accent-color};
         @include snappy-transition;
-        @include rounded-corners(12px);
-        
+        @include rounded-corners(16px); 
+
         &:hover {
           --background: rgba($accent-color, 0.15);
+        }
+
+        ion-icon {
+          margin-right: 8px; 
         }
       }
     }
   }
 
   &.floating-header {
-    background-color: $background-dark;
-    --background: #{$background-dark};
-    
     ion-toolbar {
       --border-radius: 0;
-      --background: #{$background-dark};
-      background-color: $background-dark;
     }
   }
 }
@@ -112,7 +122,7 @@ ion-list {
   background: transparent;
   padding: 16px;
   margin-bottom: 100px;
-  
+
   @media (min-width: 768px) {
     padding: 24px;
     max-width: 800px;
@@ -131,14 +141,28 @@ ion-item {
 
   ion-label {
     @include rounded-corners;
-    @include glass-effect;
+    @include glass-effect(15px, 0.15); 
     padding: 18px;
     position: relative;
+    overflow: hidden; 
 
     &.user-message {
-      background: linear-gradient(135deg, rgba($primary-color, 0.15), rgba($primary-color, 0.05));
+      background: linear-gradient(135deg, rgba($primary-color, 0.3), rgba($primary-color, 0.2)); 
       border-top-left-radius: 0;
-      animation: subtlePulse 3s ease-in-out infinite;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: calc(100% + 4px); 
+        height: calc(100% + 4px);
+        border: 2px solid rgba($primary-color, 0.6);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: -1;
+        transform: translate(-2px, -2px); 
+      }
 
       .message-sender {
         color: $primary-color;
@@ -147,8 +171,25 @@ ion-item {
     }
 
     &.assistant-message {
-      background: linear-gradient(135deg, rgba($secondary-color, 0.15), rgba($secondary-color, 0.05));
+      background: linear-gradient(135deg, rgba($secondary-color, 0.3), rgba($secondary-color, 0.2)); 
       border-top-right-radius: 0;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: calc(100% + 4px);
+        height: calc(100% + 4px);
+        border: 2px solid rgba($secondary-color, 0.6);
+        border-radius: inherit;
+        animation: snakeLineAnimation 4s linear infinite;
+        stroke-dasharray: 50 50;
+        stroke-dashoffset: 100;
+        pointer-events: none;
+        z-index: -1;
+        transform: translate(-2px, -2px);
+      }
 
       .message-sender {
         color: $secondary-color;
@@ -157,7 +198,20 @@ ion-item {
     }
 
     &.writing-message {
-      animation: subtlePulse 1s infinite;
+      position: relative;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 2px solid $secondary-color;
+        border-radius: inherit;
+        clip-path: inset(0 0 0 0);
+        animation: rotatingBorder 1s linear infinite;
+      }
     }
 
     .message-content {
@@ -178,22 +232,31 @@ ion-item {
       position: absolute;
       top: 12px;
       right: 12px;
+
+      ion-button {
+        --background: transparent;
+        --color: $accent-color;
+
+        &:hover {
+          --background: rgba($accent-color, 0.15);
+        }
+      }
     }
   }
 }
 
-// Bottom Bar Styles
+// Bottom Bar Styles 
 .bottom-bar {
   position: fixed;
   bottom: 16px;
   left: 16px;
   right: 16px;
-  @include rounded-corners(24px);
-  @include glass-effect;
-  background-color: rgba($background-light, 0.7);
+  @include rounded-corners;
+  @include glass-effect(15px, 0.15); 
+  background-color: rgba($background-light, 0.9); 
   padding: 10px;
   z-index: 1000;
-  
+
   @media (min-width: 768px) {
     max-width: 800px;
     margin-left: auto;
@@ -262,6 +325,26 @@ ion-item {
       }
     }
   }
+
+  .image-preview {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+
+    img {
+      border-radius: 12px;
+      margin-right: 8px;
+    }
+
+    ion-button {
+      --background: transparent;
+      --color: $error-color;
+
+      &:hover {
+        --background: rgba($error-color, 0.1);
+      }
+    }
+  }
 }
 
 // Templates Page Styles
@@ -298,7 +381,7 @@ ion-item {
     grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
     gap: 16px;
     overflow-y: auto;
-    
+
     @media (min-width: 768px) {
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       max-width: 1200px;
@@ -307,7 +390,7 @@ ion-item {
     }
 
     .template-item {
-      @include rounded-corners(16px);
+      @include rounded-corners;
       @include snappy-transition;
       min-height: 160px;
       display: flex;
@@ -366,8 +449,8 @@ ion-item {
   --height: 70%;
   --max-height: 750px;
   --border-radius: 24px;
-  @include rounded-corners(24px);
-  @include glass-effect;
+  @include rounded-corners;
+  @include glass-effect(15px, 0.15);
 
   ion-header ion-toolbar {
     --background: transparent;
@@ -386,7 +469,7 @@ ion-item {
         --border-radius: 12px;
         --color: #{$accent-color};
         @include snappy-transition;
-        
+
         &:hover {
           --background: rgba($accent-color, 0.15);
         }
@@ -408,7 +491,7 @@ ion-item {
     &:hover {
       --background: #{rgba(255, 255, 255, 0.08)};
     }
-    
+
     ion-label {
       color: $text-color;
       font-weight: 500;
@@ -426,7 +509,6 @@ ion-item {
   ion-button[expand="block"] {
     --background: #73737382;
     --color: #{$text-color};
-    // @include rounded-corners(46px);
     --border-radius: 26px;
     margin: 20px 14px;
     height: 54px;
@@ -457,7 +539,7 @@ ion-item {
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-  @include glass-effect;
+  @include glass-effect(15px, 0.15);
 
   @media (min-width: 768px) {
     padding: 24px;
@@ -543,16 +625,16 @@ ion-item {
   ion-list {
     max-height: calc(70vh - 56px);
     overflow-y: auto;
-    
+
     &::-webkit-scrollbar {
       width: 6px;
     }
-    
+
     &::-webkit-scrollbar-thumb {
       background-color: rgba($accent-color, 0.3);
       border-radius: 3px;
     }
-    
+
     &::-webkit-scrollbar-track {
       background-color: rgba($background-light, 0.1);
     }
@@ -564,12 +646,12 @@ ion-item {
   .bottom-bar {
     left: 10px;
     right: 10px;
-    
+
     .bottom-toolbar {
       ion-input {
         font-size: 14px;
       }
-      
+
       .send-button {
         padding: 0 16px;
       }
@@ -579,25 +661,25 @@ ion-item {
   ion-list {
     padding: 10px;
   }
-  
+
   .templates-grid {
     .template-item {
       padding: 16px;
-      
+
       .template-icon {
         width: 40px;
         height: 40px;
-        
+
         ion-icon {
           font-size: 1.8rem;
         }
       }
-      
+
       .template-content {
         .template-title {
           font-size: 1.3rem;
         }
-        
+
         .template-description {
           font-size: 0.9rem;
         }
@@ -611,41 +693,41 @@ ion-item {
   ion-content {
     --padding-bottom: 120px;
   }
-  
+
   .templates-grid {
     gap: 24px;
     padding: 0 24px;
-    
+
     .template-item {
       padding: 24px;
-      
+
       &:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
       }
     }
   }
-  
+
   .bottom-bar {
     max-width: 900px;
     padding: 14px;
-    
+
     .bottom-toolbar {
       --min-height: 60px;
-      
+
       ion-input {
         height: 52px;
         font-size: 16px;
       }
-      
+
       .send-button {
         height: 52px;
         padding: 0 24px;
       }
-      
+
       .upload-button {
         width: 52px;
-        
+
         ion-icon {
           font-size: 24px;
         }
@@ -662,22 +744,27 @@ ion-item {
   #editMessageDialog {
     display: none !important;
   }
-  
+
   ion-content {
     --padding-bottom: 0;
   }
-  
+
   ion-list {
     margin-bottom: 0;
   }
-  
+
   ion-item ion-label {
     box-shadow: none !important;
     border: 1px solid #ddd !important;
-    
+
     &.user-message,
     &.assistant-message {
-      animation: none !important;
+      border: 2px solid $primary-color;
+        animation: rotatingBorder 4s linear infinite;
+
+      &::before {
+        display: none !important; 
+      }
     }
   }
 }
@@ -721,32 +808,33 @@ ion-item {
 ::-webkit-scrollbar-thumb {
   background-color: rgba($accent-color, 0.3);
   border-radius: 4px;
-  
+
   &:hover {
     background-color: rgba($accent-color, 0.4);
   }
 }
+
 .selectable-line {
   cursor: pointer;
   padding: 2px 4px;
   border-radius: 4px;
   transition: background-color 0.2s;
-  
+
   &:hover {
-    background-color: $background-light;
+    background-color: rgba($accent-color, 0.1);
   }
 }
 
 .selected-line {
-  background-color: $background-light;
+  background-color: rgba($accent-color, 0.1);
 }
 
 pre {
-  background-color: var(--ion-color-light);
+  background-color: rgba($background-light, 0.7);
   padding: 8px;
   border-radius: 4px;
   overflow-x: auto;
-  
+
   code {
     font-family: 'Courier New', Courier, monospace;
   }
