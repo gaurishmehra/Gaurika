@@ -18,14 +18,17 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { SettingsService } from '../services/settings.service';
 import { WebGroundingService } from '../services/web-grounding.service';
 import { Clipboard } from '@capacitor/clipboard';
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs`;
+import * as pdfjsLib from 'pdfjs-dist';
 
 interface Message {
   role: string;
   content: string;
   image?: string | null;
+  file?: { name: string; type: string; content: string }; 
   tool_call_id?: string;
   isToolCallInProgress?: boolean;
+  isFile?: boolean; 
 }
 interface ActionSheetButton {
   text: string;
@@ -61,6 +64,7 @@ export class HomePage implements OnInit {
   isMultimodalEnabled = false;
   isWebGroundingEnabled = false;
   selectedImage: string | null = null;
+  selectedFile: File | null = null;
   showTemplatesPage = true;
   abortController: AbortController | null = null;
   isStreamStopped = false;
@@ -103,15 +107,15 @@ export class HomePage implements OnInit {
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
     private settingsService: SettingsService,
-    private webGroundingService: WebGroundingService // Inject the service
+    private webGroundingService: WebGroundingService 
   ) {}
 
-  @ViewChild('messageInput') messageInput!: ElementRef; // Get a reference to the input field
+  @ViewChild('messageInput') messageInput!: ElementRef; 
 
   handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) { // Enter key without Shift
-      event.preventDefault(); // Prevent default Enter behavior (new line)
-      this.sendMessage(); // Call your sendMessage function
+    if (event.key === 'Enter' && !event.shiftKey) { 
+      event.preventDefault(); 
+      this.sendMessage(); 
     } 
   }
 
@@ -161,7 +165,7 @@ export class HomePage implements OnInit {
       await this.storage.set('hasShownFirstTimeMessage', true);
     }
 
-    // Check and apply light/dark mode from settings
+    
     const isLightMode = await this.storage.get('isLightMode');
     this.applyTheme(isLightMode === true ? 'light' : 'dark'); 
   }
@@ -169,6 +173,25 @@ export class HomePage implements OnInit {
   applyTheme(theme: 'light' | 'dark') {
     document.body.classList.toggle('light-mode', theme === 'light');
     document.body.classList.toggle('dark-mode', theme === 'dark');
+  }
+  async showFilePreview(fileContent: string) {
+    const truncatedContent = fileContent.split(/\s+/).slice(0, 1024).join(' '); // Get first 1024 words
+
+    const actionSheet = await this.actionSheetController.create({
+      header: 'File Preview',
+      subHeader: truncatedContent + '...', // Display truncated content
+      buttons: [
+        {
+          text: 'Exit',
+          role: 'cancel', 
+          icon: 'close',
+          handler: () => {
+            // Action sheet will automatically close
+          }
+        }
+      ]
+    });
+    await actionSheet.present();
   }
 
   async showFirstTimeToast() {
@@ -212,9 +235,18 @@ export class HomePage implements OnInit {
   }
 
   async onFileSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      this.selectedImage = await this.readFileAsDataURL(file);
+    this.selectedFile = (event.target as HTMLInputElement).files?.[0] || null;
+
+    if (this.selectedFile) {
+      if (this.isMultimodalEnabled && this.selectedFile.type.startsWith('image/')) {
+        this.selectedImage = await this.readFileAsDataURL(this.selectedFile);
+      } else if (!this.isMultimodalEnabled && this.selectedFile.type.startsWith('image/')) {
+        this.showErrorToast('Image uploads are only allowed with multimodal models. Please enable multimodal mode in settings.');
+        this.selectedFile = null; 
+      } else {
+        
+        this.selectedImage = null; 
+      }
     }
   }
 
@@ -226,9 +258,63 @@ export class HomePage implements OnInit {
       reader.readAsDataURL(file);
     });
   }
+  
 
+
+
+  async readFileAsText(file: File): Promise<string> {
+    // Define text-based MIME types (including PDF)
+    const textBasedTypes = [
+      'text/plain', 'text/html', 'text/css', 'text/javascript',
+      'application/json', 'application/xml', 'application/javascript',
+      'application/typescript', 'text/markdown', 'text/csv',
+      'application/pdf'
+    ];
+  
+    // Check if file is a text-based type
+    const isTextBased = textBasedTypes.some(type => file.type.startsWith(type)) ||
+      file.name.match(/\.(txt|js|json|css|html|xml|md|csv|ts|pdf)$/i);
+  
+    if (!isTextBased) {
+      return `[This file type (${file.type || 'unknown'}) cannot be displayed as text. File name: ${file.name}]`;
+    }
+  
+    // Handle PDF files
+    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map((item: any) => item.str).join(' ') + '\n';
+        }
+        return text;
+      } catch (error) {
+        console.error('Error reading PDF:', error);
+        return `[Error reading PDF file: ${file.name}]`;
+      }
+    }
+  
+    // Handle other text-based files
+    try {
+      const text = await file.text();
+      // Basic check for binary content
+      if (/[\x00-\x08\x0E-\x1F\x7F-\xFF]/.test(text.substring(0, 1000))) {
+        return `[This file appears to contain binary data and cannot be displayed as text. File name: ${file.name}]`;
+      }
+      return text;
+    } catch (error) {
+      console.error('Error reading file:', error);
+      return `[Error reading file: ${file.name}]`;
+    }
+  }
+
+  
   removeSelectedImage() {
     this.selectedImage = null;
+    this.selectedFile = null; 
   }
 
   async getBase64Image(imgUrl: string): Promise<string> {
@@ -255,12 +341,29 @@ export class HomePage implements OnInit {
     }
   }
 
+  getFileIcon(fileType: string): string {
+    switch (fileType) {
+      case 'application/pdf':
+        return 'document-outline';
+      case 'application/vnd.ms-excel':
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        return 'document-text-outline'; 
+      case 'text/csv':
+        return 'reorder-four-outline'; 
+      case 'application/json':
+        return 'code-slash-outline';
+      default:
+        return 'document-outline'; 
+    }
+  }
+
+
   openSettings() {
     this.router.navigate(['/settings']);
   }
   showTemplates() {
     this.showTemplatesPage = true;
-    this.toggleSessionMenu(); // Close the session menu
+    this.toggleSessionMenu(); 
   }
 
 
@@ -422,11 +525,13 @@ export class HomePage implements OnInit {
         if (lastUserMessageIndex >= 0 && this.messages[lastUserMessageIndex].role === 'user') {
           const lastUserMessageContent = this.messages[lastUserMessageIndex].content;
           const lastUserMessageImage = this.messages[lastUserMessageIndex].image;
+          const lastUserMessageFile = this.messages[lastUserMessageIndex].file;
 
           this.messages.splice(lastUserMessageIndex, 2);
 
           this.userInput = lastUserMessageContent;
           this.selectedImage = lastUserMessageImage || null;
+          this.selectedFile = lastUserMessageFile ? new File([""], lastUserMessageFile.name, { type: lastUserMessageFile.type }) : null;
 
           this.sendMessage();
         }
@@ -437,7 +542,7 @@ export class HomePage implements OnInit {
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
 
-    // Always create a new session when starting from a template
+    
     this.sessions.push({
       name: template.name,
       messages: []
@@ -476,9 +581,9 @@ export class HomePage implements OnInit {
     }
 
     const messageContent = this.userInput.trim();
-    if (messageContent === '') return;
+    if (messageContent === '' && !this.selectedFile) return;
 
-    // Ensure a new session is created if starting from templates or no sessions exist
+    
     if (this.showTemplatesPage || this.sessions.length === 0) {
       await this.createNewSessionFromMessage(messageContent);
     }
@@ -488,7 +593,60 @@ export class HomePage implements OnInit {
 
     let imageContent = this.selectedImage;
 
-    if (this.isMultimodalEnabled) {
+    if (this.selectedFile && !this.selectedFile.type.startsWith('image/')) {
+      
+      const fileContent = await this.readFileAsText(this.selectedFile);
+      this.messages.push({
+        role: 'user',
+        content: messageContent,
+        file: {
+          name: this.selectedFile.name,
+          type: this.selectedFile.type,
+          content: fileContent
+        },
+        isFile: true 
+      });
+
+      try {
+        const response = await this.client.chat.completions.create({
+          model: this.model,
+          messages: [
+            ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
+            ...this.messages.map(m => ({
+              role: m.role,
+              content: m.isFile ? 
+                `${m.content}\n\nTitle: ${m.file?.name}\nContent: ${m.file?.content}` : 
+                m.content 
+            }))
+          ],
+          max_tokens: 4096,
+          stream: true,
+        });
+
+        let assistantMessage: Message = { role: 'assistant', content: '' };
+        this.messages.push(assistantMessage);
+
+        for await (const part of response) {
+          if (this.isStreamStopped) {
+            break;
+          }
+
+          if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
+            this.content.scrollToBottom(300);
+          }
+        }
+
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
+        }
+
+      } catch (error) {
+        console.error('Error calling OpenAI API with file:', error);
+        await this.showErrorToast('Sorry, I encountered an error processing your request with the file.');
+      }
+
+    } else if (this.isMultimodalEnabled) {
       let newMessage: Message = {
         role: 'user',
         content: messageContent,
@@ -683,18 +841,15 @@ export class HomePage implements OnInit {
         if (error.name === 'AbortError') {
           console.log('Request aborted');
         } else if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
+          
           console.error('Server Error:', error.response.data);
           await this.showErrorToast(`Server Error: ${error.response.data.error.message || 'Unknown error'}`);
         } else if (error.request) {
-          // The request was made but no response was received
-          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-          // http.ClientRequest in node.js
+          
           console.error('Network Error:', error.request);
           await this.showErrorToast('Network Error: Could not connect to the server.');
         } else {
-          // Something happened in setting up the request that triggered an Error
+          
           console.error('Client Error:', error.message);
           await this.showErrorToast(`Client Error: ${error.message}`);
         }
@@ -705,6 +860,7 @@ export class HomePage implements OnInit {
 
     this.userInput = '';
     this.selectedImage = null;
+    this.selectedFile = null; 
     this.saveCurrentSession();
     this.isStreaming = false;
     this.content.scrollToBottom(300);
@@ -713,7 +869,7 @@ export class HomePage implements OnInit {
 
   async webgroundtool(query: string): Promise<string> {
     console.log('webgroundtool called with query:', query);
-    return this.webGroundingService.webground(query); // Call the service method
+    return this.webGroundingService.webground(query); 
   }
 
   stopStream() {
@@ -745,7 +901,7 @@ export class HomePage implements OnInit {
     await this.loadingController.dismiss();
   }
 
-  triggerImageUpload() {
+  triggerFileUpload() {
     this.fileInput.nativeElement.click();
   }
   
@@ -755,7 +911,7 @@ export class HomePage implements OnInit {
   toggleMagicSelectionMode() {
     this.isMagicSelectionMode = !this.isMagicSelectionMode;
     if (!this.isMagicSelectionMode) {
-      this.selectedLines = []; // Clear selected lines when exiting selection mode
+      this.selectedLines = []; 
     }
   }
   
@@ -767,7 +923,7 @@ export class HomePage implements OnInit {
       } else {
         this.selectedLines.push(lineNumber);
       }
-      this.selectedLines.sort(); // Keep selected lines sorted
+      this.selectedLines.sort(); 
     }
   }
   
@@ -847,7 +1003,7 @@ export class HomePage implements OnInit {
   }
 
   async applyMagicSelectChanges(index: number, changes: string) {
-    // Reset magic select mode immediately
+    
     this.isMagicSelectionMode = false;
     this.isMagicDoneButtonVisible = false;
     this.isEditingMessage = false;
@@ -859,7 +1015,7 @@ export class HomePage implements OnInit {
     let isInCodeBlock = false;
     let codeBlockLines: number[] = [];
     
-    // First pass: identify code blocks
+    
     lines.forEach((line, i) => {
       if (line.trim().startsWith('```')) {
         isInCodeBlock = !isInCodeBlock;
@@ -871,10 +1027,10 @@ export class HomePage implements OnInit {
       }
     });
     
-    // Second pass: collect selected text and expand selection for code blocks
+    
     this.selectedLines.forEach(lineNumber => {
       if (codeBlockLines.includes(lineNumber)) {
-        // If this line is part of a code block, select the entire block
+        
         const blockStart = codeBlockLines[0];
         const blockEnd = codeBlockLines[codeBlockLines.length - 1];
         for (let i = blockStart; i <= blockEnd; i++) {
@@ -885,10 +1041,10 @@ export class HomePage implements OnInit {
       }
     });
     
-    // Sort and deduplicate selected lines
+    
     this.selectedLines = [...new Set(this.selectedLines)].sort((a, b) => a - b);
     
-    // Now collect the text with the expanded selection
+    
     this.selectedLines.forEach(lineNumber => {
       selectedText += lines[lineNumber] + "\n";
     });
@@ -937,7 +1093,7 @@ export class HomePage implements OnInit {
       }
   
       if (this.isStreamStopped) {
-        this.messages[index].content += " [aborted]";
+        this.       messages[index].content += " [aborted]";
       }
   
     } catch (error) {
@@ -949,7 +1105,7 @@ export class HomePage implements OnInit {
       this.saveCurrentSession();
       this.selectedLines = []; 
       this.editMessageInput = ' ';
-      this.selectedAssistantMessageIndex = undefined; // Reset the selected message index
+      this.selectedAssistantMessageIndex = undefined; 
     }
   }
 
@@ -961,7 +1117,7 @@ export class HomePage implements OnInit {
     this.isStreamStopped = false;
   
     try {
-      // Create a context array with all messages up to the edited message
+      
       const contextMessages = this.messages.slice(0, index).map(msg => ({
         role: msg.role,
         content: msg.content
@@ -991,7 +1147,7 @@ export class HomePage implements OnInit {
   
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
-          // Update the message in real-time
+          
           this.messages[index].content = newContent;
         }
   
@@ -1005,7 +1161,7 @@ export class HomePage implements OnInit {
     } catch (error) {
       console.error('Error updating message:', error);
       await this.showErrorToast('Sorry, I encountered an error updating the message.');
-      // Revert to original message on error
+      
       this.messages[index].content = originalMessage;
     } finally {
       this.isStreaming = false;
@@ -1020,7 +1176,7 @@ export class HomePage implements OnInit {
     }
 
     const messagesToSend = this.messages.slice(0, index);
-    const originalMessage = this.messages[index].content; // Get the content string
+    const originalMessage = this.messages[index].content; 
 
     this.isStreaming = true;
     this.isStreamStopped = false;
@@ -1029,7 +1185,12 @@ export class HomePage implements OnInit {
       const response = await this.client.chat.completions.create({
         messages: [
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-          ...messagesToSend
+          ...messagesToSend.map(m => ({
+            role: m.role,
+            content: m.isFile ? 
+              `${m.content}\n\nTitle: ${m.file?.name}\nContent: ${m.file?.content}` : 
+              m.content
+          })) 
         ],
         model: this.model,
         temperature: 0.75,
@@ -1043,7 +1204,7 @@ export class HomePage implements OnInit {
 
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
-          // Update the message in real-time
+          
           this.messages[index].content = newContent;
         }
 
@@ -1057,7 +1218,7 @@ export class HomePage implements OnInit {
     } catch (error) {
       console.error('Error redoing message:', error);
       await this.showErrorToast('Sorry, I encountered an error redoing the message.');
-      // Revert to original message content on error
+      
       this.messages[index].content = originalMessage; 
     } finally {
       this.isStreaming = false;

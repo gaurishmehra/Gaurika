@@ -9,7 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "copy-pdf-worker": "cp ./node_modules/pdfjs-dist/build/pdf.worker.min.js ./src/app/home/"
   },
   "private": true,
   "dependencies": {
@@ -41,9 +42,12 @@
     "jsdom": "^25.0.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.59.0",
+    "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^4.7.76",
     "puppeteer": "^23.5.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "xmldom": "^0.6.0",
     "zone.js": "~0.14.2"
   },
@@ -62,6 +66,7 @@
     "@ionic/angular-toolkit": "^11.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^22.5.5",
+    "@types/pdf-parse": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.57.0",

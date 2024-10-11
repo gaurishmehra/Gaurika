@@ -69,6 +69,10 @@
             
             <!-- User Message Content -->
             <p *ngIf="message.role === 'user'" class="message-content">{{ message.content }}</p>
+            <div *ngIf="message.file" class="file-preview" (click)="showFilePreview(message.file.content)"> 
+              <ion-icon [name]="getFileIcon(message.file.type)"></ion-icon>
+              <span>{{ message.file.name }}</span>
+            </div>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
             
             <!-- Message Action Buttons -->
@@ -109,10 +113,10 @@
 <div class="bottom-bar" *ngIf="!isEditingMessage">
   <div class="bottom-toolbar">
     <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
-    <ion-button *ngIf="isMultimodalEnabled" class="upload-button" (click)="triggerImageUpload()" [disabled]="isStreaming">
+    <ion-button class="upload-button" (click)="triggerFileUpload()" [disabled]="isStreaming"> 
       <ion-icon name="attach-outline"></ion-icon>
     </ion-button>
-    <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*" />
+    <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" /> 
     <ion-button class="send-button" 
                 (click)="isStreaming ? stopStream() : sendMessage()">
       {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }} 
@@ -124,6 +128,13 @@
       <ion-icon name="close-circle"></ion-icon>
     </ion-button>
   </div>
+  <div *ngIf="selectedFile && !selectedFile.type.startsWith('image/')" class="file-preview">
+    <ion-icon [name]="getFileIcon(selectedFile.type)"></ion-icon>
+    <span>{{ selectedFile.name }}</span>
+    <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+      <ion-icon name="close-circle"></ion-icon>
+    </ion-button>
+  </div> 
 </div>
 
 
