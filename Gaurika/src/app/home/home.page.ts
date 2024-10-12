@@ -603,17 +603,11 @@ export class HomePage implements OnInit {
         content: fileContent
       };
   
-      // Check if a message with a file context marker already exists in the current session
-      let fileMessageIndex = this.messages.findIndex(m => m.content.includes("File Context - Title:"));
-  
-      if (fileMessageIndex === -1) { // No message with a file context marker exists yet
-        this.messages.push({
-          role: 'user',
-          content: messageContent + `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}` 
-        });
-      } else { // Append the new file content to the existing message with a file context marker
-        this.messages[fileMessageIndex].content += `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`;
-      }
+      // Create a new message for each file
+      this.messages.push({
+        role: 'user',
+        content: messageContent + (messageContent ? "\n\n" : "") + `File Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}` 
+      });
   
       try {
         const response = await this.client.chat.completions.create({
