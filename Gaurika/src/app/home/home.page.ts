@@ -25,11 +25,12 @@ interface Message {
   role: string;
   content: string;
   image?: string | null;
-  file?: { name: string; type: string; content: string }; 
+  file?: { name: string; type: string; content: string };
   tool_call_id?: string;
   isToolCallInProgress?: boolean;
-  isFile?: boolean; 
+  isFile?: boolean;
 }
+
 interface ActionSheetButton {
   text: string;
   role?: 'destructive' | 'cancel';
@@ -51,7 +52,7 @@ export class HomePage implements OnInit {
   client: any;
   model = 'llama3.1-70b';
   systemPrompt = '';
-  sessions: { name: string; messages: Message[] }[] = [];
+  sessions: { name: string; messages: Message[]; fileContext?: { name: string; type: string; content: string } }[] = [];
   currentSessionIndex = 0;
   currentSessionName = 'Default Session';
   newSessionName = '';
@@ -107,16 +108,16 @@ export class HomePage implements OnInit {
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
     private settingsService: SettingsService,
-    private webGroundingService: WebGroundingService 
+    private webGroundingService: WebGroundingService
   ) {}
 
-  @ViewChild('messageInput') messageInput!: ElementRef; 
+  @ViewChild('messageInput') messageInput!: ElementRef;
 
   handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) { 
-      event.preventDefault(); 
-      this.sendMessage(); 
-    } 
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+    }
   }
 
   async ngOnInit() {
@@ -165,9 +166,9 @@ export class HomePage implements OnInit {
       await this.storage.set('hasShownFirstTimeMessage', true);
     }
 
-    
+
     const isLightMode = await this.storage.get('isLightMode');
-    this.applyTheme(isLightMode === true ? 'light' : 'dark'); 
+    this.applyTheme(isLightMode === true ? 'light' : 'dark');
   }
 
   applyTheme(theme: 'light' | 'dark') {
@@ -183,7 +184,7 @@ export class HomePage implements OnInit {
       buttons: [
         {
           text: 'Exit',
-          role: 'cancel', 
+          role: 'cancel',
           icon: 'close',
           handler: () => {
             // Action sheet will automatically close
@@ -242,10 +243,10 @@ export class HomePage implements OnInit {
         this.selectedImage = await this.readFileAsDataURL(this.selectedFile);
       } else if (!this.isMultimodalEnabled && this.selectedFile.type.startsWith('image/')) {
         this.showErrorToast('Image uploads are only allowed with multimodal models. Please enable multimodal mode in settings.');
-        this.selectedFile = null; 
+        this.selectedFile = null;
       } else {
-        
-        this.selectedImage = null; 
+
+        this.selectedImage = null;
       }
     }
   }
@@ -258,7 +259,7 @@ export class HomePage implements OnInit {
       reader.readAsDataURL(file);
     });
   }
-  
+
 
 
 
@@ -270,15 +271,15 @@ export class HomePage implements OnInit {
       'application/typescript', 'text/markdown', 'text/csv',
       'application/pdf'
     ];
-  
+
     // Check if file is a text-based type
     const isTextBased = textBasedTypes.some(type => file.type.startsWith(type)) ||
       file.name.match(/\.(txt|js|json|css|html|xml|md|csv|ts|pdf)$/i);
-  
+
     if (!isTextBased) {
       return `[This file type (${file.type || 'unknown'}) cannot be displayed as text. File name: ${file.name}]`;
     }
-  
+
     // Handle PDF files
     if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
       try {
@@ -296,7 +297,7 @@ export class HomePage implements OnInit {
         return `[Error reading PDF file: ${file.name}]`;
       }
     }
-  
+
     // Handle other text-based files
     try {
       const text = await file.text();
@@ -311,10 +312,10 @@ export class HomePage implements OnInit {
     }
   }
 
-  
+
   removeSelectedImage() {
     this.selectedImage = null;
-    this.selectedFile = null; 
+    this.selectedFile = null;
   }
 
   async getBase64Image(imgUrl: string): Promise<string> {
@@ -347,13 +348,13 @@ export class HomePage implements OnInit {
         return 'document-outline';
       case 'application/vnd.ms-excel':
       case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-        return 'document-text-outline'; 
+        return 'document-text-outline';
       case 'text/csv':
-        return 'reorder-four-outline'; 
+        return 'reorder-four-outline';
       case 'application/json':
         return 'code-slash-outline';
       default:
-        return 'document-outline'; 
+        return 'document-outline';
     }
   }
 
@@ -363,7 +364,7 @@ export class HomePage implements OnInit {
   }
   showTemplates() {
     this.showTemplatesPage = true;
-    this.toggleSessionMenu(); 
+    this.toggleSessionMenu();
   }
 
 
@@ -481,7 +482,7 @@ export class HomePage implements OnInit {
       this.loadCurrentSession();
       this.saveCurrentSession();
     } else {
-      this.showErrorToast('You cannot delete the last session.'); 
+      this.showErrorToast('You cannot delete the last session.');
     }
   }
 
@@ -542,7 +543,7 @@ export class HomePage implements OnInit {
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
 
-    
+
     this.sessions.push({
       name: template.name,
       messages: []
@@ -553,7 +554,7 @@ export class HomePage implements OnInit {
     this.loadCurrentSession();
 
     this.userInput = template.prompt;
-    await this.sendMessage(); 
+    await this.sendMessage();
   }
 
   getIconForTemplate(templateName: string): string {
@@ -581,9 +582,9 @@ export class HomePage implements OnInit {
     }
 
     const messageContent = this.userInput.trim();
-    if (messageContent === '' && !this.selectedFile) return;
+    if (messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex].fileContext) return;
 
-    
+    // If starting a new conversation from templates or if no sessions exist, create a new session
     if (this.showTemplatesPage || this.sessions.length === 0) {
       await this.createNewSessionFromMessage(messageContent);
     }
@@ -593,31 +594,36 @@ export class HomePage implements OnInit {
 
     let imageContent = this.selectedImage;
 
-    if (this.selectedFile && !this.selectedFile.type.startsWith('image/')) {
-      
-      const fileContent = await this.readFileAsText(this.selectedFile);
-      this.messages.push({
-        role: 'user',
-        content: messageContent,
-        file: {
-          name: this.selectedFile.name,
-          type: this.selectedFile.type,
-          content: fileContent
-        },
-        isFile: true 
-      });
 
+    if (this.selectedFile && !this.selectedFile.type.startsWith('image/')) {
+      const fileContent = await this.readFileAsText(this.selectedFile);
+      this.sessions[this.currentSessionIndex].fileContext = {
+        name: this.selectedFile.name,
+        type: this.selectedFile.type,
+        content: fileContent
+      };
+  
+      // Check if a message with a file already exists in the current session
+      let fileMessageIndex = this.messages.findIndex(m => m.file);
+  
+      if (fileMessageIndex === -1) { // No message with a file exists yet
+        this.messages.push({
+          role: 'user',
+          content: messageContent + `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`, 
+          file: this.sessions[this.currentSessionIndex].fileContext,
+          isFile: true
+        });
+      } else { // Append the new file content to the existing message with a file
+        this.messages[fileMessageIndex].content += `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`;
+        this.messages[fileMessageIndex].file = this.sessions[this.currentSessionIndex].fileContext; 
+      }
+  
       try {
         const response = await this.client.chat.completions.create({
           model: this.model,
           messages: [
             ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-            ...this.messages.map(m => ({
-              role: m.role,
-              content: m.isFile ? 
-                `${m.content}\n\nTitle: ${m.file?.name}\nContent: ${m.file?.content}` : 
-                m.content 
-            }))
+            ...this.messages 
           ],
           max_tokens: 4096,
           stream: true,
@@ -757,7 +763,7 @@ export class HomePage implements OnInit {
               const toolCall = part.choices[0].delta.tool_calls[0];
               // console.log('Web grounding tool call:', toolCall);
               if (toolCall.function.name === 'webgroundtool') {
-                
+
                 const args = JSON.parse(toolCall.function.arguments);
                 const query = args.query;
 
@@ -841,15 +847,15 @@ export class HomePage implements OnInit {
         if (error.name === 'AbortError') {
           console.log('Request aborted');
         } else if (error.response) {
-          
+
           console.error('Server Error:', error.response.data);
           await this.showErrorToast(`Server Error: ${error.response.data.error.message || 'Unknown error'}`);
         } else if (error.request) {
-          
+
           console.error('Network Error:', error.request);
           await this.showErrorToast('Network Error: Could not connect to the server.');
         } else {
-          
+
           console.error('Client Error:', error.message);
           await this.showErrorToast(`Client Error: ${error.message}`);
         }
@@ -860,7 +866,7 @@ export class HomePage implements OnInit {
 
     this.userInput = '';
     this.selectedImage = null;
-    this.selectedFile = null; 
+    this.selectedFile = null;
     this.saveCurrentSession();
     this.isStreaming = false;
     this.content.scrollToBottom(300);
@@ -869,7 +875,7 @@ export class HomePage implements OnInit {
 
   async webgroundtool(query: string): Promise<string> {
     console.log('webgroundtool called with query:', query);
-    return this.webGroundingService.webground(query); 
+    return this.webGroundingService.webground(query);
   }
 
   stopStream() {
@@ -904,17 +910,17 @@ export class HomePage implements OnInit {
   triggerFileUpload() {
     this.fileInput.nativeElement.click();
   }
-  
+
   isMagicSelectionMode = false;
   selectedLines: number[] = [];
-  
+
   toggleMagicSelectionMode() {
     this.isMagicSelectionMode = !this.isMagicSelectionMode;
     if (!this.isMagicSelectionMode) {
-      this.selectedLines = []; 
+      this.selectedLines = [];
     }
   }
-  
+
   toggleLineSelection(lineNumber: number) {
     if (this.isMagicSelectionMode) {
       const index = this.selectedLines.indexOf(lineNumber);
@@ -923,10 +929,10 @@ export class HomePage implements OnInit {
       } else {
         this.selectedLines.push(lineNumber);
       }
-      this.selectedLines.sort(); 
+      this.selectedLines.sort();
     }
   }
-  
+
   isLineSelected(lineNumber: number): boolean {
     return this.selectedLines.includes(lineNumber);
   }
@@ -959,11 +965,11 @@ export class HomePage implements OnInit {
         text: 'Revamp Message',
         icon: 'create',
         handler: () => {
-          this.startEditMessage(index); 
+          this.startEditMessage(index);
         }
       },
       {
-        text: 'Magic Select', 
+        text: 'Magic Select',
         icon: 'create-outline',
         handler: () => {
           this.startMagicSelect(index);
@@ -980,7 +986,7 @@ export class HomePage implements OnInit {
 
   startEditMessage(index: number) {
     this.selectedAssistantMessageIndex = index;
-    this.editMessageInput = ' '; 
+    this.editMessageInput = ' ';
     this.isEditingMessage = true;
   }
 
@@ -988,7 +994,7 @@ export class HomePage implements OnInit {
     this.isEditingMessage = false;
     this.editMessageInput = ' ';
   }
-  
+
   startMagicSelect(index: number) {
     this.selectedAssistantMessageIndex = index;
     this.isMagicSelectionMode = true;
@@ -1003,19 +1009,19 @@ export class HomePage implements OnInit {
   }
 
   async applyMagicSelectChanges(index: number, changes: string) {
-    
-    this.isMagicSelectionMode = false;
+
+        this.isMagicSelectionMode = false;
     this.isMagicDoneButtonVisible = false;
     this.isEditingMessage = false;
-    
+
     const originalMessage = this.messages[index].content;
     const lines = originalMessage.split('\n');
-    
+
     let selectedText = "";
     let isInCodeBlock = false;
     let codeBlockLines: number[] = [];
-    
-    
+
+
     lines.forEach((line, i) => {
       if (line.trim().startsWith('```')) {
         isInCodeBlock = !isInCodeBlock;
@@ -1026,11 +1032,11 @@ export class HomePage implements OnInit {
         codeBlockLines.push(i);
       }
     });
-    
-    
+
+
     this.selectedLines.forEach(lineNumber => {
       if (codeBlockLines.includes(lineNumber)) {
-        
+
         const blockStart = codeBlockLines[0];
         const blockEnd = codeBlockLines[codeBlockLines.length - 1];
         for (let i = blockStart; i <= blockEnd; i++) {
@@ -1040,62 +1046,62 @@ export class HomePage implements OnInit {
         }
       }
     });
-    
-    
+
+
     this.selectedLines = [...new Set(this.selectedLines)].sort((a, b) => a - b);
-    
-    
+
+
     this.selectedLines.forEach(lineNumber => {
       selectedText += lines[lineNumber] + "\n";
     });
-  
+
     this.isStreaming = true;
     this.isStreamStopped = false;
-  
+
     try {
       const contextMessages = this.messages.slice(0, index).map(msg => ({
         role: msg.role,
         content: msg.content
       }));
-  
+
       const response = await this.client.chat.completions.create({
         messages: [
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
           ...contextMessages,
-          { 
-            role: 'user', 
+          {
+            role: 'user',
             content: `Original response: "${originalMessage}"
-            
-  I want to specifically edit these lines:
-  ${selectedText}
-  
-  Changes to make: ${changes}
-  
-  Please provide the COMPLETE updated response, with ONLY the specified lines edited. Keep all other parts of the response exactly the same. Make sure to properly handle any code blocks, preserving their formatting. DO not mention this is an update or anything of that nature.`
+
+I want to specifically edit these lines:
+${selectedText}
+
+Changes to make: ${changes}
+
+Please provide the COMPLETE updated response, with ONLY the specified lines edited. Keep all other parts of the response exactly the same. Make sure to properly handle any code blocks, preserving their formatting. DO not mention this is an update or anything of that nature.`
           }
         ],
         model: this.model,
         temperature: 0.75,
         stream: true
       });
-  
+
       let newContent = ' ';
-  
+
       for await (const part of response) {
         if (this.isStreamStopped) break;
-  
+
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
           this.messages[index].content = newContent;
         }
-  
+
         this.content.scrollToBottom(300);
       }
-  
+
       if (this.isStreamStopped) {
-        this.       messages[index].content += " [aborted]";
+        this.messages[index].content += " [aborted]";
       }
-  
+
     } catch (error) {
       console.error('Error updating message:', error);
       await this.showErrorToast('Sorry, I encountered an error updating the message.');
@@ -1103,65 +1109,65 @@ export class HomePage implements OnInit {
     } finally {
       this.isStreaming = false;
       this.saveCurrentSession();
-      this.selectedLines = []; 
+      this.selectedLines = [];
       this.editMessageInput = ' ';
-      this.selectedAssistantMessageIndex = undefined; 
+      this.selectedAssistantMessageIndex = undefined;
     }
   }
 
   async applyMessageChanges(index: number, changes: string) {
     this.isEditingMessage = false;
     const originalMessage = this.messages[index].content;
-    
+
     this.isStreaming = true;
     this.isStreamStopped = false;
-  
+
     try {
-      
+
       const contextMessages = this.messages.slice(0, index).map(msg => ({
         role: msg.role,
         content: msg.content
       }));
-  
+
       const response = await this.client.chat.completions.create({
         messages: [
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
           ...contextMessages,
-          { 
-            role: 'user', 
+          {
+            role: 'user',
             content: `Here's an existing response: "${originalMessage}". 
             I  would like you to make these changes : "${changes}".
             Reply only with the new updated version, do not mention it is a new response or add quotes around it. 
-                     ` 
+                     `
           }
         ],
         model: this.model,
         temperature: 0.75,
         stream: true
       });
-  
+
       let newContent = '';
-  
+
       for await (const part of response) {
         if (this.isStreamStopped) break;
-  
+
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
-          
+
           this.messages[index].content = newContent;
         }
-  
+
         this.content.scrollToBottom(300);
       }
-  
+
       if (this.isStreamStopped) {
         this.messages[index].content += " [aborted]";
       }
-  
+
     } catch (error) {
       console.error('Error updating message:', error);
       await this.showErrorToast('Sorry, I encountered an error updating the message.');
-      
+
       this.messages[index].content = originalMessage;
     } finally {
       this.isStreaming = false;
@@ -1176,7 +1182,7 @@ export class HomePage implements OnInit {
     }
 
     const messagesToSend = this.messages.slice(0, index);
-    const originalMessage = this.messages[index].content; 
+    const originalMessage = this.messages[index].content;
 
     this.isStreaming = true;
     this.isStreamStopped = false;
@@ -1187,10 +1193,10 @@ export class HomePage implements OnInit {
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
           ...messagesToSend.map(m => ({
             role: m.role,
-            content: m.isFile ? 
-              `${m.content}\n\nTitle: ${m.file?.name}\nContent: ${m.file?.content}` : 
+            content: m.isFile ?
+              `${m.content}\n\nFile Context - Title: ${m.file?.name}\nContent: ${m.file?.content}` :
               m.content
-          })) 
+          }))
         ],
         model: this.model,
         temperature: 0.75,
@@ -1204,7 +1210,7 @@ export class HomePage implements OnInit {
 
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
-          
+
           this.messages[index].content = newContent;
         }
 
@@ -1218,14 +1224,14 @@ export class HomePage implements OnInit {
     } catch (error) {
       console.error('Error redoing message:', error);
       await this.showErrorToast('Sorry, I encountered an error redoing the message.');
-      
-      this.messages[index].content = originalMessage; 
+
+      this.messages[index].content = originalMessage;
     } finally {
       this.isStreaming = false;
       this.saveCurrentSession();
     }
   }
-  
+
   async copyCode(code: string) {
     try {
       await Clipboard.write({
@@ -1239,6 +1245,6 @@ export class HomePage implements OnInit {
   }
   showTemplatesAndRefresh() {
     this.showTemplates();
-    window.location.reload(); 
+    window.location.reload();
   }
 }
