@@ -603,19 +603,16 @@ export class HomePage implements OnInit {
         content: fileContent
       };
   
-      // Check if a message with a file already exists in the current session
-      let fileMessageIndex = this.messages.findIndex(m => m.file);
+      // Check if a message with a file context marker already exists in the current session
+      let fileMessageIndex = this.messages.findIndex(m => m.content.includes("File Context - Title:"));
   
-      if (fileMessageIndex === -1) { // No message with a file exists yet
+      if (fileMessageIndex === -1) { // No message with a file context marker exists yet
         this.messages.push({
           role: 'user',
-          content: messageContent + `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`, 
-          file: this.sessions[this.currentSessionIndex].fileContext,
-          isFile: true
+          content: messageContent + `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}` 
         });
-      } else { // Append the new file content to the existing message with a file
+      } else { // Append the new file content to the existing message with a file context marker
         this.messages[fileMessageIndex].content += `\n\nFile Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`;
-        this.messages[fileMessageIndex].file = this.sessions[this.currentSessionIndex].fileContext; 
       }
   
       try {
@@ -1180,51 +1177,46 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
       this.retryLastAssistantMessage();
       return;
     }
-
+  
     const messagesToSend = this.messages.slice(0, index);
     const originalMessage = this.messages[index].content;
-
+  
     this.isStreaming = true;
     this.isStreamStopped = false;
-
+  
     try {
       const response = await this.client.chat.completions.create({
         messages: [
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-          ...messagesToSend.map(m => ({
-            role: m.role,
-            content: m.isFile ?
-              `${m.content}\n\nFile Context - Title: ${m.file?.name}\nContent: ${m.file?.content}` :
-              m.content
-          }))
+          ...messagesToSend // No need to modify messagesToSend as file content is already embedded
         ],
         model: this.model,
         temperature: 0.75,
         stream: true
       });
-
+  
       let newContent = '';
-
+  
       for await (const part of response) {
         if (this.isStreamStopped) break;
-
+  
         if (part.choices[0].delta?.content) {
           newContent += part.choices[0].delta.content;
-
+  
           this.messages[index].content = newContent;
         }
-
+  
         this.content.scrollToBottom(300);
       }
-
+  
       if (this.isStreamStopped) {
         this.messages[index].content += " [aborted]";
       }
-
+  
     } catch (error) {
       console.error('Error redoing message:', error);
       await this.showErrorToast('Sorry, I encountered an error redoing the message.');
-
+  
       this.messages[index].content = originalMessage;
     } finally {
       this.isStreaming = false;
