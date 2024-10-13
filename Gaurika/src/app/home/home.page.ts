@@ -733,9 +733,9 @@ export class HomePage implements OnInit {
         await this.showErrorToast('Sorry, I encountered an error processing your request.');
       }
 
-    } else if (this.isWebGroundingEnabled) {
+    }  else if (this.isWebGroundingEnabled) {
       this.messages.push({ role: 'user', content: messageContent });
-
+    
       const tools = [
         {
           type: 'function',
@@ -755,17 +755,22 @@ export class HomePage implements OnInit {
           },
         },
       ];
-
-      const runConversation = async (isInitialCall = true) => {
+    
+      const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
+        // Add the webgroundtool instruction to the system prompt if enabled
+        const systemPromptWithWebGrounding = this.isWebGroundingEnabled
+          ? `${this.systemPrompt} Note that you may call the webgroundtool to gain information on a current topic and or a topic you believe you do not have information on.`
+          : this.systemPrompt;
+    
         const messagesToSend = isInitialCall
-          ? this.messages.filter((m) => m.role !== 'abc')
-          : this.messages;
-
+          ? this.messages
+          : [...this.messages, ...toolMessages];
+    
         try {
           const response = await this.client.chat.completions.create({
             messages: [
-              ...(this.systemPrompt
-                ? [{ role: 'system', content: this.systemPrompt }]
+              ...(systemPromptWithWebGrounding
+                ? [{ role: 'system', content: systemPromptWithWebGrounding }]
                 : []),
               ...messagesToSend,
             ],
@@ -774,68 +779,66 @@ export class HomePage implements OnInit {
             stream: true,
             tools: isInitialCall ? tools : undefined,
           });
-
-          this.messages = this.messages.filter((m) => m.role !== 'tool');
-
+    
           let assistantMessage = { role: 'assistant', content: '' };
           this.messages.push(assistantMessage);
-
+    
           for await (const part of response) {
             if (this.isStreamStopped) {
               break;
             }
-
+    
             if (part.choices[0].delta?.content) {
               assistantMessage.content += part.choices[0].delta.content;
             } else if (part.choices[0].delta?.tool_calls) {
               const toolCall = part.choices[0].delta.tool_calls[0];
-              // console.log('Web grounding tool call:', toolCall);
               if (toolCall.function.name === 'webgroundtool') {
-
                 const args = JSON.parse(toolCall.function.arguments);
                 const query = args.query;
-
+    
+                // Show "Processing..." message in the UI (without isToolCallInProgress)
                 this.messages.push({
-                  role: 'tool',
-                  content: 'Scraping the web...',
+                  role: 'assistant',
+                  content: 'WebGround Tool is processing...',
                   tool_call_id: toolCall.id,
-                  isToolCallInProgress: true,
                 });
-
+    
                 if (query) {
                   const webgroundingResult = await this.webgroundtool(query);
-
+                  console.log('webgroundtool query:', query);
+    
                   this.messages = this.messages.filter(
                     (m) => m.tool_call_id !== toolCall.id
                   );
-
-                  this.messages.push({
+    
+                  const toolMessage: Message = {
                     role: 'tool',
                     content: webgroundingResult,
                     tool_call_id: toolCall.id,
-                  });
-                  await runConversation(false);
+                  };
+    
+                  await runConversation(false, [toolMessage]);
                   return;
                 }
               }
             }
-
+    
             this.content.scrollToBottom(300);
           }
-
+    
           if (this.isStreamStopped) {
             assistantMessage.content += " [aborted]";
           }
-
+    
         } catch (error) {
           console.error('Error in web grounding1:', error);
           await this.showErrorToast('Sorry, I encountered an error during web grounding.');
         }
       };
-
+    
       await runConversation();
-
-    } else {
+    }
+     else {
       this.messages.push({ role: 'user', content: messageContent });
 
       this.abortController = new AbortController();
@@ -903,7 +906,18 @@ export class HomePage implements OnInit {
 
   async webgroundtool(query: string): Promise<string> {
     console.log('webgroundtool called with query:', query);
-    return this.webGroundingService.webground(query);
+  
+    try {
+      const response = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`);
+      const text = await response.text(); // Get the response as text
+  
+      // Return the first 6000 words (or less if the text is shorter)
+      const words = text.split(/\s+/);
+      return words.slice(0, 1000).join(' ');
+    } catch (error) {
+      console.error('Error calling webgroundtool:', error);
+      throw error;
+    }
   }
 
   stopStream() {
