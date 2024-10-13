@@ -320,6 +320,7 @@ ion-item {
       &:focus {
         --background: #{rgba($primary-color, 0.15)};
       }
+      
     }
 
     .send-button {
@@ -354,6 +355,11 @@ ion-item {
         font-size: 22px;
       }
     }
+    bottom: calc(24px + var(--disclaimer-height, 0px)); // Dynamically adjust bottom margin
+
+  @media (min-width: 768px) {
+    bottom: calc(32px + var(--disclaimer-height, 0px)); // Adjust for larger screens
+  }
   }
 
   .image-preview {
@@ -897,4 +903,17 @@ ion-fab-button {
   font-size: 1.5rem;
   margin-left: 8px;
   vertical-align: middle;
+}
+.development-disclaimer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba($background-dark, 0.8); /* Light gray background */
+  backdrop-filter: blur(10px); /* Apply a blur effect */
+  padding: 2px;
+  text-align: center;
+  font-size: 0.6rem;
+  color: $text-color; /* Dark gray text */
+  z-index: 1000; /* Ensure it's on top */
 }
