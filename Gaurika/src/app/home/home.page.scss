@@ -27,19 +27,10 @@ $font-family: 'Inter', sans-serif;
   border-radius: $radius;
 }
 
-@mixin snappy-transition($property: all, $duration: 0.2s, $easing: cubic-bezier(0.4, 0, 0.2, 1)) {
+@mixin snappy-transition($property: all, $duration: 0.2s, $easing: cubic-bezier(0.6, 0, 0.4, 1.2)) {
   transition: $property $duration $easing;
 }
 
-// Smooth Snake-like Line Animation
-// @keyframes snakeLineAnimation {
-//   0% {
-//     stroke-dashoffset: 1000;
-//   }
-//   100% {
-//     stroke-dashoffset: 0;
-//   }
-// }
 @keyframes rotatingBorder {
   0% {
     clip-path: inset(0 0 90% 0);
