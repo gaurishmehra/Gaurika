@@ -9,41 +9,49 @@
 
 <ion-content>
   <ion-list>
-    <ion-item-group>
-      <ion-item-divider>
-        <ion-label>Models</ion-label>
-      </ion-item-divider>
-      <ion-item *ngFor="let model of models; let i = index">
-        <ion-label>
-          <h2>{{ model.name }}</h2>
-          <p>{{ model.value }}</p>
-        </ion-label>
-        <ion-badge color="primary" *ngIf="model.isMultimodal">Multimodal</ion-badge> 
-        <ion-button slot="end" fill="clear" (click)="editModel(i)">
-          <ion-icon name="create-outline"></ion-icon>
-        </ion-button>
-        <ion-button slot="end" fill="clear" (click)="removeModel(i)">
-          <ion-icon name="trash-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
-      <ion-item button (click)="showAddModelModal()">
-        <ion-label>Add New Model</ion-label>
-        <ion-icon name="add-outline" slot="end"></ion-icon>
-      </ion-item>
-      <ion-item>
-        <ion-label>Selected Model:</ion-label>
-        <ion-select [(ngModel)]="selectedModelIndex" interface="action-sheet" (ionChange)="onModelChange()">
-          <ion-select-option *ngFor="let model of models; let i = index" [value]="i">
-            {{ model.name }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-    </ion-item-group>
+
+    <ion-item button (click)="showAdvancedSettings = !showAdvancedSettings">
+      <ion-label>Advanced Settings</ion-label>
+      <ion-icon [name]="showAdvancedSettings ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
+    </ion-item>
 
     <ion-item-group *ngIf="showAdvancedSettings">
       <ion-item-divider>
         <ion-label>Advanced Settings</ion-label>
       </ion-item-divider>
+
+      <!-- Models Settings moved here -->
+      <ion-item-group>
+        <ion-item-divider>
+          <ion-label>Models</ion-label>
+        </ion-item-divider>
+        <ion-item *ngFor="let model of models; let i = index">
+          <ion-label>
+            <h2>{{ model.name }}</h2>
+            <p>{{ model.value }}</p>
+          </ion-label>
+          <ion-badge color="primary" *ngIf="model.isMultimodal">Multimodal</ion-badge> 
+          <ion-button slot="end" fill="clear" (click)="editModel(i)">
+            <ion-icon name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button slot="end" fill="clear" (click)="removeModel(i)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+        <ion-item button (click)="showAddModelModal()">
+          <ion-label>Add New Model</ion-label>
+          <ion-icon name="add-outline" slot="end"></ion-icon>
+        </ion-item>
+        <ion-item>
+          <ion-label>Selected Model:</ion-label>
+          <ion-select [(ngModel)]="selectedModelIndex" interface="action-sheet" (ionChange)="onModelChange()">
+            <ion-select-option *ngFor="let model of models; let i = index" [value]="i">
+              {{ model.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-item-group>
+
       <ion-item-group>
         <ion-item-divider>
           <ion-label>System Prompt</ion-label>
@@ -95,11 +103,6 @@
 
     </ion-item-group>
 
-    <ion-item button (click)="showAdvancedSettings = !showAdvancedSettings">
-      <ion-label>Advanced Settings</ion-label>
-      <ion-icon [name]="showAdvancedSettings ? 'chevron-up-outline' : 'chevron-down-outline'" slot="end"></ion-icon>
-    </ion-item>
-
     <ion-item-group> 
       <ion-item-divider>
         <ion-label>Features</ion-label>
@@ -118,22 +121,8 @@
       </ion-item>
     </ion-item-group>
 
-    <!-- Theme Toggle -->
-    <!-- <ion-item-group> -->
-      <!-- <ion-item-divider> -->
-        <!-- <ion-label>Theme</ion-label> -->
-      <!-- </ion-item-divider> -->
-      <!-- Find your existing theme toggle and replace it with this -->
-<!-- <ion-item> -->
-  <!-- <ion-label>Theme</ion-label> -->
-  <!-- <ion-button slot="end" (click)="toggleTheme()"> -->
-    <!-- {{ themeMode === 'dark' ? 'Light Mode' : 'Dark Mode' }} -->
-  <!-- </ion-button> -->
-<!-- </ion-item> -->
-    <!-- </ion-item-group> -->
+    <div class="ion-padding">
+      <ion-button expand="block" (click)="saveSettings()">Save Settings</ion-button>
+    </div>
   </ion-list>
-
-  <div class="ion-padding">
-    <ion-button expand="block" (click)="saveSettings()">Save Settings</ion-button>
-  </div>
 </ion-content>

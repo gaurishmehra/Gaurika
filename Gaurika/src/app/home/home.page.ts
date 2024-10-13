@@ -194,6 +194,42 @@ export class HomePage implements OnInit {
     });
     await actionSheet.present();
   }
+  getDisplayContent(content: string): string {
+    if (this.hasFileContext(content)) {
+      return content.split('\n\n')[0]; // Return only the user's message
+    }
+    return content;
+  }
+
+  hasFileContext(content: string): boolean {
+    return content.includes('File Context - Title:');
+  }
+
+  async showFileContext(content: string) {
+    const fileContextPart = content.split('\n\n')[1]; // Get the file context part
+    const [titlePart, contentPart] = fileContextPart.split('\nContent: ');
+    const title = titlePart.replace('File Context - Title: ', '');
+
+    const actionSheet = await this.actionSheetController.create({
+      header: 'File Context',
+      subHeader: title,
+      buttons: [
+        {
+          text: 'View Content',
+          icon: 'document-text-outline',
+          handler: () => {
+            this.showFilePreview(contentPart);
+          }
+        },
+        {
+          text: 'Cancel',
+          icon: 'close',
+          role: 'cancel'
+        }
+      ]
+    });
+    await actionSheet.present();
+  }
 
   async showFirstTimeToast() {
     const alert = await this.alertController.create({

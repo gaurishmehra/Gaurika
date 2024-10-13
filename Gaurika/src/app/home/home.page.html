@@ -68,7 +68,12 @@
             </div>
             
             <!-- User Message Content -->
-            <p *ngIf="message.role === 'user'" class="message-content">{{ message.content }}</p>
+            <p *ngIf="message.role === 'user'" class="message-content">
+              {{ getDisplayContent(message.content) }}
+              <ion-button *ngIf="hasFileContext(message.content)" fill="clear" size="small" (click)="showFileContext(message.content)">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </ion-button>
+            </p>
             <div *ngIf="message.file" class="file-preview" (click)="showFilePreview(message.file.content)"> 
               <ion-icon [name]="getFileIcon(message.file.type)"></ion-icon>
               <span>{{ message.file.name }}</span>
