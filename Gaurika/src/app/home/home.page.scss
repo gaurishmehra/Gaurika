@@ -904,16 +904,3 @@ ion-fab-button {
   margin-left: 8px;
   vertical-align: middle;
 }
-.development-disclaimer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: rgba($background-dark, 0.8); /* Light gray background */
-  backdrop-filter: blur(10px); /* Apply a blur effect */
-  padding: 2px;
-  text-align: center;
-  font-size: 0.6rem;
-  color: $text-color; /* Dark gray text */
-  z-index: 1000; /* Ensure it's on top */
-}
