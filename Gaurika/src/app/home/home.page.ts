@@ -1267,7 +1267,7 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
     }
   }
   showTemplatesAndRefresh() {
-    this.showTemplates();
+    // this.showTemplates();
     window.location.reload();
   }
 }
