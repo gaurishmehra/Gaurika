@@ -71,11 +71,13 @@
             <p *ngIf="message.role === 'user'" class="message-content">
               {{ getDisplayContent(message.content) }}
               <ion-button *ngIf="hasFileContext(message.content)" fill="clear" size="small" (click)="showFileContext(message.content)">
-                <ion-icon name="document-text-outline"></ion-icon>
+                <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
               </ion-button>
             </p>
             <div *ngIf="message.file" class="file-preview" (click)="showFilePreview(message.file.content)"> 
-              <ion-icon [name]="getFileIcon(message.file.type)"></ion-icon>
+              <ion-icon *ngIf="getFileIcon(message.file.type)" 
+                        [name]="getFileIcon(message.file.type)"
+                        class="file-preview-icon"></ion-icon> 
               <span>{{ message.file.name }}</span>
             </div>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
@@ -113,7 +115,6 @@
   </div>
 </ion-content>
 
-
 <!-- Bottom Input Bar (Common for both templates and chat) -->
 <div class="bottom-bar" *ngIf="!isEditingMessage">
   <div class="bottom-toolbar">
@@ -134,14 +135,13 @@
     </ion-button>
   </div>
   <div *ngIf="selectedFile && !selectedFile.type.startsWith('image/')" class="file-preview">
-    <ion-icon [name]="getFileIcon(selectedFile.type)"></ion-icon>
+    <ion-icon [name]="getFileIcon(selectedFile.type)" class="file-preview-icon"></ion-icon>
     <span>{{ selectedFile.name }}</span>
     <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
       <ion-icon name="close-circle"></ion-icon>
     </ion-button>
   </div> 
 </div>
-
 
 <!-- Edit Message Dialog -->
 <div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">

@@ -21,6 +21,7 @@ import { Clipboard } from '@capacitor/clipboard';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs`;
 import * as pdfjsLib from 'pdfjs-dist';
 
+
 interface Message {
   role: string;
   content: string;
@@ -378,7 +379,7 @@ export class HomePage implements OnInit {
     }
   }
 
-  getFileIcon(fileType: string): string {
+  getFileIcon(fileType: string): string | null { 
     switch (fileType) {
       case 'application/pdf':
         return 'document-outline';
@@ -390,7 +391,7 @@ export class HomePage implements OnInit {
       case 'application/json':
         return 'code-slash-outline';
       default:
-        return 'document-outline';
+        return null; // Return null for unknown types
     }
   }
 

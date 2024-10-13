@@ -224,6 +224,31 @@ ion-item {
       white-space: pre-wrap;
       line-height: 1.6;
     }
+    .file-preview {
+      display: flex;
+      align-items: center;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background-color: rgba($background-light, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba($background-light, 0.3);
+      }
+
+      .file-preview-icon {
+        color: $accent-color;
+        font-size: 1.5rem;
+        margin-right: 12px;
+      }
+
+      span {
+        color: $text-color;
+        font-size: 0.9rem;
+      }
+    }
 
     .message-image {
       max-width: 100%;
@@ -864,4 +889,12 @@ ion-fab-button {
   max-height: 200px;
   overflow-y: auto;
   margin-bottom: 16px;
+}
+
+
+.file-context-icon {
+  color: $accent-color;
+  font-size: 1.5rem;
+  margin-left: 8px;
+  vertical-align: middle;
 }
