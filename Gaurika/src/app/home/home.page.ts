@@ -800,7 +800,6 @@ export class HomePage implements OnInit {
                 this.messages.push({
                   role: 'assistant',
                   content: 'WebGround Tool is processing...',
-                  tool_call_id: toolCall.id,
                 });
     
                 if (query) {
