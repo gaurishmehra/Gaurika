@@ -32,6 +32,12 @@ interface Message {
   name?: string;
 }
 
+interface MessagePart {
+  type: 'text' | 'code';
+  content: string;
+  startIndex: number; // To track line numbers correctly for magic selection
+}
+
 interface ActionSheetButton {
   text: string;
   role?: 'destructive' | 'cancel';
@@ -425,6 +431,48 @@ export class HomePage implements OnInit {
     }
   }
 
+  extractCodeFromLine(line: string): string {
+    const codeStartIndex = line.indexOf('```');
+    if (codeStartIndex > -1) {
+      return line.substring(codeStartIndex + 3).trim(); 
+    }
+    return '';
+  }
+  splitMessageContent(content: string): MessagePart[] {
+    const parts: MessagePart[] = [];
+    let currentPart: MessagePart = { type: 'text', content: '', startIndex: 0 };
+    let isInCodeBlock = false;
+    let lineNumber = 0;
+  
+    content.split('\n').forEach(line => {
+      if (line.trim().startsWith('```')) {
+        isInCodeBlock = !isInCodeBlock;
+  
+        if (isInCodeBlock) {
+          // Start of a code block
+          parts.push(currentPart);
+          currentPart = { type: 'code', content: '', startIndex: lineNumber };
+        } else {
+          // End of a code block
+          parts.push(currentPart);
+          currentPart = { type: 'text', content: '', startIndex: lineNumber + 1 };
+        }
+      } else {
+        currentPart.content += line + '\n';
+      }
+  
+      lineNumber++;
+    });
+  
+    parts.push(currentPart); // Add the last part
+  
+    return parts;
+  }
+  
+  trimCodeBlock(code: string): string {
+    return code.split('\n').map(line => line.trim()).join('\n'); 
+  }
+
   async createNewSessionFromMessage(message: string) {
     try {
       const response = await this.client.chat.completions.create({
@@ -473,6 +521,7 @@ export class HomePage implements OnInit {
   createNewSession() {
     this.toggleCreateSessionModal();
   }
+
 
   confirmNewSession() {
     if (this.newSessionName.trim()) {
@@ -1270,17 +1319,25 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
     }
   }
 
-  async copyCode(code: string) {
+  isCopied: boolean[] = []; // Array to track copy status for each code block
+
+  async copyCode(code: string, index: number) {
     try {
       await Clipboard.write({
         string: code
       });
-      this.showErrorToast('Code copied to clipboard!');
+  
+      this.isCopied[index] = true; // Set copied status to true for the clicked button
+  
+      setTimeout(() => {
+        this.isCopied[index] = false; // Reset copied status after 2 seconds
+      }, 2000);
     } catch (error) {
       console.error('Failed to copy code:', error);
       this.showErrorToast('Failed to copy code. Please try again.');
     }
   }
+
   showTemplatesAndRefresh() {
     // this.showTemplates();
     window.location.reload();

@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="toggleSessionMenu()">
-        <ion-icon slot="start" name="folder-open-outline"></ion-icon> 
+        <ion-icon slot="start" name="folder-open-outline"></ion-icon>
         <ion-label *ngIf="!showTemplatesPage">{{ currentSessionName }}</ion-label>
       </ion-button>
     </ion-buttons>
@@ -25,7 +25,7 @@
       <div class="templates-grid">
         <div *ngFor="let template of templateConversations" class="template-item" (click)="startConversation(template)">
           <div class="template-icon">
-            <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon> 
+            <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
           </div>
           <div class="template-content">
             <h2 class="template-title">{{ template.name }}</h2>
@@ -45,63 +45,120 @@
             <span class="message-sender">
               {{ message.role === 'user' ? 'User' : model }}:
             </span>
-            
+
             <!-- Assistant Message Content -->
             <div *ngIf="message.role === 'assistant'" class="message-content">
-              <ng-container *ngFor="let line of message.content.split('\n'); let j = index">
-                <div [ngClass]="{
-                     'selected-line': selectedAssistantMessageIndex === i && isLineSelected(j),
-                     'selectable-line': selectedAssistantMessageIndex === i && isMagicSelectionMode
-                   }"
-                   (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j) : null">
-                  <ng-container *ngIf="line.trim().startsWith('```')">
-                    <pre><code>{{ line.substring(3) }}</code></pre>
-                    <ion-button fill="clear" size="small" (click)="copyCode(line.substring(3))">
+              <ng-container *ngIf="!message.content.includes('```')">
+                <!-- Render the entire content as normal text if no code blocks are found -->
+                <ng-container *ngFor="let line of message.content.split('\n'); let j = index">
+                  <div
+                    [ngClass]="{
+                      'selected-line': selectedAssistantMessageIndex === i && isLineSelected(j),
+                      'selectable-line': selectedAssistantMessageIndex === i && isMagicSelectionMode
+                    }"
+                    (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j) : null"
+                  >
+                    <!-- Check for URLs and render them as links -->
+                    <ng-container *ngIf="line.trim().startsWith('https://')">
+                      <a href="{{ line.trim() }}" target="_blank">{{ line.trim() }}</a>
+                    </ng-container>
+                    <!-- Render other text if it's not a URL -->
+                    <ng-container *ngIf="!line.trim().startsWith('https://')">
+                      {{ line }}
+                    </ng-container>
+                  </div>
+                </ng-container>
+              </ng-container>
+
+              <ng-container *ngIf="message.content.includes('```')">
+                <!-- Handle messages with code blocks -->
+                <ng-container *ngFor="let part of splitMessageContent(message.content); let k = index">
+                  <ng-container *ngIf="part.type === 'text'">
+                    <!-- Render normal text parts -->
+                    <ng-container *ngFor="let line of trimCodeBlock(part.content).split('\n'); let j = index">
+                      <div 
+                        [ngClass]="{
+                          'selected-line': selectedAssistantMessageIndex === i && isLineSelected(j + part.startIndex),
+                          'selectable-line': selectedAssistantMessageIndex === i && isMagicSelectionMode
+                        }"
+                        (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j + part.startIndex) : null"
+                      >
+                        <!-- Check for URLs and render them as links -->
+                        <ng-container *ngIf="line.trim().startsWith('https://')">
+                          <a href="{{ line.trim() }}" target="_blank">{{ line.trim() }}</a>
+                        </ng-container>
+                        <!-- Render other text if it's not a URL -->
+                        <ng-container *ngIf="!line.trim().startsWith('https://')">
+                          {{ line }} 
+                        </ng-container>
+                      </div>
+                    </ng-container>
+                  </ng-container>
+
+                  <ng-container *ngIf="part.type === 'code'">
+                    <pre style="white-space: pre-wrap; word-wrap: break-word;">
+                      <code>{{ trimCodeBlock(part.content) }}</code> 
+                    </pre>
+                    <ion-button 
+                      class="copy-button"
+                      fill="clear"
+                      size="small"
+                      (click)="copyCode(trimCodeBlock(part.content), k)" 
+                    > 
                       <ion-icon name="copy-outline"></ion-icon>
-                    </ion-button>
+                      <span class="copy-text" *ngIf="!isCopied[k]">Copy</span>
+                      <span class="copy-text" *ngIf="isCopied[k]">Copied!</span>
+                    </ion-button> 
                   </ng-container>
-                  <ng-container *ngIf="!line.trim().startsWith('```')">
-                    {{ line }}
-                  </ng-container>
-                </div>
+                </ng-container>
               </ng-container>
             </div>
-            
+
             <!-- User Message Content -->
             <p *ngIf="message.role === 'user'" class="message-content">
               {{ getDisplayContent(message.content) }}
-              <ion-button *ngIf="hasFileContext(message.content)" fill="clear" size="large" (click)="showFileContext(message.content)" class="file-preview">
+              <ion-button
+                *ngIf="hasFileContext(message.content)"
+                fill="clear"
+                size="large"
+                (click)="showFileContext(message.content)"
+                class="file-preview"
+              >
                 <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
-                
               </ion-button>
             </p>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
-            
+
             <!-- Message Action Buttons -->
             <ion-buttons *ngIf="message.role === 'user'" slot="end">
               <ion-button (click)="deleteMessage(i)" fill="clear" color="danger">
                 <ion-icon name="trash-outline"></ion-icon>
               </ion-button>
             </ion-buttons>
-            <ion-buttons *ngIf="message.role === 'assistant'" slot="end"> 
+            <ion-buttons *ngIf="message.role === 'assistant'" slot="end">
               <ion-button (click)="showAssistantMessageOptions(message, i)" fill="clear">
                 <ion-icon name="ellipsis-vertical"></ion-icon>
               </ion-button>
             </ion-buttons>
           </ion-label>
         </ion-item>
-        
+
         <!-- Writing Indicator -->
-        <ion-item *ngIf="isStreaming"> 
+        <ion-item *ngIf="isStreaming">
           <ion-label class="writing-message">
             <span class="message-sender">{{ model }}: </span>
-            <p class="message-content">Writing...</p> 
+            <p class="message-content">Writing...</p>
           </ion-label>
         </ion-item>
       </ion-list>
-      
+
       <!-- Magic Selection Done Button -->
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isMagicSelectionMode && isMagicDoneButtonVisible && selectedLines.length > 0">
+      <ion-fab
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+        *ngIf="isMagicSelectionMode && isMagicDoneButtonVisible && selectedLines.length > 0"
+      >
         <ion-fab-button (click)="completeMagicSelect()">
           <ion-icon name="checkmark-outline"></ion-icon>
         </ion-fab-button>
@@ -113,18 +170,23 @@
 <!-- Bottom Input Bar (Common for both templates and chat) -->
 <div class="bottom-bar" *ngIf="!isEditingMessage">
   <div class="bottom-toolbar">
-    <ion-input #messageInput [(ngModel)]="userInput" placeholder="Enter your message" (keydown)="handleKeyDown($event)" [disabled]="isStreaming"></ion-input>
-    <ion-button class="upload-button" (click)="triggerFileUpload()" [disabled]="isStreaming"> 
+    <ion-input
+      #messageInput
+      [(ngModel)]="userInput"
+      placeholder="Enter your message"
+      (keydown)="handleKeyDown($event)"
+      [disabled]="isStreaming"
+    ></ion-input>
+    <ion-button class="upload-button" (click)="triggerFileUpload()" [disabled]="isStreaming">
       <ion-icon name="attach-outline"></ion-icon>
     </ion-button>
-    <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" /> 
-    <ion-button class="send-button" 
-                (click)="isStreaming ? stopStream() : sendMessage()">
-      {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }} 
+    <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none" />
+    <ion-button class="send-button" (click)="isStreaming ? stopStream() : sendMessage()">
+      {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }}
     </ion-button>
   </div>
   <div *ngIf="selectedImage" class="image-preview">
-    <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px;" />
+    <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px" />
     <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
       <ion-icon name="close-circle"></ion-icon>
     </ion-button>
@@ -135,17 +197,19 @@
     <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
       <ion-icon name="close-circle"></ion-icon>
     </ion-button>
-  </div> 
+  </div>
 </div>
 
 <!-- Edit Message Dialog -->
 <div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
   <div class="message-being-edited">
     <ion-label class="assistant-message">
-      <div *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
-           [ngClass]="{'selected-line': isLineSelected(j)}">
+      <div
+        *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
+        [ngClass]="{ 'selected-line': isLineSelected(j) }"
+      >
         <ng-container *ngIf="line.trim().startsWith('```')">
-          <pre><code>{{ line.substring(3) }}</code></pre>
+          <pre><code>{{ line.substring(3).trim() }}</code></pre>
         </ng-container>
         <ng-container *ngIf="!line.trim().startsWith('```')">
           {{ line }}
@@ -166,8 +230,13 @@
 </div>
 
 <!-- Session Menu Modal -->
-<ion-modal [isOpen]="isSessionMenuOpen" class="session-menu" [presentingElement]="presentingElement" [canDismiss]="true"
-  (ionModalDidDismiss)="isSessionMenuOpen = false">
+<ion-modal
+  [isOpen]="isSessionMenuOpen"
+  class="session-menu"
+  [presentingElement]="presentingElement"
+  [canDismiss]="true"
+  (ionModalDidDismiss)="isSessionMenuOpen = false"
+>
   <ng-template>
     <ion-header>
       <ion-toolbar>
@@ -197,8 +266,13 @@
 </ion-modal>
 
 <!-- Create Session Modal -->
-<ion-modal [isOpen]="isCreateSessionModalOpen" class="create-session-modal" [presentingElement]="presentingElement"
-  [canDismiss]="true" (ionModalDidDismiss)="isCreateSessionModalOpen = false">
+<ion-modal
+  [isOpen]="isCreateSessionModalOpen"
+  class="create-session-modal"
+  [presentingElement]="presentingElement"
+  [canDismiss]="true"
+  (ionModalDidDismiss)="isCreateSessionModalOpen = false"
+>
   <ng-template>
     <ion-header>
       <ion-toolbar>
@@ -225,4 +299,3 @@
   [buttons]="actionSheetButtons"
 >
 </ion-action-sheet>
-
