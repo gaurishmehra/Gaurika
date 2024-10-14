@@ -1015,14 +1015,41 @@ export class HomePage implements OnInit {
 
   toggleLineSelection(lineNumber: number) {
     if (this.isMagicSelectionMode) {
-      const index = this.selectedLines.indexOf(lineNumber);
-      if (index > -1) {
-        this.selectedLines.splice(index, 1);
+      const messageContent = this.messages[this.selectedAssistantMessageIndex!].content;
+      const codeBlockLines = this.getCodeBlockLineNumbers(messageContent); 
+
+      if (codeBlockLines.includes(lineNumber)) {
+        // If clicked line is in a code block, select the whole block
+        this.selectedLines = codeBlockLines; 
       } else {
-        this.selectedLines.push(lineNumber);
+        // Otherwise, handle individual line selection
+        const index = this.selectedLines.indexOf(lineNumber);
+        if (index > -1) {
+          this.selectedLines.splice(index, 1);
+        } else {
+          this.selectedLines.push(lineNumber);
+        }
+        this.selectedLines.sort();
       }
-      this.selectedLines.sort();
     }
+  }
+
+  getCodeBlockLineNumbers(content: string): number[] {
+    const lines = content.split('\n');
+    let codeBlockLines: number[] = [];
+    let isInCodeBlock = false;
+    
+    lines.forEach((line, i) => {
+      if (line.trim().startsWith('```')) {
+        isInCodeBlock = !isInCodeBlock;
+        if (isInCodeBlock) {
+          codeBlockLines.push(i); 
+        }
+      } else if (isInCodeBlock) {
+        codeBlockLines.push(i);
+      }
+    });
+    return codeBlockLines;
   }
 
   isLineSelected(lineNumber: number): boolean {
@@ -1101,8 +1128,7 @@ export class HomePage implements OnInit {
   }
 
   async applyMagicSelectChanges(index: number, changes: string) {
-
-        this.isMagicSelectionMode = false;
+    this.isMagicSelectionMode = false;
     this.isMagicDoneButtonVisible = false;
     this.isEditingMessage = false;
 
@@ -1129,11 +1155,17 @@ export class HomePage implements OnInit {
     this.selectedLines.forEach(lineNumber => {
       if (codeBlockLines.includes(lineNumber)) {
 
-        const blockStart = codeBlockLines[0];
-        const blockEnd = codeBlockLines[codeBlockLines.length - 1];
-        for (let i = blockStart; i <= blockEnd; i++) {
-          if (!this.selectedLines.includes(i)) {
-            this.selectedLines.push(i);
+        const firstCodeBlockLine = codeBlockLines.find(lineNum => this.selectedLines.includes(lineNum));
+
+        if (firstCodeBlockLine !== undefined) {
+          const codeBlockStartIndex = codeBlockLines.indexOf(firstCodeBlockLine);
+          const codeBlockEndIndex = codeBlockLines.lastIndexOf(firstCodeBlockLine);
+
+
+          for (let i = codeBlockStartIndex; i <= codeBlockEndIndex; i++) {
+            if (!this.selectedLines.includes(codeBlockLines[i])) {
+              this.selectedLines.push(codeBlockLines[i]);
+            }
           }
         }
       }
