@@ -1,0 +1,32 @@
+$background-dark: #181818; 
+$background-light: #202020;
+$primary-color: #8a8a8a; 
+$secondary-color: #c60055; 
+$accent-color: #b0b0b0; 
+$text-color: #f8f8f8; 
+$muted-text: #d8d8d8; 
+$card-background: rgba(255, 255, 255, 0.08); 
+$success-color: #34785f; 
+$error-color: #b34040; 
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; 
+    height: 100%;
+    justify-content: center; 
+    align-items: center; 
+  }
+  
+  ion-button {
+    --background: $secondary-color;
+    --color: $text-color;
+    --border-radius: 10px; 
+    background-color: $secondary-color;
+    border-radius: 10px;
+    color: $text-color;
+  
+    &:hover {
+      --background: $accent-color; 
+    }
+  }

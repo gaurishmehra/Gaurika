@@ -63,6 +63,7 @@ body {
 
 :host{
   color: $text-color;
+  --color: $text-color;
 }
 
 ion-content {
