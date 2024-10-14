@@ -1262,7 +1262,7 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
             content: `Here's an existing response: "${originalMessage}". 
             I  would like you to make these changes : "${changes}".
             Reply only with the new updated version, do not mention it is a new response or add quotes around it. 
-                     `
+                    `
           }
         ],
         model: this.model,
