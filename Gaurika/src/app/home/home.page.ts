@@ -474,47 +474,73 @@ export class HomePage implements OnInit {
   }
 
   async createNewSessionFromMessage(message: string) {
+    // Create a new session with a default name
+    const defaultSessionName = 'New Chat';
+    this.sessions.push({
+      name: defaultSessionName,
+      messages: []
+    });
+  
+    this.currentSessionIndex = this.sessions.length - 1;
+    this.currentSessionName = defaultSessionName;
+    this.showTemplatesPage = false;
+  
+    // Save the current session
+    this.saveCurrentSession();
+  
+    // Set the userInput to the passed message
+    this.userInput = message;
+  
+    // Send the message
+    await this.sendMessage();
+  
+    // After the assistant replies, update the session name
     try {
+      // First, try to generate a name using the API
       const response = await this.client.chat.completions.create({
         model: this.model,
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant. Based on the user\'s message, generate a concise 1-3 word title that captures the essence of what might be discussed. Respond with ONLY the title, nothing else.'
+            content: 'Generate a concise 1-3 word title for this conversation. Reply only with the title, nothing else.(Do not include quotes around the title)'
           },
           {
             role: 'user',
-            content: message
-          }
+            content: message // Use the passed message here
+          },
         ],
         max_tokens: 10
       });
-
-      let sessionName = response.choices[0].message.content?.trim() || 'New Chat';
-
+      let sessionName = response.choices[0].message.content?.trim();
+  
+      if (!sessionName) {
+        throw new Error('Empty response from API');
+      }
+  
       if (sessionName.length > 20) {
         sessionName = sessionName.substring(0, 20) + '...';
       }
-
-      this.sessions.push({
-        name: sessionName,
-        messages: []
-      });
-
-      this.currentSessionIndex = this.sessions.length - 1;
+  
+      // Update the session name
+      this.sessions[this.currentSessionIndex].name = sessionName;
       this.currentSessionName = sessionName;
-      this.showTemplatesPage = false;
-
-      this.saveCurrentSession();
     } catch (error) {
       console.error('Error generating session name:', error);
-      this.sessions.push({
-        name: 'New Chat',
-        messages: []
-      });
-      this.currentSessionIndex = this.sessions.length - 1;
-      this.currentSessionName = 'New Chat';
-      this.showTemplatesPage = false;
+      
+      // Fallback: Use the first few words of the user's message as the session name
+      let fallbackName = message.split(' ').slice(0, 3).join(' ');
+      if (fallbackName.length > 20) {
+        fallbackName = fallbackName.substring(0, 20) + '...';
+      }
+      
+      this.sessions[this.currentSessionIndex].name = fallbackName;
+      this.currentSessionName = fallbackName;
+      
+      // Optionally, show a toast to inform the user
+      await this.showErrorToast('Could not generate a custom name for this chat.');
+    } finally {
+      // Save the updated session
+      this.saveCurrentSession();
     }
   }
 
@@ -673,6 +699,7 @@ export class HomePage implements OnInit {
     // If starting a new conversation from templates or if no sessions exist, create a new session
     if (this.showTemplatesPage || this.sessions.length === 0) {
       await this.createNewSessionFromMessage(messageContent);
+      return; // The message has already been sent in createNewSessionFromMessage
     }
 
     this.isStreaming = true;
