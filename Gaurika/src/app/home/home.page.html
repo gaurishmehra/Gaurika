@@ -70,16 +70,11 @@
             <!-- User Message Content -->
             <p *ngIf="message.role === 'user'" class="message-content">
               {{ getDisplayContent(message.content) }}
-              <ion-button *ngIf="hasFileContext(message.content)" fill="clear" size="small" (click)="showFileContext(message.content)">
+              <ion-button *ngIf="hasFileContext(message.content)" fill="clear" size="large" (click)="showFileContext(message.content)" class="file-preview">
                 <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
+                
               </ion-button>
             </p>
-            <div *ngIf="message.file" class="file-preview" (click)="showFilePreview(message.file.content)"> 
-              <ion-icon *ngIf="getFileIcon(message.file.type)" 
-                        [name]="getFileIcon(message.file.type)"
-                        class="file-preview-icon"></ion-icon> 
-              <span>{{ message.file.name }}</span>
-            </div>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
             
             <!-- Message Action Buttons -->
