@@ -28,8 +28,8 @@ interface Message {
   image?: string | null;
   file?: { name: string; type: string; content: string };
   tool_call_id?: string;
-  isToolCallInProgress?: boolean;
-  isFile?: boolean;
+  isToolCallInProgress?: boolean
+  name?: string;
 }
 
 interface ActionSheetButton {
@@ -800,6 +800,7 @@ export class HomePage implements OnInit {
                 this.messages.push({
                   role: 'assistant',
                   content: 'WebGround Tool is processing...',
+                  tool_call_id: toolCall.id,
                 });
     
                 if (query) {
@@ -812,6 +813,7 @@ export class HomePage implements OnInit {
     
                   const toolMessage: Message = {
                     role: 'tool',
+                    name: 'WebGround Tool',
                     content: webgroundingResult,
                     tool_call_id: toolCall.id,
                   };
