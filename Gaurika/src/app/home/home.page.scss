@@ -466,10 +466,10 @@ ion-item {
 .session-menu,
 .create-session-modal {
   --background: #{rgba($background-light, 0.95)};
-  --width: 94%;
-  --max-width: 420px;
-  --height: 70%;
-  --max-height: 750px;
+  --width: 90%;
+  --max-width: 550px;
+  --height: 80%;
+  --max-height: 650px;
   --border-radius: 24px;
   @include rounded-corners;
   // @include glass-effect(15px, 0.15);
@@ -483,8 +483,9 @@ ion-item {
     ion-title {
       font-size: 1.4rem;
       font-weight: 600;
-      text-align: center;
-      width: 100%;
+      // text-align: center;
+      left:0;
+      width: 80%;
     }
 
     ion-buttons {
@@ -504,12 +505,16 @@ ion-item {
   ion-content {
     --background: transparent;
   }
+  .items{
+    padding-top: 60px;
+  }
 
   ion-item {
     --background: #{$card-background};
     --border-color: transparent;
     @include rounded-corners(14px);
-    margin-bottom: 10px;
+    // margin-bottom: 20px;
+    margin-top:10px;
     @include snappy-transition;
 
     &:hover {
@@ -540,10 +545,28 @@ ion-item {
     font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: none;
+    cursor:grabbing;
     @include snappy-transition;
 
     &:active {
       transform: scale(0.8);
+    }
+  }
+  .homy-but{
+    position: fixed;
+    top: 60px;
+    left:0;
+    width: 40%;
+  }
+  .creat-but{
+    position: fixed;
+    top: 60px;
+    right:0;
+    width: 40%;
+  }
+  .homy-but, .creat-but, ion-title {
+    span {
+      margin-left: 8px; /* Added margin-left for even more space */
     }
   }
 }
@@ -760,65 +783,6 @@ ion-item {
   }
 }
 
-// Print Styles
-@media print {
-  .bottom-bar,
-  ion-header,
-  .retry-button,
-  #editMessageDialog {
-    display: none !important;
-  }
-
-  ion-content {
-    --padding-bottom: 0;
-  }
-
-  ion-list {
-    margin-bottom: 0;
-  }
-
-  ion-item ion-label {
-    box-shadow: none !important;
-    border: 1px solid #ddd !important;
-
-    &.user-message,
-    &.assistant-message {
-      border: 2px solid $primary-color;
-        animation: rotatingBorder 4s linear infinite;
-
-      &::before {
-        display: none !important; 
-      }
-    }
-  }
-}
-
-// Accessibility Enhancements
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-.hidden-visually {
-  position: absolute !important;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-}
-
-// Focus Styles
-:focus-visible {
-  outline: 2px solid $secondary-color;
-  outline-offset: 2px;
-}
-
 // Custom Scrollbar for Webkit Browsers
 ::-webkit-scrollbar {
   width: 8px;
@@ -869,9 +833,18 @@ pre {
     line-height: 1.5;
   }
 }
+ion-fab{
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 1000;
+}
 
 ion-fab-button {
+  bottom:0;
   margin-bottom: 70px;
+  // background-color: $secondary-color;
+  --background:#{$secondary-color};
 }
 
 .custom-dialog {
@@ -922,6 +895,33 @@ ion-fab-button {
 }
 
 
-/* Styles for pre and code elements */
 
 
+.templates-header {
+  text-align: center;
+
+  h1.page-title, p.page-subtitle {
+    display: inline-block; /* Allows width to be animated and centered */
+    white-space: nowrap;
+    overflow: hidden;
+    // border-right: .15em solid orange; /* Optional: remove if you don't want the cursor */
+    width: 0ch; /* Initial width in ch units */
+    animation-fill-mode: forwards;
+  }
+
+  h1.page-title {
+    animation: typing-ch 0s steps(400, end) forwards, 
+              //  blink-caret 0.75s step-end infinite; 
+  }
+
+  p.page-subtitle {
+    animation: typing-ch 1s steps(400, end) 0s forwards, /* Delay start by 3s */
+              //  blink-caret 0.75s step-end infinite; 
+  }
+}
+
+/* The typing effect using ch units */
+@keyframes typing-ch {
+  from { width: 0ch; }
+  to { width: 100ch; } /* Adjust 100ch as needed */
+}

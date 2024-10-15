@@ -18,8 +18,8 @@
   <div class="content-container">
     <div *ngIf="showTemplatesPage" class="templates-page">
       <div class="templates-header">
-        <h1 class="page-title">Welcome!</h1>
-        <p class="page-subtitle">Gaurika is under development, the responses may be inaccurate.</p>
+        <h1 class="page-title">I'm Gaurika</h1>
+        <p class="page-subtitle">Under development, some responses may be inaccurate.</p>
       </div>
 
       <div class="templates-grid">
@@ -43,7 +43,7 @@
             [class.assistant-message]="message.role === 'assistant'"
           >
             <span class="message-sender">
-              {{ message.role === 'user' ? 'User' : model }}:
+              {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
             </span>
 
             <!-- Assistant Message Content -->
@@ -124,7 +124,9 @@
                 (click)="showFileContext(message.content)"
                 class="file-preview"
               >
+               
                 <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
+                <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
               </ion-button>
             </p>
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
@@ -146,7 +148,7 @@
         <!-- Writing Indicator -->
         <ion-item *ngIf="isStreaming">
           <ion-label class="writing-message">
-            <span class="message-sender">{{ model }}: </span>
+            <span class="message-sender">{{ 'Gaurika' }} : </span>
             <p class="message-content">Writing...</p>
           </ion-label>
         </ion-item>
@@ -186,7 +188,7 @@
     </ion-button>
   </div>
   <div *ngIf="selectedImage" class="image-preview">
-    <img [src]="selectedImage" alt="Selected image" style="max-width: 200px; max-height: 150px" />
+    <img [src]="selectedImage" alt="Selected image" style="max-width: 150px; max-height: 120px" />
     <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
       <ion-icon name="close-circle"></ion-icon>
     </ion-button>
@@ -240,26 +242,29 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Chat Sessions</ion-title>
+        <ion-title> <ion-icon name="chatbubbles-outline"></ion-icon> <span>Chats</span> </ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="toggleSessionMenu()">Close</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-button expand="block" (click)="showTemplatesAndRefresh()">
-        Home Page
-      </ion-button>
+      
       <ion-list>
+        <div class="items">
         <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
           {{ session.name }}
           <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
             <ion-icon name="trash-outline"></ion-icon>
           </ion-button>
         </ion-item>
+        </div>
       </ion-list>
-      <ion-button expand="block" (click)="createNewSession()">
-        Create New Session
+      <ion-button expand="block" (click)="showTemplatesAndRefresh()" class="homy-but">
+        <ion-icon name="home-outline"></ion-icon> <span>Home Page</span>
+      </ion-button>
+      <ion-button expand="block" (click)="createNewSession()" class="creat-but">
+        <ion-icon name="create-outline"></ion-icon> <span>New Chat</span>
       </ion-button>
     </ion-content>
   </ng-template>
@@ -276,7 +281,7 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>New Chat Session</ion-title>
+        <ion-title>New Chat</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="toggleCreateSessionModal()">Close</ion-button>
         </ion-buttons>
@@ -284,7 +289,7 @@
     </ion-header>
     <ion-content class="ion-padding">
       <ion-item>
-        <ion-label position="floating">Session Name</ion-label>
+        <ion-label position="floating">Chat Name</ion-label>
         <ion-input [(ngModel)]="newSessionName"></ion-input>
       </ion-item>
       <ion-button expand="block" (click)="confirmNewSession()">Create</ion-button>

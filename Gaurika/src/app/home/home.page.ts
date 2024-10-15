@@ -238,6 +238,15 @@ export class HomePage implements OnInit {
     await actionSheet.present();
   }
 
+  extractFileNameFromContent(content: string): string {
+    if (this.hasFileContext(content)) {
+      const fileContextPart = content.split('\n\n')[1]; 
+      const titlePart = fileContextPart.split('\nContent: ')[0];
+      return titlePart.replace('File Context - Title: ', '');
+    }
+    return '';
+  }
+
   async showFirstTimeToast() {
     const alert = await this.alertController.create({
       header: 'Welcome!',
