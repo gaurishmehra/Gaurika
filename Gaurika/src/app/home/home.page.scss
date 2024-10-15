@@ -906,6 +906,7 @@ ion-fab-button {
     overflow: hidden;
     width: 0em; /* Initial width in em units */
     animation-fill-mode: forwards;
+    pointer-events: none;
   }
 
   h1.page-title {

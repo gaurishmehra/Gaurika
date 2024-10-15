@@ -179,9 +179,6 @@ export class HomePage implements OnInit {
     const isLightMode = await this.storage.get('isLightMode');
     this.applyTheme(isLightMode === true ? 'light' : 'dark');
   }
-  ngAfterViewInit() {
-    this.centerTextElements();
-  }
 
   applyTheme(theme: 'light' | 'dark') {
     document.body.classList.toggle('light-mode', theme === 'light');
@@ -429,6 +426,9 @@ export class HomePage implements OnInit {
   showTemplates() {
     this.showTemplatesPage = true;
     this.toggleSessionMenu();
+    if (this.showTemplatesPage) { // Only center text if on templates page
+      this.centerTextElements();
+    }
   }
 
 
