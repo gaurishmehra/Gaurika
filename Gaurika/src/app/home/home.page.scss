@@ -901,27 +901,23 @@ ion-fab-button {
   text-align: center;
 
   h1.page-title, p.page-subtitle {
-    display: inline-block; /* Allows width to be animated and centered */
+    display: inline-block;
     white-space: nowrap;
     overflow: hidden;
-    // border-right: .15em solid orange; /* Optional: remove if you don't want the cursor */
-    width: 0ch; /* Initial width in ch units */
+    width: 0em; /* Initial width in em units */
     animation-fill-mode: forwards;
   }
 
   h1.page-title {
-    animation: typing-ch 0s steps(400, end) forwards, 
-              //  blink-caret 0.75s step-end infinite; 
+    animation: typing-em 1s steps(400, end) forwards;
   }
 
   p.page-subtitle {
-    animation: typing-ch 1s steps(400, end) 0s forwards, /* Delay start by 3s */
-              //  blink-caret 0.75s step-end infinite; 
+    animation: typing-em 1s steps(400, end) 1s forwards;
   }
 }
 
-/* The typing effect using ch units */
-@keyframes typing-ch {
-  from { width: 0ch; }
-  to { width: 100ch; } /* Adjust 100ch as needed */
+@keyframes typing-em {
+  from { width: 0em; }
+  to { width: 100%; } /* Expand to full width */
 }

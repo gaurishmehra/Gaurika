@@ -54,6 +54,8 @@ interface ActionSheetButton {
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class HomePage implements OnInit {
+  @ViewChild('pageTitle') pageTitle!: ElementRef;
+  @ViewChild('pageSubtitle') pageSubtitle!: ElementRef;
   userInput = '';
   messages: Message[] = [];
   client: any;
@@ -177,6 +179,9 @@ export class HomePage implements OnInit {
     const isLightMode = await this.storage.get('isLightMode');
     this.applyTheme(isLightMode === true ? 'light' : 'dark');
   }
+  ngAfterViewInit() {
+    this.centerTextElements();
+  }
 
   applyTheme(theme: 'light' | 'dark') {
     document.body.classList.toggle('light-mode', theme === 'light');
@@ -245,6 +250,13 @@ export class HomePage implements OnInit {
       return titlePart.replace('File Context - Title: ', '');
     }
     return '';
+  }
+  centerTextElements() {
+    const titleWidth = this.pageTitle.nativeElement.offsetWidth;
+    const subtitleWidth = this.pageSubtitle.nativeElement.offsetWidth;
+
+    this.pageTitle.nativeElement.style.width = `${titleWidth}em`;
+    this.pageSubtitle.nativeElement.style.width = `${subtitleWidth}em`;
   }
 
   async showFirstTimeToast() {
