@@ -168,6 +168,7 @@ ion-item {
     }
 
     &.assistant-message {
+      color: $text-color;
       background: linear-gradient(135deg, rgba($secondary-color, 0.3), rgba($secondary-color, 0.2)); 
       border-top-right-radius: 0;
 
@@ -371,6 +372,7 @@ ion-item {
 
 // Templates Page Styles
 .templates-page {
+  color: $text-color;
   background-color: $background-dark;
   height: 100%;
   display: flex;
