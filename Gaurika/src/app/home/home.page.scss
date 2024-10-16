@@ -383,6 +383,7 @@ ion-item {
     padding: 24px 20px;
     text-align: center;
     background: linear-gradient(135deg, rgba($secondary-color, 0.9), rgba($secondary-color, 0.75));
+    // background-color: $background-light;
     border-bottom-left-radius: 24px;
     border-bottom-right-radius: 24px;
     margin-bottom: 20px;
@@ -426,11 +427,13 @@ ion-item {
       border: 1px solid rgba($accent-color, 0.1);
       background-color: rgba($background-light, 0.5);
       cursor: pointer;
+      z-index: 1000;
 
       &:hover {
-        transform: translateY(-3px);
+        transform: scale(0.98);
         border-color: rgba($secondary-color, 0.3);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
       }
 
       .template-icon {
