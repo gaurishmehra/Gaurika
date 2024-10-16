@@ -1,11 +1,37 @@
+<!-- Left-sided Floating Sidebar -->
+<div class="sidebar" [class.open]="isSidebarOpen">
+  <div class="sidebar-header">
+    <h2>Chats</h2>
+    <ion-button class="close-button" (click)="toggleSidebar()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </ion-button>
+  </div>
+  <div class="session-list">
+    <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
+      {{ session.name }}
+      <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </div>
+  <div class="sidebar-actions">
+    <ion-button expand="block" (click)="showTemplatesAndRefresh()">
+      <ion-icon name="create-outline"></ion-icon>
+      <span>New Chat</span>
+    </ion-button>
+  </div>
+</div>
+
+<!-- Main Content -->
 <ion-header class="floating-header">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="toggleSessionMenu()">
+      <ion-button class="sidebar-toggle" (click)="toggleSidebar()">
         <ion-icon slot="start" name="folder-open-outline"></ion-icon>
         <ion-label *ngIf="!showTemplatesPage">{{ currentSessionName }}</ion-label>
       </ion-button>
     </ion-buttons>
+
     <ion-buttons slot="end">
       <ion-button (click)="openSettings()">
         <ion-icon name="settings-outline"></ion-icon>
@@ -14,7 +40,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" [class.content-shift]="true" [class.sidebar-open]="isSidebarOpen">
   <div class="content-container">
     <div *ngIf="showTemplatesPage" class="templates-page">
       <div class="templates-header">
@@ -49,7 +75,6 @@
             <!-- Assistant Message Content -->
             <div *ngIf="message.role === 'assistant'" class="message-content">
               <ng-container *ngIf="!message.content.includes('```')">
-                <!-- Render the entire content as normal text if no code blocks are found -->
                 <ng-container *ngFor="let line of message.content.split('\n'); let j = index">
                   <div
                     [ngClass]="{
@@ -58,11 +83,9 @@
                     }"
                     (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j) : null"
                   >
-                    <!-- Check for URLs and render them as links -->
                     <ng-container *ngIf="line.trim().startsWith('https://')">
                       <a href="{{ line.trim() }}" target="_blank">{{ line.trim() }}</a>
                     </ng-container>
-                    <!-- Render other text if it's not a URL -->
                     <ng-container *ngIf="!line.trim().startsWith('https://')">
                       {{ line }}
                     </ng-container>
@@ -71,10 +94,8 @@
               </ng-container>
 
               <ng-container *ngIf="message.content.includes('```')">
-                <!-- Handle messages with code blocks -->
                 <ng-container *ngFor="let part of splitMessageContent(message.content); let k = index">
                   <ng-container *ngIf="part.type === 'text'">
-                    <!-- Render normal text parts -->
                     <ng-container *ngFor="let line of trimCodeBlock(part.content).split('\n'); let j = index">
                       <div 
                         [ngClass]="{
@@ -83,11 +104,9 @@
                         }"
                         (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j + part.startIndex) : null"
                       >
-                        <!-- Check for URLs and render them as links -->
                         <ng-container *ngIf="line.trim().startsWith('https://')">
                           <a href="{{ line.trim() }}" target="_blank">{{ line.trim() }}</a>
                         </ng-container>
-                        <!-- Render other text if it's not a URL -->
                         <ng-container *ngIf="!line.trim().startsWith('https://')">
                           {{ line }} 
                         </ng-container>
@@ -117,7 +136,6 @@
                   <img [src]="image" class="generated-image" />
                 </div>
               </div>
-
             </div>
 
             <!-- User Message Content -->
@@ -130,7 +148,6 @@
                 (click)="showFileContext(message.content)"
                 class="file-preview"
               >
-               
                 <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
                 <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
               </ion-button>
@@ -176,7 +193,7 @@
   </div>
 </ion-content>
 
-<!-- Bottom Input Bar (Common for both templates and chat) -->
+<!-- Bottom Input Bar -->
 <div class="bottom-bar" *ngIf="!isEditingMessage">
   <div class="bottom-toolbar">
     <ion-input
@@ -237,72 +254,6 @@
     Cancel
   </ion-button>
 </div>
-
-<!-- Session Menu Modal -->
-<ion-modal
-  [isOpen]="isSessionMenuOpen"
-  class="session-menu"
-  [presentingElement]="presentingElement"
-  [canDismiss]="true"
-  (ionModalDidDismiss)="isSessionMenuOpen = false"
->
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title> <ion-icon name="chatbubbles-outline"></ion-icon> <span>Chats</span> </ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="toggleSessionMenu()">Close</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-      
-      <ion-list>
-        <div class="items">
-        <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
-          {{ session.name }}
-          <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-button>
-        </ion-item>
-        </div>
-      </ion-list>
-      <ion-button expand="block" (click)="showTemplatesAndRefresh()" class="homy-but">
-        <ion-icon name="home-outline"></ion-icon> <span>Home Page</span>
-      </ion-button>
-      <ion-button expand="block" (click)="createNewSession()" class="creat-but">
-        <ion-icon name="create-outline"></ion-icon> <span>New Chat</span>
-      </ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
-
-<!-- Create Session Modal -->
-<ion-modal
-  [isOpen]="isCreateSessionModalOpen"
-  class="create-session-modal"
-  [presentingElement]="presentingElement"
-  [canDismiss]="true"
-  (ionModalDidDismiss)="isCreateSessionModalOpen = false"
->
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>New Chat</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="toggleCreateSessionModal()">Close</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-      <ion-item>
-        <ion-label position="floating">Chat Name</ion-label>
-        <ion-input [(ngModel)]="newSessionName"></ion-input>
-      </ion-item>
-      <ion-button expand="block" (click)="confirmNewSession()">Create</ion-button>
-    </ion-content>
-  </ng-template>
-</ion-modal>
 
 <!-- Assistant Message Options Action Sheet -->
 <ion-action-sheet

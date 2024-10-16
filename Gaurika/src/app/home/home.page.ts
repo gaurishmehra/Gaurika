@@ -60,6 +60,7 @@ export class HomePage implements OnInit {
   userInput = '';
   messages: Message[] = [];
   client: any;
+  isSidebarOpen = false;
   model = 'llama3.1-70b';
   systemPrompt = '';
   sessions: { 
@@ -69,12 +70,10 @@ export class HomePage implements OnInit {
     generatedImages?: string[]; // Store generated images per session
   }[] = [];
   currentSessionIndex = 0;
-  currentSessionName = 'Default Session';
+  currentSessionName = '';
   newSessionName = '';
   @ViewChild(IonContent) content!: IonContent;
   @ViewChild('fileInput') fileInput!: ElementRef;
-  isSessionMenuOpen = false;
-  isCreateSessionModalOpen = false;
   presentingElement: any;
   isStreaming = false;
   isMultimodalEnabled = false;
@@ -434,7 +433,7 @@ export class HomePage implements OnInit {
   }
   showTemplates() {
     this.showTemplatesPage = true;
-    this.toggleSessionMenu();
+    this.toggleSidebar();
     if (this.showTemplatesPage) { // Only center text if on templates page
       this.centerTextElements();
     }
@@ -446,20 +445,10 @@ export class HomePage implements OnInit {
       this.showTemplatesPage = false;
     }
   }
-
-  toggleSessionMenu() {
-    this.isSessionMenuOpen = !this.isSessionMenuOpen;
-    if (this.isSessionMenuOpen) {
-      this.isCreateSessionModalOpen = false;
-    }
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
   }
 
-  toggleCreateSessionModal() {
-    this.isCreateSessionModalOpen = !this.isCreateSessionModalOpen;
-    if (this.isCreateSessionModalOpen) {
-      this.isSessionMenuOpen = false;
-    }
-  }
 
   extractCodeFromLine(line: string): string {
     const codeStartIndex = line.indexOf('```');
@@ -575,11 +564,6 @@ export class HomePage implements OnInit {
     }
   }
 
-  createNewSession() {
-    this.toggleCreateSessionModal();
-  }
-
-
   confirmNewSession() {
     if (this.newSessionName.trim()) {
       this.sessions.push({ 
@@ -589,7 +573,6 @@ export class HomePage implements OnInit {
       });
       this.currentSessionIndex = this.sessions.length - 1;
       this.loadCurrentSession();
-      this.toggleCreateSessionModal();
       this.newSessionName = '';
       this.saveCurrentSession();
     }
@@ -617,7 +600,7 @@ export class HomePage implements OnInit {
 
     this.currentSessionIndex = index;
     this.loadCurrentSession();
-    this.toggleSessionMenu();
+    this.toggleSidebar();
   }
 
   deleteSession(index: number) {
