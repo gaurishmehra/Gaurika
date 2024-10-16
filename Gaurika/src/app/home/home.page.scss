@@ -277,7 +277,7 @@ ion-item {
   right: 16px;
   @include rounded-corners;
   @include glass-effect(15px, 0.15); 
-  background-color: rgba($background-light, 0.9); 
+  background-color: rgba($background-light, 0.8); 
   padding: 10px;
   z-index: 1000;
 
@@ -295,7 +295,7 @@ ion-item {
     align-items: center;
 
     ion-input {
-      --background: #{rgba($background-light, 0.7)};
+      --background: #{rgba($background-light, 0.5)};
       --color: #{$text-color};
       --placeholder-color: #{$muted-text};
       --placeholder-opacity: 0.8;
@@ -796,7 +796,7 @@ ion-fab-button {
   left: 0;
   width: 300px;
   height: 100%;
-  background-color: rgba($background-light, 0.85);
+  background-color: rgba($background-dark, 0.95);
   backdrop-filter: blur(15px);
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
