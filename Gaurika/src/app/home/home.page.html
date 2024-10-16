@@ -1,26 +1,5 @@
 <!-- Left-sided Floating Sidebar -->
-<div class="sidebar" [class.open]="isSidebarOpen">
-  <div class="sidebar-header">
-    <h2>Chats</h2>
-    <ion-button class="close-button" (click)="toggleSidebar()">
-      <ion-icon name="arrow-back-outline"></ion-icon>
-    </ion-button>
-  </div>
-  <div class="session-list">
-    <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
-      {{ session.name }}
-      <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
-        <ion-icon name="trash-outline"></ion-icon>
-      </ion-button>
-    </ion-item>
-  </div>
-  <div class="sidebar-actions">
-    <ion-button expand="block" (click)="showTemplatesAndRefresh()">
-      <ion-icon name="create-outline"></ion-icon>
-      <span>New Chat</span>
-    </ion-button>
-  </div>
-</div>
+
 
 <!-- Main Content -->
 <ion-header class="floating-header">
@@ -38,6 +17,28 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  <div class="sidebar" [class.open]="isSidebarOpen">
+    <div class="sidebar-header">
+      <h2>Chats</h2>
+      <ion-button class="close-button" (click)="toggleSidebar()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="session-list">
+      <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
+        {{ session.name }}
+        <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </div>
+    <div class="sidebar-actions">
+      <ion-button expand="block" (click)="showTemplatesAndRefresh()">
+        <ion-icon name="create-outline"></ion-icon>
+        <span>New Chat</span>
+      </ion-button>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content [fullscreen]="true" [class.content-shift]="true" [class.sidebar-open]="isSidebarOpen">
