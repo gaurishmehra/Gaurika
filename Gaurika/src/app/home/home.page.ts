@@ -629,7 +629,7 @@ export class HomePage implements OnInit {
       this.loadCurrentSession();
       this.saveCurrentSession();
     } else {
-      this.showErrorToast('You cannot delete the last session.');
+      this.showErrorToast('You must have at least one chat.');
     }
   }
 
