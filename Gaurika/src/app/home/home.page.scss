@@ -467,6 +467,8 @@ ion-item {
 // Modal Styles
 .session-menu,
 .create-session-modal {
+  color: $text-color;
+  --color: $text-color;
   --background: #{rgba($background-light, 0.95)};
   --width: 90%;
   --max-width: 550px;
