@@ -856,6 +856,10 @@ ion-fab-button {
       }
     }
   }
+  .session-list :hover{
+    transform: scale(1.05);
+    cursor: pointer;
+  }
 
   .sidebar-actions {
     display: flex;
@@ -872,6 +876,10 @@ ion-fab-button {
       &:last-child {
         --background: #{$primary-color};
       }
+    }
+    ion-button:hover{
+      transform: scale(1.05);
+      cursor: pointer;
     }
   }
 }
