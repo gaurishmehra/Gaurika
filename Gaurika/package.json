@@ -48,6 +48,7 @@
     "pnpm": "^9.12.1",
     "puppeteer": "^23.5.0",
     "rxjs": "~7.8.0",
+    "together-ai": "^0.6.0-alpha.4",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",
     "xmldom": "^0.6.0",
