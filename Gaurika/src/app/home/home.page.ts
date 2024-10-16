@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import OpenAI from 'openai';
 import { Storage } from '@ionic/storage-angular';
@@ -85,6 +85,8 @@ export class HomePage implements OnInit {
   isStreamStopped = false;
   isMagicDoneButtonVisible = false;
   isImageGenEnabled = false; // Add this property
+  isSidebarHovered = false; 
+  isSidebarManuallyOpened = false; // Track if sidebar is manually opened
 
   isAssistantMessageOptionsOpen = false;
   selectedAssistantMessageIndex: number | undefined = undefined;
@@ -445,8 +447,23 @@ export class HomePage implements OnInit {
       this.showTemplatesPage = false;
     }
   }
+  
+  @HostListener('document:mousemove', ['$event']) 
+  onMouseMove(event: MouseEvent) {
+    if (window.innerWidth > 768) { // Only apply hover effect on desktop
+      const sidebarWidth = 300; // Adjust if your sidebar width is different
+      this.isSidebarHovered = event.clientX <= sidebarWidth;
+
+      // Open sidebar on hover only if not manually opened
+      if (!this.isSidebarManuallyOpened) {
+        this.isSidebarOpen = this.isSidebarHovered; 
+      }
+    }
+  }
+
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+    this.isSidebarManuallyOpened = this.isSidebarOpen; // Update manual open status
   }
 
 
