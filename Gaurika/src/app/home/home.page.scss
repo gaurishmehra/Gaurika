@@ -74,6 +74,7 @@ ion-content {
 
 // Header Styles 
 ion-header {
+  z-index: 2000;
   background-color: $background-dark;
   --background: #{$background-dark};
 
@@ -799,7 +800,7 @@ ion-fab-button {
   backdrop-filter: blur(15px);
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
-  z-index: 8000;
+  z-index: 9000;
   overflow-y: auto;
   padding: 20px;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
