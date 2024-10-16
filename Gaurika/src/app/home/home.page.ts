@@ -1129,7 +1129,7 @@ export class HomePage implements OnInit {
 
 
   async imagetool(description: string): Promise<string> {
-    const together = new OpenAI({baseURL:"https://api.gaurish.xyz/api/together/", apiKey:"aaa", dangerouslyAllowBrowser:true});
+    const together = new OpenAI({baseURL:"https://api.gaurish.xyz/api/together/v1/", apiKey:"aaa", dangerouslyAllowBrowser:true});
   
     const response = await together.images.generate({
       model: "black-forest-labs/FLUX.1-schnell-Free",
