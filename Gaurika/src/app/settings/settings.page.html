@@ -105,19 +105,27 @@
 
     <ion-item-group> 
       <ion-item-divider>
-        <ion-label>Features [Coming Soon]</ion-label>
+        <ion-label>Features - Unstable</ion-label>
       </ion-item-divider>
-      <ion-item>
-        <ion-label>Enable Multi-Turn CoT</ion-label>
-        <ion-toggle [(ngModel)]="isMultiTurnCotEnabled" (ionChange)="onCotToggleChange()"></ion-toggle>
-      </ion-item>
-      <ion-item>
-        <ion-label>Enable Single-Turn CoT</ion-label>
-        <ion-toggle [(ngModel)]="isSingleTurnCotEnabled" (ionChange)="onCotToggleChange()"></ion-toggle>
-      </ion-item>
+
+
+      <!-- <ion-item> -->
+        <!-- <ion-label>Enable Multi-Turn CoT</ion-label> -->
+        <!-- <ion-toggle [(ngModel)]="isMultiTurnCotEnabled" (ionChange)="onCotToggleChange()"></ion-toggle> -->
+      <!-- </ion-item> -->
+      <!-- <ion-item> -->
+        <!-- <ion-label>Enable Single-Turn CoT</ion-label> -->
+        <!-- <ion-toggle [(ngModel)]="isSingleTurnCotEnabled" (ionChange)="onCotToggleChange()"></ion-toggle> -->
+      <!-- </ion-item> -->
+
+
       <ion-item>
         <ion-label>Enable Web Grounding</ion-label>
         <ion-toggle [(ngModel)]="isWebGroundingEnabled" (ionChange)="onWebGroundingToggleChange()"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Image Generation</ion-label>
+        <ion-toggle [(ngModel)]="isImageGenEnabled" (ionChange)="onImageGenToggleChange()"></ion-toggle>
       </ion-item>
     </ion-item-group>
 

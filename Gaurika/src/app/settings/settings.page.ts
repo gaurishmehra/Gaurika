@@ -37,6 +37,7 @@ export class SettingsPage implements OnInit {
   isSingleTurnCotEnabled = false;
   isWebGroundingEnabled = false;
   isMultimodalEnabled = false;
+  isImageGenEnabled = false;
 
   showAdvancedSettings = false;
   themeMode: 'light' | 'dark' = 'dark';
@@ -66,6 +67,7 @@ export class SettingsPage implements OnInit {
     this.isSingleTurnCotEnabled = (await this.storage.get('isSingleTurnCotEnabled')) || false;
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
     this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
+    this.isImageGenEnabled = (await this.storage.get('isImageGenEnabled')) || false;
 
     this.themeMode = (await this.storage.get('themeMode')) || 'dark';
 
@@ -74,6 +76,14 @@ export class SettingsPage implements OnInit {
     this.addDefaultEntriesIfNotPresent();
     this.applyTheme();
   }
+  onImageGenToggleChange() {
+    if (this.isImageGenEnabled) {
+      this.isMultiTurnCotEnabled = false;
+      this.isSingleTurnCotEnabled = false;
+      this.isWebGroundingEnabled = false;
+    }
+  }
+
   onCotToggleChange() {
     if (this.isMultiTurnCotEnabled && this.isSingleTurnCotEnabled) {
       if (this.isMultiTurnCotEnabled) {
@@ -85,6 +95,7 @@ export class SettingsPage implements OnInit {
 
     if (this.isMultiTurnCotEnabled || this.isSingleTurnCotEnabled) {
       this.isWebGroundingEnabled = false;
+      this.isImageGenEnabled = false; // Disable image generation if CoT is enabled
     }
   }
 
@@ -92,6 +103,7 @@ export class SettingsPage implements OnInit {
     if (this.isWebGroundingEnabled) {
       this.isMultiTurnCotEnabled = false;
       this.isSingleTurnCotEnabled = false;
+      this.isImageGenEnabled = false; // Disable image generation if web grounding is enabled
     }
   }
 
@@ -302,6 +314,7 @@ export class SettingsPage implements OnInit {
       await this.storage.set('baseUrl', selectedApiProvider.baseUrl || '');
       await this.storage.set('model', selectedModel.value);
       await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
+      await this.storage.set('isImageGenEnabled', this.isImageGenEnabled);
 
       console.log('Settings saved successfully!');
       window.location.reload();

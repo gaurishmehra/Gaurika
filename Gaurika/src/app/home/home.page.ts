@@ -30,6 +30,7 @@ interface Message {
   tool_call_id?: string;
   isToolCallInProgress?: boolean
   name?: string;
+  generatedImages?: string[];
 }
 
 interface MessagePart {
@@ -61,7 +62,12 @@ export class HomePage implements OnInit {
   client: any;
   model = 'llama3.1-70b';
   systemPrompt = '';
-  sessions: { name: string; messages: Message[]; fileContext?: { name: string; type: string; content: string } }[] = [];
+  sessions: { 
+    name: string; 
+    messages: Message[]; 
+    fileContext?: { name: string; type: string; content: string };
+    generatedImages?: string[]; // Store generated images per session
+  }[] = [];
   currentSessionIndex = 0;
   currentSessionName = 'Default Session';
   newSessionName = '';
@@ -79,6 +85,7 @@ export class HomePage implements OnInit {
   abortController: AbortController | null = null;
   isStreamStopped = false;
   isMagicDoneButtonVisible = false;
+  isImageGenEnabled = false; // Add this property
 
   isAssistantMessageOptionsOpen = false;
   selectedAssistantMessageIndex: number | undefined = undefined;
@@ -131,6 +138,8 @@ export class HomePage implements OnInit {
 
   async ngOnInit() {
     await this.storage.create();
+    this.isImageGenEnabled = 
+    (await this.storage.get('isImageGenEnabled')) || false;
 
     const storedModel = await this.storage.get('model');
     const storedSystemPrompt = await this.storage.get('systemPrompt');
@@ -499,7 +508,8 @@ export class HomePage implements OnInit {
     const defaultSessionName = 'New Chat';
     this.sessions.push({
       name: defaultSessionName,
-      messages: []
+      messages: [],
+      generatedImages: [] // Initialize here
     });
   
     this.currentSessionIndex = this.sessions.length - 1;
@@ -572,7 +582,11 @@ export class HomePage implements OnInit {
 
   confirmNewSession() {
     if (this.newSessionName.trim()) {
-      this.sessions.push({ name: this.newSessionName, messages: [] });
+      this.sessions.push({ 
+        name: this.newSessionName, 
+        messages: [],
+        generatedImages: [] // Initialize generatedImages for the new session
+      });
       this.currentSessionIndex = this.sessions.length - 1;
       this.loadCurrentSession();
       this.toggleCreateSessionModal();
@@ -675,11 +689,11 @@ export class HomePage implements OnInit {
 
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
-
-
+  
     this.sessions.push({
       name: template.name,
-      messages: []
+      messages: [],
+      generatedImages: [] // Initialize generatedImages here
     });
 
     this.currentSessionIndex = this.sessions.length - 1;
@@ -935,7 +949,119 @@ export class HomePage implements OnInit {
       };
     
       await runConversation();
+    } 
+
+    else if (this.isImageGenEnabled) {
+      this.messages.push({ role: 'user', content: messageContent });
+    
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'imagetool',
+            description: "Use this tool to generate an image based on the user's description.",
+            parameters: {
+              type: 'object',
+              properties: {
+                description: {
+                  type: 'string',
+                  description: 'Description of the image to generate',
+                },
+              },
+              required: ['description'],
+            },
+          },
+        },
+      ];
+    
+      const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
+        const systemPromptWithImageGen = this.isImageGenEnabled
+          ? `${this.systemPrompt} Note that you may call the imagetool to generate an image.`
+          : this.systemPrompt;
+    
+        const messagesToSend = isInitialCall
+          ? this.messages
+          : [...this.messages, ...toolMessages];
+    
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(systemPromptWithImageGen
+                ? [{ role: 'system', content: systemPromptWithImageGen }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+    
+          let assistantMessage = { role: 'assistant', content: '' };
+          this.messages.push(assistantMessage);
+    
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+    
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
+              if (toolCall.function.name === 'imagetool') {
+                const args = JSON.parse(toolCall.function.arguments);
+                const description = args.description;
+    
+                this.messages.push({
+                  role: 'assistant',
+                  content: 'Image Tool is processing...',
+                  tool_call_id: toolCall.id,
+                });
+    
+                if (description) {
+                  const imageGenerationResult = await this.imagetool(description);
+    
+                  // Find the message with the matching tool_call_id
+                  const messageToUpdate = this.messages.find(m => m.tool_call_id === toolCall.id);
+    
+                  if (messageToUpdate) {
+                    // Remove the "Image Tool is processing..." message
+                    this.messages = this.messages.filter(m => m !== messageToUpdate);
+    
+                    // Update the content of the assistant message with the image URL or description
+                    messageToUpdate.content = this.isMultimodalEnabled
+                      ? imageGenerationResult  // Use image URL if multimodal is enabled
+                      : `Image generated with description: ${description}`; // Otherwise, use description
+                    messageToUpdate.generatedImages = [imageGenerationResult]; // Store the image URL
+    
+                    // Add the updated message back to the messages array
+                    this.messages.push(messageToUpdate);
+    
+                    // Call runConversation recursively without any tool messages
+                    // await runConversation(false, []); // No tool messages needed here
+                    return;
+                  }
+                }
+              }
+            }
+    
+            this.content.scrollToBottom(300);
+          }
+    
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+    
+        } catch (error) {
+          console.error('Error in image generation:', error);
+          await this.showErrorToast('Sorry, I encountered an error during image generation.');
+        }
+      };
+    
+      await runConversation();
     }
+
      else {
       this.messages.push({ role: 'user', content: messageContent });
 
@@ -1001,6 +1127,40 @@ export class HomePage implements OnInit {
     this.content.scrollToBottom(300);
   }
 
+
+  async imagetool(description: string): Promise<string> {
+    const together = new OpenAI({baseURL:"https://api.gaurish.xyz/api/together/", apiKey:"aaa", dangerouslyAllowBrowser:true});
+  
+    const response = await together.images.generate({
+      model: "black-forest-labs/FLUX.1-schnell-Free",
+      prompt: description,
+      n: 1
+    });
+    console.log(response.data[0]); 
+    console.log('imagetool called with description:', description);
+  
+    // Store the generated image in the current session
+    if (response.data[0].url) {
+      // Find the last assistant message using a loop
+      let lastAssistantMessage: Message | undefined;
+      for (let i = this.messages.length - 1; i >= 0; i--) {
+        if (this.messages[i].role === 'assistant') {
+          lastAssistantMessage = this.messages[i];
+          break;
+        }
+      }
+  
+      if (lastAssistantMessage) {
+        if (!lastAssistantMessage.generatedImages) {
+          lastAssistantMessage.generatedImages = [];
+        }
+        lastAssistantMessage.generatedImages.push(response.data[0].url);
+      }
+      return response.data[0].url || '';
+    } else {
+      return 'Failed to generate image';
+    }
+  }
 
   async webgroundtool(query: string): Promise<string> {
     console.log('webgroundtool called with query:', query);

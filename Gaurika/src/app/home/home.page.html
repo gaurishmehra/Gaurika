@@ -112,6 +112,12 @@
                   </ng-container>
                 </ng-container>
               </ng-container>
+              <div *ngIf="message.generatedImages?.length">
+                <div *ngFor="let image of message.generatedImages" class="generated-image-container">
+                  <img [src]="image" class="generated-image" />
+                </div>
+              </div>
+
             </div>
 
             <!-- User Message Content -->
@@ -129,6 +135,7 @@
                 <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
               </ion-button>
             </p>
+          
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
 
             <!-- Message Action Buttons -->
