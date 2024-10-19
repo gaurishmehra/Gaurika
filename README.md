@@ -2,8 +2,7 @@
 
 A simple chat application built with Ionic that utilizes Large Language Models (LLMs) for conversation.
 
-#### Note : - My laptop's screen is kinda dead... so the project developement is on hold for a while...
- The website should work fine.. but updates are out of the question... and obviously the apk releases are on a hold aswell. (The latest one is super old in comparison to the website)
+#### Note : - My laptop's screen is kinda dead... so the project developement is on hold for a while... The website should work fine.. but updates are out of the question... and obviously the apk releases are on a hold aswell. (The latest one is super old in comparison to the website)
 
 ## About
 
