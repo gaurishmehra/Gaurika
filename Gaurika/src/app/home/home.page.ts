@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener, Renderer2 } from '@angular/core';
+import * as hljs from 'highlight.js'; 
 import { Router } from '@angular/router';
 import OpenAI from 'openai';
 import { Storage } from '@ionic/storage-angular';
@@ -55,6 +56,10 @@ interface ActionSheetButton {
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class HomePage implements OnInit {
+  @ViewChild('codeSnippetContainer', { static: false }) 
+  codeSnippetContainer: ElementRef<HTMLDivElement> | undefined; 
+
+  isCodeSnippetReady = false; // Flag to indicate if code is ready for highlighting
   @ViewChild('pageTitle') pageTitle!: ElementRef;
   @ViewChild('pageSubtitle') pageSubtitle!: ElementRef;
   userInput = '';
@@ -93,6 +98,9 @@ export class HomePage implements OnInit {
 
   isEditingMessage = false;
   editMessageInput = ' ';
+  isCopied: boolean = false;
+  isRightSidebarOpen = false;
+  selectedCodeSnippet: string | null = null;
 
   templateConversations: { name: string; prompt: string }[] = [
     {
@@ -125,7 +133,9 @@ export class HomePage implements OnInit {
     private alertController: AlertController,
     private actionSheetController: ActionSheetController,
     private settingsService: SettingsService,
-    private webGroundingService: WebGroundingService
+    private webGroundingService: WebGroundingService,
+    private renderer: Renderer2
+    
   ) {}
 
   @ViewChild('messageInput') messageInput!: ElementRef;
@@ -138,6 +148,7 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit() {
+    hljs.default.highlightAll(); // Initialize highlight.js 
     await this.storage.create();
     this.isImageGenEnabled = 
     (await this.storage.get('isImageGenEnabled')) || false;
@@ -474,16 +485,17 @@ export class HomePage implements OnInit {
     }
     return '';
   }
+
   splitMessageContent(content: string): MessagePart[] {
     const parts: MessagePart[] = [];
     let currentPart: MessagePart = { type: 'text', content: '', startIndex: 0 };
     let isInCodeBlock = false;
     let lineNumber = 0;
-  
+
     content.split('\n').forEach(line => {
       if (line.trim().startsWith('```')) {
         isInCodeBlock = !isInCodeBlock;
-  
+
         if (isInCodeBlock) {
           // Start of a code block
           parts.push(currentPart);
@@ -496,14 +508,15 @@ export class HomePage implements OnInit {
       } else {
         currentPart.content += line + '\n';
       }
-  
+
       lineNumber++;
     });
-  
+
     parts.push(currentPart); // Add the last part
-  
+
     return parts;
   }
+
   
   trimCodeBlock(code: string): string {
     return code.split('\n').map(line => line.trim()).join('\n'); 
@@ -1559,24 +1572,44 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
     }
   }
 
-  isCopied: boolean[] = []; // Array to track copy status for each code block
+ // Array to track copy status for each code block
 
-  async copyCode(code: string, index: number) {
-    try {
-      await Clipboard.write({
-        string: code
-      });
-  
-      this.isCopied[index] = true; // Set copied status to true for the clicked button
-  
-      setTimeout(() => {
-        this.isCopied[index] = false; // Reset copied status after 2 seconds
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to copy code:', error);
-      this.showErrorToast('Failed to copy code. Please try again.');
+ toggleRightSidebar() {
+  this.isRightSidebarOpen = !this.isRightSidebarOpen;
+}
+
+showCodeSnippet(code: string) {
+  this.selectedCodeSnippet = code; 
+  this.toggleRightSidebar();
+  this.isRightSidebarOpen = true;  // Ensure sidebar is open 
+
+  // Highlight the code after the view is updated
+  setTimeout(() => { 
+    if (this.codeSnippetContainer) {
+      const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
+      if (preElement) {
+        this.renderer.addClass(preElement, 'hljs'); // Add the 'hljs' class
+        hljs.default.highlightElement(preElement as HTMLElement);
+      }
     }
+  });
+}
+
+
+async copyCode(code: string) { 
+  try {
+    await Clipboard.write({
+      string: code // Copy the original code directly 
+    });
+    this.isCopied = true;
+    setTimeout(() => {
+      this.isCopied = false;
+    }, 2000);
+  } catch (error) {
+    console.error('Failed to copy code:', error);
+    this.showErrorToast('Failed to copy code. Please try again.');
   }
+}
 
   showTemplatesAndRefresh() {
     // this.showTemplates();

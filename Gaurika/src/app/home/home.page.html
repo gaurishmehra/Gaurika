@@ -14,6 +14,28 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <div class="right-sidebar" [class.open]="isRightSidebarOpen">
+    <div class="sidebar-header">
+      <h2>Code Snippets & Actions</h2>
+      <ion-button class="close-button" (click)="toggleRightSidebar()">
+        <ion-icon name="arrow-forward-outline"></ion-icon> 
+      </ion-button>
+    </div>
+
+    
+  <div class="code-snippet-container" *ngIf="selectedCodeSnippet">
+    <pre><code>{{ selectedCodeSnippet }}</code></pre> 
+    <ion-button class="copy-button" fill="clear" size="small" (click)="copyCode(selectedCodeSnippet)"> 
+      <!-- Pass the original code to copyCode() -->
+      <ion-icon name="copy-outline"></ion-icon>
+      <span class="copy-text" *ngIf="!isCopied">Copy</span>
+      <span class="copy-text" *ngIf="isCopied">Copied!</span>
+    </ion-button>
+  </div>
+  </div>
+
+  <!-- Left Sidebar -->
   <div class="sidebar" [class.open]="isSidebarOpen">
     <div class="sidebar-header">
       <h2>Chats</h2>
@@ -38,7 +60,7 @@
   </div>
 </ion-header>
 
-<ion-content [fullscreen]="true" [class.content-shift]="true" [class.sidebar-open]="isSidebarOpen">
+<ion-content [fullscreen]="true" [class.content-shift]="true" [class.sidebar-open]="isSidebarOpen" [class.right-sidebar-open]="isRightSidebarOpen">
   <div class="content-container">
     <div *ngIf="showTemplatesPage" class="templates-page">
       <div class="templates-header">
@@ -113,19 +135,10 @@
                   </ng-container>
 
                   <ng-container *ngIf="part.type === 'code'">
-                    <pre style="white-space: pre-wrap; word-wrap: break-word;">
-                      <code>{{ trimCodeBlock(part.content) }}</code> 
-                    </pre>
-                    <ion-button 
-                      class="copy-button"
-                      fill="clear"
-                      size="small"
-                      (click)="copyCode(trimCodeBlock(part.content), k)" 
-                    > 
-                      <ion-icon name="copy-outline"></ion-icon>
-                      <span class="copy-text" *ngIf="!isCopied[k]">Copy</span>
-                      <span class="copy-text" *ngIf="isCopied[k]">Copied!</span>
-                    </ion-button> 
+                    <div class="view-file-button" (click)="showCodeSnippet(part.content)">
+                      <ion-icon name="code-slash-outline"></ion-icon>
+                      <span>View File</span>
+                    </div>
                   </ng-container>
                 </ng-container>
               </ng-container>
@@ -189,6 +202,9 @@
       </ion-fab>
     </div>
   </div>
+
+  <!-- Right Sidebar -->
+ 
 </ion-content>
 
 <!-- Bottom Input Bar -->
