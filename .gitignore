@@ -5,3 +5,6 @@ Gaurika/.vscode
 Gaurika/android
 .vscode/settings.json
 Gaurika/electron
+Gaurika/.env
+Gaurika/.env.local
+Gaurika/.env.production
