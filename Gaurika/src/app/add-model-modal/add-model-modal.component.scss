@@ -1,22 +1,20 @@
-// Variables (use the same variables as in settings.page.scss for consistency)
 $primary-pink: #bf006f;
-$secondary-pink: darken($primary-pink, 10%); 
+$secondary-pink: darken($primary-pink, 10%);
 $background-color: #0a0a0a;
 $text-color: #ffffff;
 $input-background: #141414;
 $divider-color: #2a2a2a;
-$border-radius: 16px; 
-$item-padding: 20px; 
+$border-radius: 16px;
+$item-padding: 20px;
 
-// Mixins
 @mixin smooth-transition {
   transition: all 0.3s ease-in-out;
 }
 
 ion-content {
   --background: #{$background-color};
-  padding: 32px; 
-  backdrop-filter: blur(10px); 
+  padding: 32px;
+  backdrop-filter: blur(10px);
 }
 
 ion-header {
@@ -25,15 +23,15 @@ ion-header {
     --color: #{$text-color};
 
     ion-title {
-      font-size: 22px; 
-      font-weight: 600; 
+      font-size: 22px;
+      font-weight: 600;
     }
 
     ion-button {
       --background: transparent;
       --color: #{$text-color};
       font-weight: 500;
-      
+
       &:hover {
         --color: #{$primary-pink};
       }
@@ -46,12 +44,12 @@ ion-list {
 
   ion-item {
     --background: transparent;
-    --border-color: transparent; 
+    --border-color: transparent;
     --color: #{$text-color};
     --padding-start: $item-padding;
     --padding-end: $item-padding;
     --inner-padding-end: 0;
-    position: relative; 
+    position: relative;
     transition: background-color 0.2s ease;
     padding-top: 12px;
     padding-bottom: 12px;
@@ -64,7 +62,7 @@ ion-list {
       }
     }
 
-    &::after { 
+    &::after {
       content: '';
       position: absolute;
       left: $item-padding;
@@ -76,27 +74,27 @@ ion-list {
 
     ion-label {
       color: #{$text-color};
-      opacity: 0.8; 
+      opacity: 0.8;
 
       h2 {
         font-weight: 500;
-        font-size: 18px; 
-        margin-bottom: 8px; 
+        font-size: 18px;
+        margin-bottom: 8px;
       }
 
       p {
-        font-size: 16px; 
-        opacity: 0.6; 
+        font-size: 16px;
+        opacity: 0.6;
       }
     }
 
     ion-input, ion-select {
       --color: #{$text-color};
-      --placeholder-color: #{rgba($text-color, 0.6)}; 
+      --placeholder-color: #{rgba($text-color, 0.6)};
       --placeholder-opacity: 1;
       font-size: 16px;
-      padding: 10px 0; 
-      margin-top: 8px; 
+      padding: 10px 0;
+      margin-top: 8px;
 
       &::part(native) {
         border-bottom: 1px solid $divider-color;
@@ -108,26 +106,23 @@ ion-list {
       opacity: 1;
     }
 
-    // Hover effect 
     &:hover {
       --background: darken($input-background, 5%);
     }
   }
 }
 
-// Button Styles
 ion-button {
   --background: #{$primary-pink};
   --background-activated: #{$secondary-pink};
   --color: #{$text-color};
-  --border-radius: 8px; 
-  margin-top: 32px; 
+  --border-radius: 8px;
+  margin-top: 32px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1.2px; 
-  font-size: 16px; 
+  letter-spacing: 1.2px;
+  font-size: 16px;
 
-  // Hover effect
   &:hover {
     filter: brightness(1.1);
   }
