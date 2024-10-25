@@ -9,6 +9,24 @@ $card-background: rgba(255, 255, 255, 0.08);
 $success-color: #34785f; 
 $error-color: #b34040; 
 
+// Enhanced Mixins
+@mixin glass-effect($blur: 20px, $opacity: 0.12) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, $opacity * 0.5);
+  box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.15),
+              0 2px 4px -1px rgba(0, 0, 0, 0.08);
+}
+
+@mixin rounded-corners($radius: 20px) { 
+  border-radius: $radius;
+}
+
+@mixin snappy-transition($property: all, $duration: 0.2s, $easing: cubic-bezier(0.6, 0, 0.4, 1.2)) {
+  transition: $property $duration $easing;
+}
+
 .container {
     display: flex;
     flex-direction: column;

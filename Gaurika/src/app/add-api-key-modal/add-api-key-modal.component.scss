@@ -1,10 +1,15 @@
-// Variables (you can adjust these to match your app's theme)
 $primary-pink: #bf006f;
+$secondary-pink: darken($primary-pink, 10%);
 $background-color: #0a0a0a;
 $text-color: #ffffff;
 $input-background: #141414;
-$border-radius: 12px;
+$divider-color: #2a2a2a;
+$border-radius: 16px;
 $item-padding: 20px;
+
+@mixin smooth-transition {
+  transition: all 0.3s ease-in-out;
+}
 
 ion-header {
   ion-toolbar {
@@ -12,19 +17,26 @@ ion-header {
     --color: #{$text-color};
 
     ion-title {
-      font-size: 18px;
+      font-size: 22px;
       font-weight: 600;
     }
 
     ion-button {
+      --background: transparent;
       --color: #{$text-color};
+      font-weight: 500;
+
+      &:hover {
+        --color: #{$primary-pink};
+      }
     }
   }
 }
 
 ion-content {
   --background: #{$background-color};
-  padding: $item-padding; 
+  padding: 32px;
+  backdrop-filter: blur(10px);
 }
 
 ion-item {
@@ -57,4 +69,8 @@ ion-button {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.2px;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
 }
