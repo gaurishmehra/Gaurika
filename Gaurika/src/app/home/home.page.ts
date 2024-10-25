@@ -21,6 +21,7 @@ import { WebGroundingService } from '../services/web-grounding.service';
 import { Clipboard } from '@capacitor/clipboard';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs`;
 import * as pdfjsLib from 'pdfjs-dist';
+import * as hljsLanguages from 'highlight.js/lib/languages'; // P1db3
 
 
 interface Message {
@@ -1614,5 +1615,36 @@ async copyCode(code: string) {
   showTemplatesAndRefresh() {
     // this.showTemplates();
     window.location.reload();
+  }
+
+  detectLanguage(code: string): string | null { // Pba48
+    const languages = Object.keys(hljsLanguages);
+    for (const lang of languages) {
+      const languageModule = hljsLanguages[lang];
+      if (hljs.default.highlight(code, { language: lang, ignoreIllegals: true }).value) {
+        return lang;
+      }
+    }
+    return null;
+  }
+
+  showCodeSnippet(code: string) { // P1003
+    this.selectedCodeSnippet = code;
+    this.toggleRightSidebar();
+    this.isRightSidebarOpen = true;
+
+    setTimeout(() => {
+      if (this.codeSnippetContainer) {
+        const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
+        if (preElement) {
+          const detectedLanguage = this.detectLanguage(code);
+          if (detectedLanguage) {
+            this.renderer.addClass(preElement, `language-${detectedLanguage}`);
+          }
+          this.renderer.addClass(preElement, 'hljs');
+          hljs.default.highlightElement(preElement as HTMLElement);
+        }
+      }
+    });
   }
 }
