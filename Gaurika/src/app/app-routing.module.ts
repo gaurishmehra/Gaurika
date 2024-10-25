@@ -22,6 +22,10 @@ const routes: Routes = [
     path: 'app',
     component: AppPage
   },
+  {
+    path: 'live',
+    loadChildren: () => import('./live/live.module').then( m => m.LivePageModule)
+  },
 ];
 
 @NgModule({

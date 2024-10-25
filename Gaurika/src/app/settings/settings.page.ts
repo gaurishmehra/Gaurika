@@ -33,14 +33,12 @@ export class SettingsPage implements OnInit {
   selectedModelIndex: number = 0;
 
   systemPrompt = 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
-  isMultiTurnCotEnabled = false;
-  isSingleTurnCotEnabled = false;
+
   isWebGroundingEnabled = false;
   isMultimodalEnabled = false;
   isImageGenEnabled = false;
 
   showAdvancedSettings = false;
-  themeMode: 'light' | 'dark' = 'dark';
 
   constructor(
     private router: Router,
@@ -63,46 +61,25 @@ export class SettingsPage implements OnInit {
 
     this.systemPrompt = (await this.storage.get('systemPrompt')) || 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
 
-    this.isMultiTurnCotEnabled = (await this.storage.get('isMultiTurnCotEnabled')) || false;
-    this.isSingleTurnCotEnabled = (await this.storage.get('isSingleTurnCotEnabled')) || false;
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
     this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
     this.isImageGenEnabled = (await this.storage.get('isImageGenEnabled')) || false;
 
-    this.themeMode = (await this.storage.get('themeMode')) || 'dark';
-
     this.ensureSelectedIndicesWithinBounds();
     this.onModelChange();
     this.addDefaultEntriesIfNotPresent();
-    this.applyTheme();
   }
   onImageGenToggleChange() {
     if (this.isImageGenEnabled) {
-      this.isMultiTurnCotEnabled = false;
-      this.isSingleTurnCotEnabled = false;
+
       this.isWebGroundingEnabled = false;
     }
   }
 
-  onCotToggleChange() {
-    if (this.isMultiTurnCotEnabled && this.isSingleTurnCotEnabled) {
-      if (this.isMultiTurnCotEnabled) {
-        this.isSingleTurnCotEnabled = false;
-      } else {
-        this.isMultiTurnCotEnabled = false;
-      }
-    }
-
-    if (this.isMultiTurnCotEnabled || this.isSingleTurnCotEnabled) {
-      this.isWebGroundingEnabled = false;
-      this.isImageGenEnabled = false; // Disable image generation if CoT is enabled
-    }
-  }
 
   onWebGroundingToggleChange() {
     if (this.isWebGroundingEnabled) {
-      this.isMultiTurnCotEnabled = false;
-      this.isSingleTurnCotEnabled = false;
+
       this.isImageGenEnabled = false; // Disable image generation if web grounding is enabled
     }
   }
@@ -277,18 +254,6 @@ export class SettingsPage implements OnInit {
     this.saveSettings();
   }
 
-  async toggleTheme() {
-    this.themeMode = this.themeMode === 'dark' ? 'light' : 'dark';
-    await this.applyTheme();
-    await this.saveSettings();
-  }
-
-  async applyTheme() {
-    document.body.classList.remove('dark-mode', 'light-mode');
-    document.body.classList.add(`${this.themeMode}-mode`);
-    await this.storage.set('themeMode', this.themeMode);
-  }
-
   async saveSettings() {
     try {
       await this.storage.create();
@@ -302,11 +267,8 @@ export class SettingsPage implements OnInit {
       await this.storage.set('selectedApiProviderIndex', this.selectedApiProviderIndex);
 
       await this.storage.set('systemPrompt', this.systemPrompt);
-      await this.storage.set('isMultiTurnCotEnabled', this.isMultiTurnCotEnabled);
-      await this.storage.set('isSingleTurnCotEnabled', this.isSingleTurnCotEnabled);
       await this.storage.set('isWebGroundingEnabled', this.isWebGroundingEnabled);
       await this.storage.set('isMultimodalEnabled', this.isMultimodalEnabled);
-      await this.storage.set('themeMode', this.themeMode);
 
       const selectedModel = this.models[this.selectedModelIndex];
       const selectedApiProvider = this.apiProviders[this.selectedApiProviderIndex];
