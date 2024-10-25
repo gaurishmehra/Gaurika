@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener, Renderer2 } from '@angular/core';
-import * as hljs from 'highlight.js'; 
 import { Router } from '@angular/router';
 import OpenAI from 'openai';
 import { Storage } from '@ionic/storage-angular';
@@ -21,7 +20,13 @@ import { WebGroundingService } from '../services/web-grounding.service';
 import { Clipboard } from '@capacitor/clipboard';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs`;
 import * as pdfjsLib from 'pdfjs-dist';
-import * as hljsLanguages from 'highlight.js/lib/languages'; // P1db3
+import hljs from 'highlight.js'; // Import the core library
+import javascript from 'highlight.js/lib/languages/javascript';
+import python from 'highlight.js/lib/languages/python';
+import xml from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import json from 'highlight.js/lib/languages/json';
+
 
 
 interface Message {
@@ -103,6 +108,8 @@ export class HomePage implements OnInit {
   isRightSidebarOpen = false;
   selectedCodeSnippet: string | null = null;
 
+  
+
   templateConversations: { name: string; prompt: string }[] = [
     {
       name: 'Creative Writing',
@@ -136,6 +143,7 @@ export class HomePage implements OnInit {
     private settingsService: SettingsService,
     private webGroundingService: WebGroundingService,
     private renderer: Renderer2
+
     
   ) {}
 
@@ -149,7 +157,12 @@ export class HomePage implements OnInit {
   }
 
   async ngOnInit() {
-    hljs.default.highlightAll(); // Initialize highlight.js 
+    // hljs.default.highlightAll(); // Initialize highlight.js 
+    hljs.registerLanguage('javascript', javascript);
+    hljs.registerLanguage('python', python);
+    hljs.registerLanguage('xml', xml);
+    hljs.registerLanguage('css', css);
+    hljs.registerLanguage('json', json); 
     await this.storage.create();
     this.isImageGenEnabled = 
     (await this.storage.get('isImageGenEnabled')) || false;
@@ -200,6 +213,8 @@ export class HomePage implements OnInit {
 
     const isLightMode = await this.storage.get('isLightMode');
     this.applyTheme(isLightMode === true ? 'light' : 'dark');
+
+
   }
 
   applyTheme(theme: 'light' | 'dark') {
@@ -1579,24 +1594,6 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
   this.isRightSidebarOpen = !this.isRightSidebarOpen;
 }
 
-showCodeSnippet(code: string) {
-  this.selectedCodeSnippet = code; 
-  this.toggleRightSidebar();
-  this.isRightSidebarOpen = true;  // Ensure sidebar is open 
-
-  // Highlight the code after the view is updated
-  setTimeout(() => { 
-    if (this.codeSnippetContainer) {
-      const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
-      if (preElement) {
-        this.renderer.addClass(preElement, 'hljs'); // Add the 'hljs' class
-        hljs.default.highlightElement(preElement as HTMLElement);
-      }
-    }
-  });
-}
-
-
 async copyCode(code: string) { 
   try {
     await Clipboard.write({
@@ -1617,34 +1614,42 @@ async copyCode(code: string) {
     window.location.reload();
   }
 
-  detectLanguage(code: string): string | null { // Pba48
-    const languages = Object.keys(hljsLanguages);
-    for (const lang of languages) {
-      const languageModule = hljsLanguages[lang];
-      if (hljs.default.highlight(code, { language: lang, ignoreIllegals: true }).value) {
+  showCodeSnippet(code: string) {
+    this.selectedCodeSnippet = code;
+    this.toggleRightSidebar();
+    this.isRightSidebarOpen = true;
+  
+    setTimeout(() => {
+      if (this.codeSnippetContainer) {
+        const detectedLanguage = this.detectLanguage(code);
+        const languageClass = detectedLanguage ? `language-${detectedLanguage}` : ''; 
+  
+        this.codeSnippetContainer.nativeElement.innerHTML = `
+          <pre><code class="${languageClass} hljs">${code}</code></pre> 
+          <button class="copy-button" (click)="copyCode(selectedCodeSnippet)">
+            <ion-icon name="clipboard-outline"></ion-icon> 
+            <span *ngIf="!isCopied">Copy</span>
+            <span *ngIf="isCopied">Copied!</span>
+          </button>
+        `; 
+  
+        const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
+        if (preElement) {
+          // Apply Highlight.js to the code element
+          hljs.highlightElement(preElement as HTMLElement); 
+        }
+      }
+    });
+  }
+  
+  detectLanguage(code: string): string | null {
+    const registeredLanguages = hljs.listLanguages(); 
+    for (const lang of registeredLanguages) {
+      if (hljs.highlight(code, { language: lang, ignoreIllegals: true }).value) {
         return lang;
       }
     }
     return null;
   }
-
-  showCodeSnippet(code: string) { // P1003
-    this.selectedCodeSnippet = code;
-    this.toggleRightSidebar();
-    this.isRightSidebarOpen = true;
-
-    setTimeout(() => {
-      if (this.codeSnippetContainer) {
-        const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
-        if (preElement) {
-          const detectedLanguage = this.detectLanguage(code);
-          if (detectedLanguage) {
-            this.renderer.addClass(preElement, `language-${detectedLanguage}`);
-          }
-          this.renderer.addClass(preElement, 'hljs');
-          hljs.default.highlightElement(preElement as HTMLElement);
-        }
-      }
-    });
-  }
+  
 }
