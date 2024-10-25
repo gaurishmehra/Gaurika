@@ -101,11 +101,30 @@
         </ion-buttons>
       </ion-item>
 
+      <!-- New UI elements for selecting models for speech-to-text and LLM conversion -->
+      <ion-item>
+        <ion-label>Speech-to-Text Model:</ion-label>
+        <ion-select [(ngModel)]="selectedSpeechToTextModel" interface="action-sheet">
+          <ion-select-option *ngFor="let model of models; let i = index" [value]="model.value">
+            {{ model.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>LLM Model:</ion-label>
+        <ion-select [(ngModel)]="selectedLLMModel" interface="action-sheet">
+          <ion-select-option *ngFor="let model of models; let i = index" [value]="model.value">
+            {{ model.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
     </ion-item-group>
 
     <ion-item-group> 
       <ion-item-divider>
-        <ion-label>Features - Unstable</ion-label>
+        <ion-label>Features - Unstable</ion-item-label>
       </ion-item-divider>
 
 

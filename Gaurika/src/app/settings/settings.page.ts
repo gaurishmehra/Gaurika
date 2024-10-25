@@ -40,6 +40,9 @@ export class SettingsPage implements OnInit {
 
   showAdvancedSettings = false;
 
+  selectedSpeechToTextModel: string | null = null;
+  selectedLLMModel: string | null = null;
+
   constructor(
     private router: Router,
     private storage: Storage,
@@ -64,6 +67,9 @@ export class SettingsPage implements OnInit {
     this.isWebGroundingEnabled = (await this.storage.get('isWebGroundingEnabled')) || false;
     this.isMultimodalEnabled = (await this.storage.get('isMultimodalEnabled')) || false;
     this.isImageGenEnabled = (await this.storage.get('isImageGenEnabled')) || false;
+
+    this.selectedSpeechToTextModel = (await this.storage.get('selectedSpeechToTextModel')) || null;
+    this.selectedLLMModel = (await this.storage.get('selectedLLMModel')) || null;
 
     this.ensureSelectedIndicesWithinBounds();
     this.onModelChange();
@@ -277,6 +283,9 @@ export class SettingsPage implements OnInit {
       await this.storage.set('model', selectedModel.value);
       await this.storage.set('apiKey', this.apiKeys[this.selectedApiKeyIndex].key);
       await this.storage.set('isImageGenEnabled', this.isImageGenEnabled);
+
+      await this.storage.set('selectedSpeechToTextModel', this.selectedSpeechToTextModel);
+      await this.storage.set('selectedLLMModel', this.selectedLLMModel);
 
       console.log('Settings saved successfully!');
       window.location.reload();

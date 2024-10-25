@@ -10,4 +10,15 @@
       <ion-title size="large">live</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <div class="animation-element" *ngIf="isListening">
+    <!-- Add your animation elements here -->
+  </div>
+
+  <ion-button (click)="startListening()" *ngIf="!isListening">Start Listening</ion-button>
+  <ion-button (click)="stopListening()" *ngIf="isListening">Stop Listening</ion-button>
+
+  <div *ngIf="speechText">
+    <p>{{ speechText }}</p>
+  </div>
 </ion-content>
