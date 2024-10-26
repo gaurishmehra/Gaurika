@@ -1,24 +1,78 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>live</ion-title>
+    <ion-title>Live Mode</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">live</ion-title>
+      <ion-title size="large">Live Mode</ion-title>
     </ion-toolbar>
   </ion-header>
 
-  <div class="animation-element" *ngIf="isListening">
-    <!-- Add your animation elements here -->
-  </div>
+  <ion-button expand="block" (click)="gotoappmenu()">
+    <ion-icon name="create-outline"></ion-icon>
+    <span>App Menu</span>
+  </ion-button>
 
-  <ion-button (click)="startListening()" *ngIf="!isListening">Start Listening</ion-button>
+  <div class="animation-element" *ngIf="isListening"></div>
+  <ion-button (click)="startListening()" *ngIf="!isListening && !isSpeaking">Start Listening</ion-button>
   <ion-button (click)="stopListening()" *ngIf="isListening">Stop Listening</ion-button>
+  <ion-button (click)="stopSpeaking()" *ngIf="isSpeaking">Stop Speaking</ion-button>
 
   <div *ngIf="speechText">
     <p>{{ speechText }}</p>
   </div>
+
+  <ion-item>
+    <ion-label>Voice</ion-label>
+    <ion-select [(ngModel)]="selectedVoice" (ionChange)="setVoice($event.detail.value)">
+      <ion-select-option *ngFor="let voice of availableVoices" [value]="voice">
+        {{voice.name}} ({{voice.lang}})
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Rate</ion-label>
+    <ion-range 
+      [min]="0.5"
+      [max]="2"
+      [step]="0.1"
+      [(ngModel)]="speechRate"
+      (ionChange)="setRate($event.detail)"
+    >
+      <ion-label slot="start">0.5x</ion-label>
+      <ion-label slot="end">2x</ion-label>
+    </ion-range>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Pitch</ion-label>
+    <ion-range 
+      [min]="0.5"
+      [max]="2"
+      [step]="0.1"
+      [(ngModel)]="speechPitch"
+      (ionChange)="setPitch($event.detail)"
+    >
+      <ion-label slot="start">Low</ion-label>
+      <ion-label slot="end">High</ion-label>
+    </ion-range>
+  </ion-item>
+
+  <ion-item>
+    <ion-label>Volume</ion-label>
+    <ion-range 
+      [min]="0"
+      [max]="1"
+      [step]="0.1"
+      [(ngModel)]="speechVolume"
+      (ionChange)="setVolume($event.detail)"
+    >
+      <ion-label slot="start">0%</ion-label>
+      <ion-label slot="end">100%</ion-label>
+    </ion-range>
+  </ion-item>
 </ion-content>

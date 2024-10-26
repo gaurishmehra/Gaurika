@@ -41,7 +41,12 @@ export class SettingsPage implements OnInit {
   showAdvancedSettings = false;
 
   selectedSpeechToTextModel: string | null = null;
-  selectedLLMModel: string | null = null;
+  selectedLiveLLMModel: string | null = null;
+
+  speechToTextApiKey = '';
+  speechToTextBaseUrl = '';
+  liveLLMApiKey = '';
+  liveLLMBaseUrl = '';
 
   constructor(
     private router: Router,
@@ -69,27 +74,29 @@ export class SettingsPage implements OnInit {
     this.isImageGenEnabled = (await this.storage.get('isImageGenEnabled')) || false;
 
     this.selectedSpeechToTextModel = (await this.storage.get('selectedSpeechToTextModel')) || null;
-    this.selectedLLMModel = (await this.storage.get('selectedLLMModel')) || null;
+    this.selectedLiveLLMModel = (await this.storage.get('selectedLiveLLMModel')) || null;
+
+    this.speechToTextApiKey = (await this.storage.get('speechToTextApiKey')) || '';
+    this.speechToTextBaseUrl = (await this.storage.get('speechToTextBaseUrl')) || '';
+    this.liveLLMApiKey = (await this.storage.get('liveLLMApiKey')) || '';
+    this.liveLLMBaseUrl = (await this.storage.get('liveLLMBaseUrl')) || '';
 
     this.ensureSelectedIndicesWithinBounds();
     this.onModelChange();
     this.addDefaultEntriesIfNotPresent();
   }
+
   onImageGenToggleChange() {
     if (this.isImageGenEnabled) {
-
       this.isWebGroundingEnabled = false;
     }
   }
 
-
   onWebGroundingToggleChange() {
     if (this.isWebGroundingEnabled) {
-
-      this.isImageGenEnabled = false; // Disable image generation if web grounding is enabled
+      this.isImageGenEnabled = false;
     }
   }
-
 
   ionViewDidEnter() {
     console.log('SettingsPage ionViewDidEnter() executed');
@@ -285,7 +292,12 @@ export class SettingsPage implements OnInit {
       await this.storage.set('isImageGenEnabled', this.isImageGenEnabled);
 
       await this.storage.set('selectedSpeechToTextModel', this.selectedSpeechToTextModel);
-      await this.storage.set('selectedLLMModel', this.selectedLLMModel);
+      await this.storage.set('selectedLiveLLMModel', this.selectedLiveLLMModel);
+
+      await this.storage.set('speechToTextApiKey', this.speechToTextApiKey);
+      await this.storage.set('speechToTextBaseUrl', this.speechToTextBaseUrl);
+      await this.storage.set('liveLLMApiKey', this.liveLLMApiKey);
+      await this.storage.set('liveLLMBaseUrl', this.liveLLMBaseUrl);
 
       console.log('Settings saved successfully!');
       window.location.reload();
@@ -301,6 +313,41 @@ export class SettingsPage implements OnInit {
       this.selectedApiKeyIndex = selectedModel.apiKeyIndex || 0;
       this.selectedApiProviderIndex = selectedModel.apiProviderIndex || 0;
       this.isMultimodalEnabled = selectedModel.isMultimodal || false;
+    }
+
+    // Update speechToTextApiKey and speechToTextBaseUrl
+    this.updateSpeechToTextSettings();
+    // Update liveLLMApiKey and liveLLMBaseUrl
+    this.updateLiveLLMSettings();
+  }
+
+  updateSpeechToTextSettings() {
+    const speechToTextModelIndex = this.models.findIndex(model => model.value === this.selectedSpeechToTextModel);
+    if (speechToTextModelIndex !== -1) {
+      const apiKeyIndex = this.models[speechToTextModelIndex].apiKeyIndex || 0;
+      const apiProviderIndex = this.models[speechToTextModelIndex].apiProviderIndex || 0;
+      
+      if (!this.speechToTextApiKey) {
+        this.speechToTextApiKey = this.apiKeys[apiKeyIndex].key;
+      }
+      if (!this.speechToTextBaseUrl) {
+        this.speechToTextBaseUrl = this.apiProviders[apiProviderIndex].baseUrl || '';
+      }
+    }
+  }
+
+  updateLiveLLMSettings() {
+    const liveLLMModelIndex = this.models.findIndex(model => model.value === this.selectedLiveLLMModel);
+    if (liveLLMModelIndex !== -1) {
+      const apiKeyIndex = this.models[liveLLMModelIndex].apiKeyIndex || 0;
+      const apiProviderIndex = this.models[liveLLMModelIndex].apiProviderIndex || 0;
+      
+      if (!this.liveLLMApiKey) {
+        this.liveLLMApiKey = this.apiKeys[apiKeyIndex].key;
+      }
+      if (!this.liveLLMBaseUrl) {
+        this.liveLLMBaseUrl = this.apiProviders[apiProviderIndex].baseUrl || '';
+      }
     }
   }
 
@@ -321,21 +368,21 @@ export class SettingsPage implements OnInit {
   addDefaultEntriesIfNotPresent() {
     const defaultApiKeyExists = this.apiKeys.some(key => key.name === 'Default API Key');
     if (!defaultApiKeyExists) {
-      this.apiKeys.push({ name: 'Default API Key', key: '123' });
+      this.apiKeys.push({ name: 'Default API Key', key: '' }); 
     }
 
-    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Cerebras + proxy');
+    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Default API Provider');
     if (!defaultApiProviderExists) {
-      this.apiProviders.push({ name: 'Cerebras + proxy', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' });
+      this.apiProviders.push({ name: 'Default API Provider', baseUrl: '' }); 
     }
 
     const defaultModelExists = this.models.some(model => model.name === 'default');
     if (!defaultModelExists) {
       const defaultModelIndex = this.models.push({
         name: 'default',
-        value: 'llama3.1-70b',
+        value: 'llama3.1-70b', 
         apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key'),
-        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Cerebras + proxy'),
+        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Default API Provider'),
         isMultimodal: false
       }) - 1;
       this.selectedModelIndex = defaultModelIndex;

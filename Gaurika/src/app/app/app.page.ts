@@ -31,6 +31,6 @@ export class AppPage  implements OnInit {
     this.router.navigate(['/home']);
   }
   goToVoice() {
-    this.router.navigate(['/home']);
+    this.router.navigate(['/live']);
   }
 }

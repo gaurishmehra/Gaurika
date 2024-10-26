@@ -460,6 +460,9 @@ export class HomePage implements OnInit {
   openSettings() {
     this.router.navigate(['/settings']);
   }
+  gotoappmenu(){
+    this.router.navigate(['/app']);
+  }
   showTemplates() {
     this.showTemplatesPage = true;
     this.toggleSidebar();

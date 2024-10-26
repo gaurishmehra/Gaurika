@@ -3,6 +3,7 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { HomePage } from './home/home.page'; // Import HomePage
 import { SettingsPage } from './settings/settings.page'; // Import SettingsPage
 import {AppPage} from './app/app.page';
+import {LivePage} from './live/live.page';
 
 const routes: Routes = [
   {
@@ -23,8 +24,8 @@ const routes: Routes = [
     component: AppPage
   },
   {
-    path: 'live',
-    loadChildren: () => import('./live/live.module').then( m => m.LivePageModule)
+    // path: 'live',
+    // component: LivePage
   },
 ];
 
