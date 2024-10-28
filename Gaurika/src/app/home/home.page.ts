@@ -26,6 +26,7 @@ import python from 'highlight.js/lib/languages/python';
 import xml from 'highlight.js/lib/languages/xml';
 import css from 'highlight.js/lib/languages/css';
 import json from 'highlight.js/lib/languages/json';
+import MarkdownIt from 'markdown-it';
 
 
 
@@ -62,6 +63,12 @@ interface ActionSheetButton {
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class HomePage implements OnInit {
+
+  md = new MarkdownIt({
+    html: true, // Enable HTML tags in source
+    linkify: true, // Autoconvert URL-like text to links
+    typographer: true, // Enable some language-neutral replacement + quotes beautification
+  });
   @ViewChild('codeSnippetContainer', { static: false }) 
   codeSnippetContainer: ElementRef<HTMLDivElement> | undefined; 
 
@@ -251,6 +258,10 @@ export class HomePage implements OnInit {
     return content.includes('File Context - Title:');
   }
 
+  renderMarkdown(text: string): string {
+    return this.md.render(text); 
+  }
+
   async showFileContext(content: string) {
     const fileContextPart = content.split('\n\n')[1]; // Get the file context part
     const [titlePart, contentPart] = fileContextPart.split('\nContent: ');
@@ -322,13 +333,14 @@ export class HomePage implements OnInit {
       this.initializesdk(storedApiKey, storedBaseUrl);
     } else {
       console.warn('No API key or base URL selected. Please configure in settings.');
+      this.showErrorToast('No API key or base URL selected. Please configure in settings.');
     }
   }
 
   initializesdk(apiKey: string, baseUrl?: string) {
     this.client = new OpenAI({
       apiKey,
-      baseURL: baseUrl || 'https://api.cerebras.ai/',
+      baseURL: baseUrl || '',
       dangerouslyAllowBrowser: true,
     });
   }
@@ -578,7 +590,7 @@ export class HomePage implements OnInit {
             content: message // Use the passed message here
           },
         ],
-        max_tokens: 10
+        max_tokens: 5
       });
       let sessionName = response.choices[0].message.content?.trim();
   
@@ -1625,34 +1637,42 @@ async copyCode(code: string) {
     setTimeout(() => {
       if (this.codeSnippetContainer) {
         const detectedLanguage = this.detectLanguage(code);
-        const languageClass = detectedLanguage ? `language-${detectedLanguage}` : ''; 
+        const languageClass = detectedLanguage ? `language-${detectedLanguage}` : '';
   
+        // Create the code snippet HTML
         this.codeSnippetContainer.nativeElement.innerHTML = `
-          <pre><code class="${languageClass} hljs">${code}</code></pre> 
+          <pre><code class="${languageClass} hljs">${code}</code></pre>
           <button class="copy-button" (click)="copyCode(selectedCodeSnippet)">
-            <ion-icon name="clipboard-outline"></ion-icon> 
+            <ion-icon name="clipboard-outline"></ion-icon>
             <span *ngIf="!isCopied">Copy</span>
             <span *ngIf="isCopied">Copied!</span>
           </button>
-        `; 
+        `;
   
+        // Apply Highlight.js to the code element
         const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
         if (preElement) {
-          // Apply Highlight.js to the code element
-          hljs.highlightElement(preElement as HTMLElement); 
+          hljs.highlightElement(preElement as HTMLElement);
         }
       }
     });
   }
   
+  
   detectLanguage(code: string): string | null {
-    const registeredLanguages = hljs.listLanguages(); 
+    const registeredLanguages = hljs.listLanguages();
     for (const lang of registeredLanguages) {
-      if (hljs.highlight(code, { language: lang, ignoreIllegals: true }).value) {
-        return lang;
+      const language = hljs.getLanguage(lang);
+      if (language) {
+        const highlightedCode = hljs.highlight(code, { language: lang, ignoreIllegals: true });
+        if (highlightedCode.value !== code) {
+          return lang;
+        }
       }
     }
     return null;
   }
+  
+  
   
 }

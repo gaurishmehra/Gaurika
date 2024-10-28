@@ -23,10 +23,10 @@ const routes: Routes = [
     path: 'app',
     component: AppPage
   },
-  {
+  // {
     // path: 'live',
     // component: LivePage
-  },
+  // },
 ];
 
 @NgModule({

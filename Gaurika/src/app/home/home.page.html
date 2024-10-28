@@ -96,66 +96,43 @@
               {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
             </span>
 
-            <!-- Assistant Message Content -->
-            <div *ngIf="message.role === 'assistant'" class="message-content">
-              <ng-container *ngIf="!message.content.includes('```')">
-                <ng-container *ngFor="let line of message.content.split('\n'); let j = index">
-                  <div
-                    [ngClass]="{
-                      'selected-line': selectedAssistantMessageIndex === i && isLineSelected(j),
-                      'selectable-line': selectedAssistantMessageIndex === i && isMagicSelectionMode
-                    }"
-                    (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j) : null"
-                  >
-                    <ng-container *ngIf="line.trim().startsWith('https://')">
-                      <a href="{{ line.trim() }}" target="_blank">{{ line.trim() }}</a>
-                    </ng-container>
-                    <ng-container *ngIf="!line.trim().startsWith('https://')">
-                      {{ line }}
-                    </ng-container>
-                  </div>
-                </ng-container>
-              </ng-container>
+           <!-- Assistant Message Content -->
+<div *ngIf="message.role === 'assistant'" class="message-content">
+  <!-- Regular text content (non-code) -->
+  <ng-container *ngIf="!message.content.includes('```')">
+    <div [innerHTML]="renderMarkdown(message.content)"></div>
+  </ng-container>
 
-              <ng-container *ngIf="message.content.includes('```')">
-                <ng-container *ngFor="let part of splitMessageContent(message.content); let k = index">
-                  <ng-container *ngIf="part.type === 'text'">
-                    <ng-container *ngFor="let line of trimCodeBlock(part.content).split('\n'); let j = index">
-                      <div 
-                        [ngClass]="{
-                          'selected-line': selectedAssistantMessageIndex === i && isLineSelected(j + part.startIndex),
-                          'selectable-line': selectedAssistantMessageIndex === i && isMagicSelectionMode
-                        }"
-                        (click)="selectedAssistantMessageIndex === i && isMagicSelectionMode ? toggleLineSelection(j + part.startIndex) : null"
-                      >
-                        <ng-container *ngIf="line.trim().startsWith('https://')">
-                          <a href="{{ line.trim() }}" target="_blank">{{ line.trim() }}</a>
-                        </ng-container>
-                        <ng-container *ngIf="!line.trim().startsWith('https://')">
-                          {{ line }} 
-                        </ng-container>
-                      </div>
-                    </ng-container>
-                  </ng-container>
+  <!-- Content with code blocks -->
+  <ng-container *ngIf="message.content.includes('```')">
+    <ng-container *ngFor="let part of splitMessageContent(message.content); let k = index">
+      <!-- Regular text part -->
+      <ng-container *ngIf="part.type === 'text'">
+        <div [innerHTML]="renderMarkdown(part.content)"></div>
+      </ng-container>
 
-                  <ng-container *ngIf="part.type === 'code'">
-                    <div class="view-file-button" (click)="showCodeSnippet(part.content)">
-                      <ion-icon name="code-slash-outline"></ion-icon>
-                      <span>View File</span>
-                    </div>
-                  </ng-container>
-                </ng-container>
-              </ng-container>
-              <div *ngIf="message.generatedImages?.length">
-                <div *ngFor="let image of message.generatedImages" class="generated-image-container">
-                  <img [src]="image" class="generated-image" />
-                </div>
-              </div>
-            </div>
+      <!-- Code block part -->
+      <ng-container *ngIf="part.type === 'code'">
+        <div class="view-file-button" (click)="showCodeSnippet(part.content)">
+          <ion-icon name="code-slash-outline"></ion-icon>
+          <span>View File</span>
+        </div>
+      </ng-container>
+    </ng-container>
+  </ng-container>
 
-            <!-- User Message Content -->
-            <p *ngIf="message.role === 'user'" class="message-content">
-              {{ getDisplayContent(message.content) }}
+  <!-- Generated images section -->
+  <div *ngIf="message.generatedImages?.length">
+    <div *ngFor="let image of message.generatedImages" class="generated-image-container">
+      <img [src]="image" class="generated-image" />
+    </div>
+  </div>
+</div>
+
+
+          <!-- User Message Content -->
+            <div *ngIf="message.role === 'user'" class="message-content">
+              <div [innerHTML]="renderMarkdown(getDisplayContent(message.content))"></div>
               <ion-button
                 *ngIf="hasFileContext(message.content)"
                 fill="clear"
@@ -166,7 +143,9 @@
                 <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
                 <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
               </ion-button>
-            </p>
+            </div>
+
+            <img *ngIf="message.image" [src]="message.image" class="message-image" />
           
             <img *ngIf="message.image" [src]="message.image" class="message-image" />
 
