@@ -202,7 +202,6 @@
     <ion-button class="send-button" 
                 (click)="isStreaming ? stopStream() : sendMessage()">
       <ion-icon [name]="isStreaming ? 'stop-outline' : 'paper-plane-outline'" class="mr-2"></ion-icon>
-      {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }}
     </ion-button>
   </div>
   
