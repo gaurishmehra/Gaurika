@@ -20,12 +20,6 @@
         <ion-toggle [(ngModel)]="isWebGroundingEnabled" (ionChange)="onWebGroundingToggleChange()"></ion-toggle>
       </ion-item>
 
-      <!-- You can uncomment the Image Generation toggle if you want to include it -->
-      <!-- <ion-item>
-        <ion-label>Image Generation</ion-label>
-        <ion-toggle [(ngModel)]="isImageGenEnabled" (ionChange)="onImageGenToggleChange()"></ion-toggle>
-      </ion-item> -->
-
     </ion-item-group>
 
     <ion-item button (click)="showAdvancedSettings = !showAdvancedSettings">
@@ -122,35 +116,6 @@
           </ion-buttons>
         </ion-item>
       </ion-item-group>
-
-      <!-- Live Mode Settings -->
-      <!-- <ion-item-group>
-        <ion-item-divider>
-          <ion-label>Live Mode Settings</ion-label>
-        </ion-item-divider>
-        <ion-item>
-          <ion-label>Speech-To-Text Model:</ion-label>
-          <ion-select [(ngModel)]="selectedSpeechToTextModel" interface="action-sheet" (ionChange)="onModelChange()">
-            <ion-select-option *ngFor="let model of models; let i = index" [value]="model.value">
-              {{ model.name }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item>
-          <ion-label>Live Mode Model:</ion-label>
-          <ion-select [(ngModel)]="selectedLiveLLMModel" interface="action-sheet" (ionChange)="onModelChange()">
-            <ion-select-option *ngFor="let model of models; let i = index" [value]="model.value">
-              {{ model.name }}
-            </ion-select-option>
-          </ion-select>
-        </ion-item>
-
-      </ion-item-group> -->
-
-      <!-- Features (Unstable) -->
-
-
     </ion-item-group>
 
     <div class="ion-padding">
