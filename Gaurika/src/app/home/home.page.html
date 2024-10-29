@@ -3,7 +3,7 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button class="sidebar-toggle" (click)="toggleSidebar()">
-        <ion-icon slot="start" name="folder-open-outline"></ion-icon>
+        <ion-icon slot="start" name="folder-open-outline" class="mr-2"></ion-icon>
         <ion-label *ngIf="!showTemplatesPage">{{ currentSessionName }}</ion-label>
       </ion-button>
     </ion-buttons>
@@ -17,7 +17,10 @@
   <!-- Right Sidebar -->
   <div class="right-sidebar" [class.open]="isRightSidebarOpen">
     <div class="sidebar-header">
-      <h2>Code Snippets & Actions</h2>
+      <h2>
+        <ion-icon name="code-slash-outline" class="mr-2"></ion-icon>
+        Code Snippets & Actions
+      </h2>
       <ion-button class="close-button" (click)="toggleRightSidebar()">
         <ion-icon name="arrow-forward-outline"></ion-icon> 
       </ion-button>
@@ -25,7 +28,7 @@
     <div class="code-snippet-container" *ngIf="selectedCodeSnippet">
       <pre><code>{{ selectedCodeSnippet }}</code></pre> 
       <ion-button class="copy-button" fill="clear" size="small" (click)="copyCode(selectedCodeSnippet)">
-        <ion-icon name="copy-outline"></ion-icon>
+        <ion-icon name="copy-outline" class="mr-1"></ion-icon>
         <span class="copy-text">{{ isCopied ? 'Copied!' : 'Copy' }}</span>
       </ion-button>
     </div>
@@ -34,13 +37,17 @@
   <!-- Left Sidebar -->
   <div class="sidebar" [class.open]="isSidebarOpen">
     <div class="sidebar-header">
-      <h2>Chats</h2>
+      <h2>
+        <ion-icon name="chatbubbles-outline" class="mr-2"></ion-icon>
+        Chats
+      </h2>
       <ion-button class="close-button" (click)="toggleSidebar()">
         <ion-icon name="arrow-back-outline"></ion-icon>
       </ion-button>
     </div>
     <div class="session-list">
       <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
+        <ion-icon name="chatbox-outline" class="mr-2"></ion-icon>
         {{ session.name }}
         <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
           <ion-icon name="trash-outline"></ion-icon>
@@ -49,7 +56,7 @@
     </div>
     <div class="sidebar-actions">
       <ion-button expand="block" (click)="showTemplatesAndRefresh()">
-        <ion-icon name="create-outline"></ion-icon>
+        <ion-icon name="create-outline" class="mr-2"></ion-icon>
         <span>New Chat</span>
       </ion-button>
     </div>
@@ -63,8 +70,13 @@
     <!-- Templates Page -->
     <div *ngIf="showTemplatesPage" class="templates-page">
       <div class="templates-header">
-        <h1 class="page-title">I'm Gaurika</h1>
-        <p class="page-subtitle">Some responses may be inaccurate.</p>
+        <h1 class="page-title">
+          I'm Gaurika
+        </h1>
+        <p class="page-subtitle">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Some responses may be inaccurate.
+        </p>
       </div>
       <div class="templates-grid">
         <div *ngFor="let template of templateConversations" 
@@ -87,7 +99,10 @@
         <ion-item *ngFor="let message of getFilteredMessages(); let i = index">
           <ion-label [class.user-message]="message.role === 'user'"
                     [class.assistant-message]="message.role === 'assistant'">
-            <span class="message-sender">{{ message.role === 'user' ? 'User' : 'Gaurika' }} :</span>
+            <span class="message-sender">
+              <ion-icon [name]="message.role === 'user' ? 'person-circle-outline' : 'desktop-outline'" class="mr-2"></ion-icon>
+              {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
+            </span>
 
             <!-- Assistant Message Content -->
             <div *ngIf="message.role === 'assistant'" class="message-content">
@@ -98,7 +113,7 @@
                 <ng-container *ngFor="let part of splitMessageContent(message.content)">
                   <div *ngIf="part.type === 'text'" [innerHTML]="renderMarkdown(part.content)"></div>
                   <div *ngIf="part.type === 'code'" class="view-file-button" (click)="showCodeSnippet(part.content)">
-                    <ion-icon name="code-slash-outline"></ion-icon>
+                    <ion-icon name="code-slash-outline" class="mr-2"></ion-icon>
                     <span>View File</span>
                   </div>
                 </ng-container>
@@ -118,7 +133,7 @@
                          size="large"
                          (click)="showFileContext(message.content)"
                          class="file-preview">
-                <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
+                <ion-icon name="document-text-outline" class="mr-2"></ion-icon>
                 <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
               </ion-button>
               <img *ngIf="message.image" [src]="message.image" class="message-image" />
@@ -144,7 +159,10 @@
         <!-- Writing Indicator -->
         <ion-item *ngIf="isStreaming">
           <ion-label class="writing-message">
-            <span class="message-sender">Gaurika :</span>
+            <span class="message-sender">
+              <ion-icon name="desktop-outline" class="mr-2"></ion-icon>
+              Gaurika :
+            </span>
             <p class="message-content">Writing...</p>
           </ion-label>
         </ion-item>
@@ -171,6 +189,7 @@
                placeholder="Send a message to start a conversation..."
                (keydown)="handleKeyDown($event)"
                [disabled]="isStreaming">
+      <ion-icon name="chatbox-outline" slot="start" class="ml-2 mr-2"></ion-icon>
     </ion-input>
     <ion-button class="upload-button" 
                 (click)="triggerFileUpload()" 
@@ -183,6 +202,7 @@
            style="display: none" />
     <ion-button class="send-button" 
                 (click)="isStreaming ? stopStream() : sendMessage()">
+      <ion-icon [name]="isStreaming ? 'stop-outline' : 'paper-plane-outline'" class="mr-2"></ion-icon>
       {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }}
     </ion-button>
   </div>
@@ -196,7 +216,7 @@
       </ion-button>
     </div>
     <div *ngIf="!selectedFile.type.startsWith('image/')" class="file-preview">
-      <ion-icon [name]="getFileIcon(selectedFile.type)" class="file-preview-icon"></ion-icon>
+      <ion-icon [name]="getFileIcon(selectedFile.type)" class="file-preview-icon mr-2"></ion-icon>
       <span>{{ selectedFile.name }}</span>
       <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
         <ion-icon name="close-circle"></ion-icon>
@@ -223,14 +243,17 @@
     </ion-label>
   </div>
   <ion-item>
+    <ion-icon name="create-outline" slot="start" class="mr-2"></ion-icon>
     <ion-label position="floating">Edit Selected Lines</ion-label>
     <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
   </ion-item>
   <div class="dialog-actions">
     <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
+      <ion-icon name="checkmark-outline" class="mr-2"></ion-icon>
       Apply Changes
     </ion-button>
     <ion-button color="danger" (click)="cancelEdit()">
+      <ion-icon name="close-outline" class="mr-2"></ion-icon>
       Cancel
     </ion-button>
   </div>
