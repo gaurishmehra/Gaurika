@@ -1,26 +1,45 @@
 // Native-Inspired Dark Color Palette with Enhanced Aesthetics (Mature)
-$background-dark: #181818; 
+$background-dark: #181818;
 $background-light: #202020;
-$primary-color: #8a8a8a; 
-$secondary-color: #c60055; 
-$accent-color: #b0b0b0; 
-$text-color: #f8f8f8; 
-$muted-text: #d8d8d8; 
-$card-background: rgba(255, 255, 255, 0.08); 
-$success-color: #34785f; 
-$error-color: #b34040; 
+$primary-color: #8a8a8a;
+$secondary-color: #c60055;
+$accent-color: #b0b0b0;
+$text-color: #f8f8f8;
+$muted-text: #d8d8d8;
+$card-background: rgba(255, 255, 255, 0.08);
+$success-color: #34785f;
+$error-color: #b34040;
 
 // Typography
 $font-family: 'Inter', sans-serif;
 
 // Enhanced Mixins
-@mixin glass-effect($blur: 20px, $opacity: 0.12) {
+@mixin glass-effect($blur: 20px, $opacity: 0.12, $vibrancy: 0%) {
   background: rgba(255, 255, 255, $opacity);
   backdrop-filter: blur($blur);
   -webkit-backdrop-filter: blur($blur);
+
+  // Vibrancy Effect (subtle color shift)
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: hsl(0, 0%, 100%, $vibrancy); // Adjust hue and saturation as needed
+    z-index: -1; 
+    mix-blend-mode: color-dodge; // Experiment with blend modes 
+  }
+
   border: 1px solid rgba(255, 255, 255, $opacity * 0.5);
   box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.15),
               0 2px 4px -1px rgba(0, 0, 0, 0.08);
+
+  &:hover {
+    backdrop-filter: blur($blur + 5px); // Increase blur on hover
+    -webkit-backdrop-filter: blur($blur + 5px);
+  }
 }
 
 @mixin rounded-corners($radius: 20px) { 
@@ -47,8 +66,30 @@ $font-family: 'Inter', sans-serif;
   100% {
     clip-path: inset(0 0 90% 0);
   }
-  }
+}
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 
 // Global Styles
 body {
@@ -111,6 +152,17 @@ ion-header {
   &.floating-header {
     ion-toolbar {
       --border-radius: 0;
+    }
+  }
+
+  .sidebar-toggle {
+    --background: transparent;
+    --color: #{$text-color};
+    font-size: 1rem;
+
+    &:hover {
+      // Subtle pulse animation on hover
+      animation: pulse 0.8s ease-in-out infinite; 
     }
   }
 }
@@ -182,9 +234,6 @@ ion-item {
         height: calc(100% + 4px);
         border: 2px solid rgba($secondary-color, 0.6);
         border-radius: inherit;
-        // animation: snakeLineAnimation 4s linear infinite;
-        // stroke-dasharray: 50 50;
-        // stroke-dashoffset: 100;
         pointer-events: none;
         z-index: -1;
         transform: translate(-2px, -2px);
@@ -218,6 +267,7 @@ ion-item {
       white-space: pre-wrap;
       line-height: 1.6;
     }
+
     .file-preview {
       display: flex;
       align-items: center;
@@ -383,7 +433,6 @@ ion-item {
     padding: 24px 20px;
     text-align: center;
     background: linear-gradient(135deg, rgba($secondary-color, 0.9), rgba($secondary-color, 0.75));
-    // background-color: $background-light;
     border-bottom-left-radius: 24px;
     border-bottom-right-radius: 24px;
     margin-bottom: 20px;
@@ -392,11 +441,25 @@ ion-item {
       font-size: 2rem;
       font-weight: 700;
       margin-bottom: 6px;
+      display: inline-block; 
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0em; 
+      animation: typing-em 1s steps(40, end) forwards;
+      animation-fill-mode: forwards;
+      pointer-events: none;
     }
 
     .page-subtitle {
       font-size: 1.1rem;
       opacity: 0.9;
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0em;
+      animation: typing-em 1s steps(40, end) 1s forwards; 
+      animation-fill-mode: forwards;
+      pointer-events: none;
     }
   }
 
@@ -653,6 +716,21 @@ ion-item {
       }
     }
   }
+
+  // Layout adjustments for desktop
+  .main-content {
+    display: flex; 
+  }
+
+  .message-list-container {
+    flex: 1; // Take up available space
+    padding: 24px;
+  }
+
+  .sidebar {
+    width: 250px; // Adjust sidebar width as needed
+    // ... other sidebar styles ... 
+  }
 }
 
 // Custom Scrollbar for Webkit Browsers
@@ -698,7 +776,7 @@ pre {
   code {
     font-family: 'Courier New', Courier, monospace;
     font-size: 14px;
-    color: #e6e6e6; /* Light text color for contrast */
+    color: #e6e6e6; 
     padding: 0;
     margin: 0;
     display: block;
@@ -733,53 +811,31 @@ pre {
 }
 
 .copy-button {
-  // Style the copy button
   --background: rgba($primary-color, 0.5);
   background-color: rgba($primary-color, 0.5);
   --border-radius:10px;
   border-radius:10px;
-  --color: $accent-color; // Assuming your default button color
+  --color: $accent-color; 
 
   &:hover {
     --background: rgba($accent-color, 0.15); 
   }
 
-  ion-icon {  // Target the ion-icon directly
-    color: $muted-text; // Your pink color variable
+  ion-icon {  
+    color: $muted-text; 
   }
 
-  .copy-text { // Style the text within the button
-    color: $muted-text; // Your pink color variable 
-    margin-left: 8px; // Add spacing between icon and text
-  }
-}
-
-.templates-header {
-  text-align: center;
-
-  h1.page-title, p.page-subtitle {
-    display: inline-block;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 0em; /* Initial width in em units */
-    animation-fill-mode: forwards;
-    pointer-events: none;
-  }
-
-  h1.page-title {
-    animation: typing-em 1s steps(400, end) forwards;
-  }
-
-  p.page-subtitle {
-    animation: typing-em 1s steps(400, end) 1s forwards;
+  .copy-text { 
+    color: $muted-text; 
+    margin-left: 8px; 
   }
 }
+
 
 @keyframes typing-em {
   from { width: 0em; }
-  to { width: 100%; } /* Expand to full width */
+  to { width: 100%; } 
 }
-
 
 .sidebar {
   position: fixed;
@@ -787,6 +843,7 @@ pre {
   left: 0;
   width: 300px;
   height: 100%;
+  max-width: 95%;
   background-color: rgba($background-dark, 0.95);
   backdrop-filter: blur(15px);
   transform: translateX(-100%);
@@ -844,9 +901,17 @@ pre {
       }
     }
   }
-  .session-list :hover{
-    transform: scale(1.05);
-    cursor: pointer;
+  .session-list ion-item {
+    --background: #{$card-background}; // Or any background color you prefer
+    --padding-start: 16px;
+    --padding-end: 16px;
+    border-radius: 8px; // Optional: Add rounded corners
+    cursor: pointer; // Show pointer cursor on hover
+  
+    &:hover {
+      transform: scale(1.02); // Subtle scale on hover
+      --background: #{$primary-color}; // Slightly darken background
+    }
   }
 
   .sidebar-actions {
@@ -880,16 +945,6 @@ pre {
     margin-left: 300px;
   }
 }
-
-// Update existing styles
-ion-header {
-  .sidebar-toggle {
-    --background: transparent;
-    --color: #{$text-color};
-    font-size: 1rem;
-  }
-}
-
 
 
 // Right Sidebar Styles
@@ -941,13 +996,12 @@ ion-header {
 
     pre { 
       overflow-x: auto; 
-      white-space: pre-wrap; // Enable word wrap within the <pre> element
+      white-space: pre-wrap; 
       word-wrap: break-word;
-  
-      // Avoid overriding highlight.js default styles:
-      &.hljs { // Target only <pre> with class "hljs"
-        background: none; // Remove any background color you might have set
-        padding: 1em;     // Use default highlight.js padding 
+
+      &.hljs { 
+        background: none; 
+        padding: 1em;     
       }
     }
   
@@ -955,7 +1009,7 @@ ion-header {
       code {
         font-family: monospace;
         font-size: 14px;
-        color: #e6e6e6; /* Light text color for contrast */
+        color: #e6e6e6; 
         padding: 0;
         margin: 0;
         display: block;
@@ -1000,6 +1054,10 @@ ion-header {
       &:last-of-type {
         --background: #{$primary-color};
       }
+      &:hover{
+        transform: scale(1.05);
+        cursor: pointer;
+      }
     }
   }
 }
@@ -1009,28 +1067,27 @@ ion-header {
   transition: margin-right 0.3s ease-in-out; 
 
   &.right-sidebar-open {
-    margin-right: 300px;
+    margin-right: 300px; // Adjust as needed for your right sidebar width
   }
 }
 
 
 
 .view-file-button {
-  display: inline-flex; // Arrange icon and text in a row
-  align-items: center;   // Vertically align icon and text
-  cursor: pointer;       // Change cursor to a pointer on hover
-  padding: 8px 12px;      // Add some padding
-  border-radius: 8px;     // Round the corners
-  background-color: rgba($primary-color, 0.5); // Add a background color (adjust as needed)
-  color: $text-color;     // Set the text color
+  display: inline-flex; 
+  align-items: center;   
+  cursor: pointer;       
+  padding: 8px 12px;      
+  border-radius: 8px;     
+  background-color: rgba($primary-color, 0.5); 
+  color: $text-color;     
 
-  // Add spacing between icon and text
   ion-icon {
     margin-right: 8px;  
   }
 
-  // Optional: Add a hover effect
   &:hover {
     background-color: rgba($primary-color, 0.7); 
   }
 }
+

@@ -7,7 +7,6 @@
         <ion-label *ngIf="!showTemplatesPage">{{ currentSessionName }}</ion-label>
       </ion-button>
     </ion-buttons>
-
     <ion-buttons slot="end">
       <ion-button (click)="openSettings()">
         <ion-icon name="settings-outline"></ion-icon>
@@ -15,6 +14,7 @@
     </ion-buttons>
   </ion-toolbar>
 
+  <!-- Right Sidebar -->
   <div class="right-sidebar" [class.open]="isRightSidebarOpen">
     <div class="sidebar-header">
       <h2>Code Snippets & Actions</h2>
@@ -22,17 +22,13 @@
         <ion-icon name="arrow-forward-outline"></ion-icon> 
       </ion-button>
     </div>
-
-    
-  <div class="code-snippet-container" *ngIf="selectedCodeSnippet">
-    <pre><code>{{ selectedCodeSnippet }}</code></pre> 
-    <ion-button class="copy-button" fill="clear" size="small" (click)="copyCode(selectedCodeSnippet)"> 
-      <!-- Pass the original code to copyCode() -->
-      <ion-icon name="copy-outline"></ion-icon>
-      <span class="copy-text" *ngIf="!isCopied">Copy</span>
-      <span class="copy-text" *ngIf="isCopied">Copied!</span>
-    </ion-button>
-  </div>
+    <div class="code-snippet-container" *ngIf="selectedCodeSnippet">
+      <pre><code>{{ selectedCodeSnippet }}</code></pre> 
+      <ion-button class="copy-button" fill="clear" size="small" (click)="copyCode(selectedCodeSnippet)">
+        <ion-icon name="copy-outline"></ion-icon>
+        <span class="copy-text">{{ isCopied ? 'Copied!' : 'Copy' }}</span>
+      </ion-button>
+    </div>
   </div>
 
   <!-- Left Sidebar -->
@@ -56,24 +52,24 @@
         <ion-icon name="create-outline"></ion-icon>
         <span>New Chat</span>
       </ion-button>
-      <!-- <ion-button expand="block" (click)="gotoappmenu()">
-        <ion-icon name="create-outline"></ion-icon>
-        <span>App Menu</span>
-      </ion-button> -->
     </div>
   </div>
 </ion-header>
 
-<ion-content [fullscreen]="true" [class.content-shift]="true" [class.sidebar-open]="isSidebarOpen" [class.right-sidebar-open]="isRightSidebarOpen">
+<ion-content [fullscreen]="true" [class.content-shift]="true" 
+  [class.sidebar-open]="isSidebarOpen" 
+  [class.right-sidebar-open]="isRightSidebarOpen">
   <div class="content-container">
+    <!-- Templates Page -->
     <div *ngIf="showTemplatesPage" class="templates-page">
       <div class="templates-header">
         <h1 class="page-title">I'm Gaurika</h1>
         <p class="page-subtitle">Some responses may be inaccurate.</p>
       </div>
-
       <div class="templates-grid">
-        <div *ngFor="let template of templateConversations" class="template-item" (click)="startConversation(template)">
+        <div *ngFor="let template of templateConversations" 
+          class="template-item" 
+          (click)="startConversation(template)">
           <div class="template-icon">
             <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
           </div>
@@ -85,78 +81,60 @@
       </div>
     </div>
 
+    <!-- Chat Page -->
     <div *ngIf="!showTemplatesPage" class="chat-page">
       <ion-list lines="none">
         <ion-item *ngFor="let message of getFilteredMessages(); let i = index">
-          <ion-label
-            [class.user-message]="message.role === 'user'"
-            [class.assistant-message]="message.role === 'assistant'"
-          >
-            <span class="message-sender">
-              {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
-            </span>
+          <ion-label [class.user-message]="message.role === 'user'"
+                    [class.assistant-message]="message.role === 'assistant'">
+            <span class="message-sender">{{ message.role === 'user' ? 'User' : 'Gaurika' }} :</span>
 
-           <!-- Assistant Message Content -->
-<div *ngIf="message.role === 'assistant'" class="message-content">
-  <!-- Regular text content (non-code) -->
-  <ng-container *ngIf="!message.content.includes('```')">
-    <div [innerHTML]="renderMarkdown(message.content)"></div>
-  </ng-container>
+            <!-- Assistant Message Content -->
+            <div *ngIf="message.role === 'assistant'" class="message-content">
+              <ng-container *ngIf="!message.content.includes('```')">
+                <div [innerHTML]="renderMarkdown(message.content)"></div>
+              </ng-container>
+              <ng-container *ngIf="message.content.includes('```')">
+                <ng-container *ngFor="let part of splitMessageContent(message.content)">
+                  <div *ngIf="part.type === 'text'" [innerHTML]="renderMarkdown(part.content)"></div>
+                  <div *ngIf="part.type === 'code'" class="view-file-button" (click)="showCodeSnippet(part.content)">
+                    <ion-icon name="code-slash-outline"></ion-icon>
+                    <span>View File</span>
+                  </div>
+                </ng-container>
+              </ng-container>
+              <div *ngIf="message.generatedImages?.length" class="generated-images">
+                <img *ngFor="let image of message.generatedImages" 
+                     [src]="image" 
+                     class="generated-image" />
+              </div>
+            </div>
 
-  <!-- Content with code blocks -->
-  <ng-container *ngIf="message.content.includes('```')">
-    <ng-container *ngFor="let part of splitMessageContent(message.content); let k = index">
-      <!-- Regular text part -->
-      <ng-container *ngIf="part.type === 'text'">
-        <div [innerHTML]="renderMarkdown(part.content)"></div>
-      </ng-container>
-
-      <!-- Code block part -->
-      <ng-container *ngIf="part.type === 'code'">
-        <div class="view-file-button" (click)="showCodeSnippet(part.content)">
-          <ion-icon name="code-slash-outline"></ion-icon>
-          <span>View File</span>
-        </div>
-      </ng-container>
-    </ng-container>
-  </ng-container>
-
-  <!-- Generated images section -->
-  <div *ngIf="message.generatedImages?.length">
-    <div *ngFor="let image of message.generatedImages" class="generated-image-container">
-      <img [src]="image" class="generated-image" />
-    </div>
-  </div>
-</div>
-
-
-          <!-- User Message Content -->
+            <!-- User Message Content -->
             <div *ngIf="message.role === 'user'" class="message-content">
               <div [innerHTML]="renderMarkdown(getDisplayContent(message.content))"></div>
-              <ion-button
-                *ngIf="hasFileContext(message.content)"
-                fill="clear"
-                size="large"
-                (click)="showFileContext(message.content)"
-                class="file-preview"
-              >
+              <ion-button *ngIf="hasFileContext(message.content)"
+                         fill="clear"
+                         size="large"
+                         (click)="showFileContext(message.content)"
+                         class="file-preview">
                 <ion-icon name="document-text-outline" class="file-context-icon"></ion-icon>
                 <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
               </ion-button>
+              <img *ngIf="message.image" [src]="message.image" class="message-image" />
             </div>
 
-            <img *ngIf="message.image" [src]="message.image" class="message-image" />
-          
-            <img *ngIf="message.image" [src]="message.image" class="message-image" />
-
-            <!-- Message Action Buttons -->
-            <ion-buttons *ngIf="message.role === 'user'" slot="end">
-              <ion-button (click)="deleteMessage(i)" fill="clear" color="danger">
+            <!-- Message Actions -->
+            <ion-buttons slot="end">
+              <ion-button *ngIf="message.role === 'user'"
+                         (click)="deleteMessage(i)"
+                         fill="clear"
+                         color="danger">
                 <ion-icon name="trash-outline"></ion-icon>
               </ion-button>
-            </ion-buttons>
-            <ion-buttons *ngIf="message.role === 'assistant'" slot="end">
-              <ion-button (click)="showAssistantMessageOptions(message, i)" fill="clear">
+              <ion-button *ngIf="message.role === 'assistant'"
+                         (click)="showAssistantMessageOptions(message, i)"
+                         fill="clear">
                 <ion-icon name="ellipsis-vertical"></ion-icon>
               </ion-button>
             </ion-buttons>
@@ -166,71 +144,75 @@
         <!-- Writing Indicator -->
         <ion-item *ngIf="isStreaming">
           <ion-label class="writing-message">
-            <span class="message-sender">{{ 'Gaurika' }} : </span>
+            <span class="message-sender">Gaurika :</span>
             <p class="message-content">Writing...</p>
           </ion-label>
         </ion-item>
       </ion-list>
 
       <!-- Magic Selection Done Button -->
-      <ion-fab
-        vertical="bottom"
-        horizontal="end"
-        slot="fixed"
-        *ngIf="isMagicSelectionMode && isMagicDoneButtonVisible && selectedLines.length > 0"
-      >
+      <ion-fab vertical="bottom"
+               horizontal="end"
+               slot="fixed"
+               *ngIf="isMagicSelectionMode && isMagicDoneButtonVisible && selectedLines.length > 0">
         <ion-fab-button (click)="completeMagicSelect()">
           <ion-icon name="checkmark-outline"></ion-icon>
         </ion-fab-button>
       </ion-fab>
     </div>
   </div>
-
-  <!-- Right Sidebar -->
- 
 </ion-content>
 
 <!-- Bottom Input Bar -->
 <div class="bottom-bar" *ngIf="!isEditingMessage">
   <div class="bottom-toolbar">
-    <ion-input
-      #messageInput
-      [(ngModel)]="userInput"
-      placeholder="Send a message to start a conversation..."
-      (keydown)="handleKeyDown($event)"
-      [disabled]="isStreaming"
-    ></ion-input>
-    <ion-button class="upload-button" (click)="triggerFileUpload()" [disabled]="isStreaming">
+    <ion-input #messageInput
+               [(ngModel)]="userInput"
+               placeholder="Send a message to start a conversation..."
+               (keydown)="handleKeyDown($event)"
+               [disabled]="isStreaming">
+    </ion-input>
+    <ion-button class="upload-button" 
+                (click)="triggerFileUpload()" 
+                [disabled]="isStreaming">
       <ion-icon name="attach-outline"></ion-icon>
     </ion-button>
-    <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none" />
-    <ion-button class="send-button" (click)="isStreaming ? stopStream() : sendMessage()">
+    <input type="file" 
+           #fileInput 
+           (change)="onFileSelected($event)" 
+           style="display: none" />
+    <ion-button class="send-button" 
+                (click)="isStreaming ? stopStream() : sendMessage()">
       {{ isStreaming ? 'Stop' : isToolCallInProgress() ? getToolCallInProgressMessage() : 'Send' }}
     </ion-button>
   </div>
-  <div *ngIf="selectedImage" class="image-preview">
-    <img [src]="selectedImage" alt="Selected image" style="max-width: 150px; max-height: 120px" />
-    <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
-      <ion-icon name="close-circle"></ion-icon>
-    </ion-button>
-  </div>
-  <div *ngIf="selectedFile && !selectedFile.type.startsWith('image/')" class="file-preview">
-    <ion-icon [name]="getFileIcon(selectedFile.type)" class="file-preview-icon"></ion-icon>
-    <span>{{ selectedFile.name }}</span>
-    <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
-      <ion-icon name="close-circle"></ion-icon>
-    </ion-button>
-  </div>
+  
+  <!-- File Preview -->
+  <ng-container *ngIf="selectedFile">
+    <div *ngIf="selectedImage" class="image-preview">
+      <img [src]="selectedImage" alt="Selected image" />
+      <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+        <ion-icon name="close-circle"></ion-icon>
+      </ion-button>
+    </div>
+    <div *ngIf="!selectedFile.type.startsWith('image/')" class="file-preview">
+      <ion-icon [name]="getFileIcon(selectedFile.type)" class="file-preview-icon"></ion-icon>
+      <span>{{ selectedFile.name }}</span>
+      <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
+        <ion-icon name="close-circle"></ion-icon>
+      </ion-button>
+    </div>
+  </ng-container>
 </div>
 
 <!-- Edit Message Dialog -->
-<div id="editMessageDialog" class="custom-dialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
+<div id="editMessageDialog" 
+     class="custom-dialog" 
+     *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
   <div class="message-being-edited">
     <ion-label class="assistant-message">
-      <div
-        *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
-        [ngClass]="{ 'selected-line': isLineSelected(j) }"
-      >
+      <div *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
+           [ngClass]="{ 'selected-line': isLineSelected(j) }">
         <ng-container *ngIf="line.trim().startsWith('```')">
           <pre><code>{{ line.substring(3).trim() }}</code></pre>
         </ng-container>
@@ -244,18 +226,19 @@
     <ion-label position="floating">Edit Selected Lines</ion-label>
     <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
   </ion-item>
-  <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
-    Apply Changes
-  </ion-button>
-  <ion-button color="danger" (click)="cancelEdit()">
-    Cancel
-  </ion-button>
+  <div class="dialog-actions">
+    <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
+      Apply Changes
+    </ion-button>
+    <ion-button color="danger" (click)="cancelEdit()">
+      Cancel
+    </ion-button>
+  </div>
 </div>
 
-<!-- Assistant Message Options Action Sheet -->
+<!-- Assistant Message Options -->
 <ion-action-sheet
   [isOpen]="isAssistantMessageOptionsOpen"
   (didDismiss)="isAssistantMessageOptionsOpen = false"
-  [buttons]="actionSheetButtons"
->
+  [buttons]="actionSheetButtons">
 </ion-action-sheet>
