@@ -166,16 +166,6 @@
           </ion-label>
         </ion-item>
       </ion-list>
-
-      <!-- Magic Selection Done Button -->
-      <ion-fab vertical="bottom"
-               horizontal="end"
-               slot="fixed"
-               *ngIf="isMagicSelectionMode && isMagicDoneButtonVisible && selectedLines.length > 0">
-        <ion-fab-button (click)="completeMagicSelect()">
-          <ion-icon name="checkmark-outline"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
     </div>
   </div>
 </ion-content>

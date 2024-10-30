@@ -1258,51 +1258,6 @@ export class HomePage implements OnInit {
   isMagicSelectionMode = false;
   selectedLines: number[] = [];
 
-  toggleMagicSelectionMode() {
-    this.isMagicSelectionMode = !this.isMagicSelectionMode;
-    if (!this.isMagicSelectionMode) {
-      this.selectedLines = [];
-    }
-  }
-
-  toggleLineSelection(lineNumber: number) {
-    if (this.isMagicSelectionMode) {
-      const messageContent = this.messages[this.selectedAssistantMessageIndex!].content;
-      const codeBlockLines = this.getCodeBlockLineNumbers(messageContent); 
-
-      if (codeBlockLines.includes(lineNumber)) {
-        // If clicked line is in a code block, select the whole block
-        this.selectedLines = codeBlockLines; 
-      } else {
-        // Otherwise, handle individual line selection
-        const index = this.selectedLines.indexOf(lineNumber);
-        if (index > -1) {
-          this.selectedLines.splice(index, 1);
-        } else {
-          this.selectedLines.push(lineNumber);
-        }
-        this.selectedLines.sort();
-      }
-    }
-  }
-
-  getCodeBlockLineNumbers(content: string): number[] {
-    const lines = content.split('\n');
-    let codeBlockLines: number[] = [];
-    let isInCodeBlock = false;
-    
-    lines.forEach((line, i) => {
-      if (line.trim().startsWith('```')) {
-        isInCodeBlock = !isInCodeBlock;
-        if (isInCodeBlock) {
-          codeBlockLines.push(i); 
-        }
-      } else if (isInCodeBlock) {
-        codeBlockLines.push(i);
-      }
-    });
-    return codeBlockLines;
-  }
 
   isLineSelected(lineNumber: number): boolean {
     return this.selectedLines.includes(lineNumber);
@@ -1337,13 +1292,6 @@ export class HomePage implements OnInit {
         icon: 'create',
         handler: () => {
           this.startEditMessage(index);
-        }
-      },
-      {
-        text: 'Magic Select',
-        icon: 'create-outline',
-        handler: () => {
-          this.startMagicSelect(index);
         }
       },
       {
