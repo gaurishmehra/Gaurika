@@ -1226,3 +1226,37 @@ ion-toolbar {
     }
   }
 }
+
+// Update code highlighting styles
+.code-snippet-container {
+  background-color: rgba($background-light, 0.7);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+
+  pre {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+
+    code {
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 1em;
+      border-radius: 8px;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      
+      // Override highlight.js theme colors for better contrast
+      &.hljs {
+        background: rgba($background-light, 0.3);
+        color: $text-color;
+      }
+    }
+  }
+}
+
+// Add to home.page.scss
+@import '~highlight.js/styles/atom-one-dark.css';

@@ -44,6 +44,7 @@ interface Message {
 interface MessagePart {
   type: 'text' | 'code';
   content: string;
+  language?: string; // Add language property
   startIndex: number; // To track line numbers correctly for magic selection
 }
 
@@ -525,30 +526,33 @@ export class HomePage implements OnInit {
 
     content.split('\n').forEach(line => {
       if (line.trim().startsWith('```')) {
-        isInCodeBlock = !isInCodeBlock;
-
-        if (isInCodeBlock) {
-          // Start of a code block
+        if (!isInCodeBlock) {
+          // Start of code block - get language
           parts.push(currentPart);
-          currentPart = { type: 'code', content: '', startIndex: lineNumber };
+          const language = line.trim().slice(3).toLowerCase();
+          currentPart = { 
+            type: 'code', 
+            content: '', 
+            language: language || 'plaintext',
+            startIndex: lineNumber 
+          };
+          isInCodeBlock = true;
         } else {
-          // End of a code block
+          // End of code block
           parts.push(currentPart);
           currentPart = { type: 'text', content: '', startIndex: lineNumber + 1 };
+          isInCodeBlock = false;
         }
       } else {
         currentPart.content += line + '\n';
       }
-
       lineNumber++;
     });
 
-    parts.push(currentPart); // Add the last part
-
-    return parts;
+    parts.push(currentPart);
+    return parts.filter(part => part.content.trim());
   }
 
-  
   trimCodeBlock(code: string): string {
     return code.split('\n').map(line => line.trim()).join('\n'); 
   }
@@ -1577,19 +1581,18 @@ async copyCode(code: string) {
     window.location.reload();
   }
 
-  showCodeSnippet(code: string) {
+  showCodeSnippet(code: string, language?: string) {
     this.selectedCodeSnippet = code;
     this.toggleRightSidebar();
     this.isRightSidebarOpen = true;
   
     setTimeout(() => {
       if (this.codeSnippetContainer) {
-        const detectedLanguage = this.detectLanguage(code);
-        const languageClass = detectedLanguage ? `language-${detectedLanguage}` : '';
-  
-        // Create the code snippet HTML
+        const languageClass = language ? `language-${language}` : '';
+        
+        // Create the code snippet HTML using our escape function
         this.codeSnippetContainer.nativeElement.innerHTML = `
-          <pre><code class="${languageClass} hljs">${code}</code></pre>
+          <pre><code class="${languageClass}">${this.escapeHtml(code)}</code></pre>
           <button class="copy-button" (click)="copyCode(selectedCodeSnippet)">
             <ion-icon name="clipboard-outline"></ion-icon>
             <span *ngIf="!isCopied">Copy</span>
@@ -1597,16 +1600,24 @@ async copyCode(code: string) {
           </button>
         `;
   
-        // Apply Highlight.js to the code element
-        const preElement = this.codeSnippetContainer.nativeElement.querySelector('pre');
-        if (preElement) {
-          hljs.highlightElement(preElement as HTMLElement);
+        // Apply highlighting
+        const codeElement = this.codeSnippetContainer.nativeElement.querySelector('code');
+        if (codeElement) {
+          hljs.highlightElement(codeElement);
         }
       }
     });
   }
   
-  
+  private escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   detectLanguage(code: string): string | null {
     const registeredLanguages = hljs.listLanguages();
     for (const lang of registeredLanguages) {

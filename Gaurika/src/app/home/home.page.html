@@ -111,9 +111,9 @@
               <ng-container *ngIf="message.content.includes('```')">
                 <ng-container *ngFor="let part of splitMessageContent(message.content)">
                   <div *ngIf="part.type === 'text'" [innerHTML]="renderMarkdown(part.content)"></div>
-                  <div *ngIf="part.type === 'code'" class="view-file-button" (click)="showCodeSnippet(part.content)">
+                  <div *ngIf="part.type === 'code'" class="view-file-button" (click)="showCodeSnippet(part.content, part.language)">
                     <ion-icon name="code-slash-outline" class="mr-2"></ion-icon>
-                    <span>View File</span>
+                    <span>View - {{ part.language || 'Code' }}</span>
                   </div>
                 </ng-container>
               </ng-container>
