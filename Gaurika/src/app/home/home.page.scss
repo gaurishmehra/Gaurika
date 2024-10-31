@@ -583,7 +583,11 @@ ion-item {
     .image-preview{
       max-height: 10vh;
       max-width: 10vw;
-      
+
+      img{
+        min-width: 20px;
+        min-height: 20px;
+      }
     }
   }
 
