@@ -1298,6 +1298,34 @@ export class HomePage implements OnInit {
           this.startEditMessage(index);
         }
       },
+      {text: 'Copy Message',
+        icon: 'copy',
+        handler: async () => {
+          if (message.content) {
+            try {
+              await Clipboard.write({
+                string: message.content
+              });
+              const toast = await this.toastController.create({
+                message: 'Message copied to clipboard',
+                duration: 2000,
+                position: 'top',
+                color: 'success'
+              });
+              toast.present();
+            } catch (error) {
+              console.error('Failed to copy message:', error);
+              const toast = await this.toastController.create({
+                message: 'Failed to copy message',
+                duration: 2000,
+                position: 'top',
+                color: 'danger'
+              });
+              toast.present();
+            }
+          }
+        }
+      },
       {
         text: 'Cancel',
         role: 'cancel',
