@@ -566,17 +566,25 @@ export class HomePage implements OnInit {
   async createNewSessionFromMessage(message: string) {
     // Create a new session with a default name
     const defaultSessionName = 'New Chat';
-    this.sessions.push({
+    
+    // Create new session object
+    const newSession = {
       name: defaultSessionName,
       messages: [],
-      generatedImages: [] // Initialize here
-    });
-  
+      generatedImages: []
+    };
+    
+    // Add the new session and set it as current
+    this.sessions.push(newSession);
     this.currentSessionIndex = this.sessions.length - 1;
     this.currentSessionName = defaultSessionName;
+    
+    // Initialize the messages array for this session
+    this.messages = [];
+    
     this.showTemplatesPage = false;
   
-    // Save the current session
+    // Save initial empty session
     this.saveCurrentSession();
   
     // Set the userInput to the passed message
@@ -585,7 +593,7 @@ export class HomePage implements OnInit {
     // Send the message
     await this.sendMessage();
   
-    // After the assistant replies, update the session name
+    // Rest of the existing code for naming the session...
     try {
       // First, try to generate a name using the API
       const response = await this.client.chat.completions.create({
@@ -755,18 +763,27 @@ export class HomePage implements OnInit {
   async startConversation(template: { name: string; prompt: string }) {
     this.showTemplatesPage = false;
   
-    this.sessions.push({
+    // Create new session
+    const newSession = {
       name: template.name,
       messages: [],
-      generatedImages: [] // Initialize generatedImages here
-    });
-
+      generatedImages: []
+    };
+  
+    // Add the new session and set it as current
+    this.sessions.push(newSession);
     this.currentSessionIndex = this.sessions.length - 1;
     this.currentSessionName = template.name;
-    this.loadCurrentSession();
-
+    
+    // Initialize the messages array for this session
+    this.messages = [];
+    
+    // Set the user input and send message
     this.userInput = template.prompt;
     await this.sendMessage();
+    
+    // Save the session after message is sent
+    this.saveCurrentSession();
   }
 
   getIconForTemplate(templateName: string): string {
