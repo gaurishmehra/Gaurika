@@ -4,7 +4,10 @@
     <ion-buttons slot="start">
       <ion-button class="sidebar-toggle" (click)="toggleSidebar()">
         <ion-icon slot="start" name="folder-open-outline" class="mr-2"></ion-icon>
-        <ion-label *ngIf="!showTemplatesPage">{{ currentSessionName }}</ion-label>
+        <!-- Only show session name if not on templates page and there's an active session -->
+        <ion-label *ngIf="!showTemplatesPage && currentSessionIndex >= 0">{{ currentSessionName }}</ion-label>
+        <!-- Show 'New Chat' if on templates page -->
+        <ion-label *ngIf="showTemplatesPage"></ion-label>
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
@@ -46,12 +49,43 @@
       </ion-button>
     </div>
     <div class="session-list">
-      <ion-item *ngFor="let session of sessions; let i = index" (click)="switchSession(i)">
+      <ion-item *ngFor="let session of sessions; let i = index" 
+    (click)="editingSessionIndex === null && switchSession(i)"
+    [class.active-session]="i === currentSessionIndex"
+    [class.editing-session]="editingSessionIndex === i">
         <ion-icon name="chatbox-outline" class="mr-2"></ion-icon>
-        {{ session.name }}
-        <ion-button slot="end" fill="clear" color="danger" (click)="deleteSession(i)">
-          <ion-icon name="trash-outline"></ion-icon>
-        </ion-button>
+        
+        <!-- Title display/edit mode -->
+        <ng-container *ngIf="editingSessionIndex !== i">
+          {{ session.name }}
+          <ion-buttons slot="end">
+            <ion-button fill="clear" (click)="startEditingSession(i, $event)">
+              <ion-icon name="create-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" color="danger" (click)="deleteSession(i)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ng-container>
+
+        <!-- Edit mode -->
+        <ng-container *ngIf="editingSessionIndex === i">
+          <ion-input 
+            [(ngModel)]="editedSessionName"
+            (keyup.enter)="saveSessionName(i, $event)"
+            (keyup.escape)="cancelEditingSession()"
+            #titleInput
+            (click)="$event.stopPropagation()">
+          </ion-input>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" color="success" (click)="saveSessionName(i, $event)">
+              <ion-icon name="checkmark-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" color="danger" (click)="cancelEditingSession(); $event.stopPropagation()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ng-container>
       </ion-item>
     </div>
     <div class="sidebar-actions">
@@ -93,7 +127,7 @@
     </div>
 
     <!-- Chat Page -->
-    <div *ngIf="!showTemplatesPage" class="chat-page">
+    <div *ngIf="!showTemplatesPage && currentSessionIndex >= 0" class="chat-page">
       <ion-list lines="none">
         <ion-item *ngFor="let message of getFilteredMessages(); let i = index">
           <ion-label [class.user-message]="message.role === 'user'"
@@ -166,6 +200,12 @@
           </ion-label>
         </ion-item>
       </ion-list>
+    </div>
+
+    <!-- Show a message when no session is selected -->
+    <div *ngIf="!showTemplatesPage && currentSessionIndex < 0" class="no-session-message">
+      <h2>No chat selected</h2>
+      <p>Please select a chat from the sidebar or start a new one</p>
     </div>
   </div>
 </ion-content>

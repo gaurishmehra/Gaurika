@@ -842,6 +842,7 @@ pre {
 
   .session-list {
     margin-bottom: 20px;
+    
 
     ion-item {
       --background: #{$card-background};
@@ -850,6 +851,39 @@ pre {
       margin-bottom: 10px;
       --padding-start: 16px;
       --padding-end: 16px;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+
+      &.active-session {
+        --background: rgba($secondary-color, 0.2);
+        border-left: 3px solid $secondary-color;
+        
+        ion-label {
+          font-weight: 600;
+          color: lighten($text-color, 10%);
+        }
+      }
+
+      &.editing-session {
+        --background: rgba($primary-color, 0.15);
+        border: 2px solid rgba($primary-color, 0.3);
+        
+        ion-input {
+          --background: rgba($background-light, 0.3);
+          --color: #{$text-color};
+          --padding-start: 8px;
+          --padding-end: 8px;
+          border-radius: 4px;
+          margin-right: 8px;
+          font-weight: 500;
+          
+          &::part(native) {
+            padding: 8px;
+            background: rgba($background-light, 0.4);
+            border-radius: 4px;
+          }
+        }
+      }
 
       ion-label {
         color: $text-color;
@@ -858,8 +892,29 @@ pre {
       ion-button {
         --color: #{$error-color};
       }
+      
+      ion-buttons {
+        display: flex;
+        gap: 4px;
+
+        ion-button {
+          --padding-start: 4px;
+          --padding-end: 4px;
+          
+          &[color="success"] {
+            --color: #{$success-color};
+          }
+        }
+      }
+
+      &:hover {
+        transform: scale(1.02);
+        cursor: pointer;
+        background: rgba($background-light, 0.2);
+      }
     }
   }
+
   .session-list :hover{
     transform: scale(1.05);
     cursor: pointer;
@@ -906,7 +961,66 @@ ion-header {
   }
 }
 
+// Highlight current session
+.active-session {
+  --background: rgba($secondary-color, 0.2);
+  border-left: 3px solid $secondary-color;
+  
+  ion-label {
+    font-weight: 600;
+    color: lighten($text-color, 10%);
+  }
+}
 
+// Highlight session being edited
+.editing-session {
+  --background: rgba($primary-color, 0.15);
+  border: 2px solid rgba($primary-color, 0.3);
+  
+  ion-input {
+    --background: rgba($background-light, 0.3);
+    --color: #{$text-color};
+    --padding-start: 8px;
+    --padding-end: 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+    font-weight: 500;
+    
+    &::part(native) {
+      padding: 8px;
+      background: rgba($background-light, 0.4);
+      border-radius: 4px;
+    }
+  }
+}
+
+ion-label {
+  color: $text-color;
+}
+
+ion-button {
+  --color: #{$error-color};
+}
+
+ion-buttons {
+  display: flex;
+  gap: 4px;
+
+  ion-button {
+    --padding-start: 4px;
+    --padding-end: 4px;
+    
+    &[color="success"] {
+      --color: #{$success-color};
+    }
+  }
+
+  &:hover {
+    transform: scale(1.02);
+    cursor: pointer;
+    background: rgba($background-light, 0.2);
+  }
+}
 
 // Right Sidebar Styles
 .right-sidebar {
@@ -1049,5 +1163,43 @@ ion-header {
   // Optional: Add a hover effect
   &:hover {
     background-color: rgba($primary-color, 0.7); 
+  }
+}
+
+.no-session-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 2rem;
+  color: $text-color;
+  background: linear-gradient(135deg, rgba($background-dark, 0.95), rgba($background-light, 0.95));
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: $text-color;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: $muted-text;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba($secondary-color, 0.1) 0%, transparent 70%);
+    z-index: -1;
   }
 }

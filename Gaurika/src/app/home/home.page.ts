@@ -88,7 +88,7 @@ export class HomePage implements OnInit {
     fileContext?: { name: string; type: string; content: string };
     generatedImages?: string[]; // Store generated images per session
   }[] = [];
-  currentSessionIndex = 0;
+  currentSessionIndex = -1;  // Instead of 0
   currentSessionName = '';
   newSessionName = '';
   @ViewChild(IonContent) content!: IonContent;
@@ -116,7 +116,9 @@ export class HomePage implements OnInit {
   isRightSidebarOpen = false;
   selectedCodeSnippet: string | null = null;
 
-  
+  // Add these properties
+  editingSessionIndex: number | null = null;
+  editedSessionName: string = '';
 
   templateConversations: { name: string; prompt: string }[] = [
     {
@@ -193,6 +195,8 @@ export class HomePage implements OnInit {
 
     if (storedSessions) {
       this.sessions = storedSessions;
+      // Only set currentSessionIndex if we're not on templates page
+      this.currentSessionIndex = this.showTemplatesPage ? -1 : 0;
     }
 
     this.presentingElement = document.querySelector('.ion-page');
@@ -478,12 +482,14 @@ export class HomePage implements OnInit {
   }
   showTemplates() {
     this.showTemplatesPage = true;
+    // Reset current session when showing templates
+    this.currentSessionIndex = -1;
+    this.currentSessionName = '';
     this.toggleSidebar();
-    if (this.showTemplatesPage) { // Only center text if on templates page
+    if (this.showTemplatesPage) {
       this.centerTextElements();
     }
   }
-
 
   onUserInput() {
     if (this.showTemplatesPage && this.userInput.trim() !== '') {
@@ -645,8 +651,14 @@ export class HomePage implements OnInit {
 
   loadCurrentSession() {
     this.showTemplatesPage = false;
-    this.messages = this.sessions[this.currentSessionIndex].messages;
-    this.currentSessionName = this.sessions[this.currentSessionIndex].name;
+    // Only load messages if there's a valid session
+    if (this.currentSessionIndex >= 0 && this.currentSessionIndex < this.sessions.length) {
+      this.messages = this.sessions[this.currentSessionIndex].messages;
+      this.currentSessionName = this.sessions[this.currentSessionIndex].name;
+    } else {
+      this.messages = [];
+      this.currentSessionName = '';
+    }
     setTimeout(() => {
       this.content.scrollToBottom(300);
     });
@@ -657,12 +669,17 @@ export class HomePage implements OnInit {
     this.storage.set('sessions', this.sessions);
   }
 
-  switchSession(index: number) {
+  switchSession(index: number, event?: Event) {
+    // If editing a session name, don't switch sessions
+    if (this.editingSessionIndex !== null) {
+      return;
+    }
+  
     if (!this.isMultimodalEnabled && this.sessions[index].messages.some(m => m.image)) {
       this.showErrorToast('This session contains images and cannot be accessed with the current model. Please enable multimodal mode in settings.');
       return;
     }
-
+  
     this.currentSessionIndex = index;
     this.loadCurrentSession();
     this.toggleSidebar();
@@ -1605,7 +1622,7 @@ async copyCode(code: string) {
 }
 
   showTemplatesAndRefresh() {
-    // this.showTemplates();
+    this.showTemplates(); // Use the updated showTemplates method
     window.location.reload();
   }
 
@@ -1658,6 +1675,27 @@ async copyCode(code: string) {
       }
     }
     return null;
+  }
+
+  // Add these methods
+  startEditingSession(index: number, event: Event) {
+    event.stopPropagation(); // Prevent switching to the session
+    this.editingSessionIndex = index;
+    this.editedSessionName = this.sessions[index].name;
+  }
+
+  saveSessionName(index: number, event: Event) {
+    event.stopPropagation(); // Prevent switching to the session
+    if (this.editedSessionName.trim()) {
+      this.sessions[index].name = this.editedSessionName.trim();
+      this.saveCurrentSession();
+    }
+    this.cancelEditingSession();
+  }
+
+  cancelEditingSession() {
+    this.editingSessionIndex = null;
+    this.editedSessionName = '';
   }
 
 }
