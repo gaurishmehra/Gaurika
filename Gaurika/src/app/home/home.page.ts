@@ -586,8 +586,8 @@ export class HomePage implements OnInit {
         model: this.model,
         messages: [
           {
-            role: 'system',
-            content: 'Generate a concise 1-3 word title for this conversation. Reply only with the title, nothing else.(Do not include quotes around the title)'
+            role: 'system', 
+            content: 'You must respond ONLY with a 1-3 word title. No explanations, no quotes, no additional text. If context is unclear or missing, still provide a generic topic-based title. Never apologize or explain - just output 1-3 relevant words as a title. No punctuation allowed except spaces between words.'
           },
           {
             role: 'user',
