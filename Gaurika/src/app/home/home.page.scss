@@ -363,6 +363,7 @@ ion-item {
       border-radius: 12px;
       margin-right: 8px;
       overflow: hidden;
+      min-width: 150px;
     }
 
     ion-button {
@@ -585,8 +586,7 @@ ion-item {
       max-width: 10vw;
 
       img{
-        min-width: 20px;
-        min-height: 20px;
+        min-width: 120px;
       }
     }
   }
