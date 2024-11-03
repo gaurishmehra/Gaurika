@@ -378,102 +378,6 @@ ion-item {
   }
 }
 
-// Templates Page Styles
-.templates-page {
-  color: $text-color;
-  background-color: $background-dark;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-
-  .templates-header {
-    padding: 24px 20px;
-    text-align: center;
-    background: linear-gradient(135deg, rgba($secondary-color, 0.9), rgba($secondary-color, 0.75));
-    // background-color: $background-light;
-    border-bottom-left-radius: 24px;
-    border-bottom-right-radius: 24px;
-    margin-bottom: 20px;
-
-    .page-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .page-subtitle {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-  }
-
-  .templates-grid {
-    margin: 16px;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    gap: 16px;
-    overflow-y: auto;
-
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .template-item {
-      @include rounded-corners;
-      @include snappy-transition;
-      min-height: 160px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: 20px;
-      border: 1px solid rgba($accent-color, 0.1);
-      background-color: rgba($background-light, 0.5);
-      cursor: pointer;
-      z-index: 1000;
-
-      &:hover {
-        transform: scale(0.98);
-        border-color: rgba($secondary-color, 0.3);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-      }
-
-      .template-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 12px;
-        background: linear-gradient(135deg, rgba($secondary-color, 0.2), rgba($primary-color, 0.2));
-
-        ion-icon {
-          font-size: 2rem;
-          color: $accent-color;
-        }
-      }
-
-      .template-content {
-        .template-title {
-          font-size: 1.4rem;
-          font-weight: 600;
-          margin-bottom: 4px;
-        }
-
-        .template-description {
-          font-size: 0.95rem;
-          color: $muted-text;
-        }
-      }
-    }
-  }
-}
 
 
 // Edit Message Dialog Styles
@@ -597,30 +501,7 @@ ion-item {
     padding: 10px;
   }
 
-  .templates-grid {
-    .template-item {
-      padding: 16px;
 
-      .template-icon {
-        width: 40px;
-        height: 40px;
-
-        ion-icon {
-          font-size: 1.8rem;
-        }
-      }
-
-      .template-content {
-        .template-title {
-          font-size: 1.3rem;
-        }
-
-        .template-description {
-          font-size: 0.9rem;
-        }
-      }
-    }
-  }
 }
 
 // Desktop Enhancements
@@ -629,19 +510,6 @@ ion-item {
     --padding-bottom: 120px;
   }
 
-  .templates-grid {
-    gap: 24px;
-    padding: 0 24px;
-
-    .template-item {
-      padding: 24px;
-
-      &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-      }
-    }
-  }
 
   .bottom-bar {
     max-width: 900px;
@@ -770,31 +638,7 @@ pre {
   }
 }
 
-.templates-header {
-  text-align: center;
 
-  h1.page-title, p.page-subtitle {
-    display: inline-block;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 0em; /* Initial width in em units */
-    animation-fill-mode: forwards;
-    pointer-events: none;
-  }
-
-  h1.page-title {
-    animation: typing-em 1s steps(400, end) forwards;
-  }
-
-  p.page-subtitle {
-    animation: typing-em 1s steps(400, end) 1s forwards;
-  }
-}
-
-@keyframes typing-em {
-  from { width: 0em; }
-  to { width: 100%; } /* Expand to full width */
-}
 
 
 .sidebar {
@@ -1202,4 +1046,204 @@ ion-buttons {
     background: radial-gradient(circle, rgba($secondary-color, 0.1) 0%, transparent 70%);
     z-index: -1;
   }
+}
+// Templates/Landing Page Styles
+
+.landing-page {
+  color: $text-color;
+  background-color: $background-dark;
+  height: 100%;
+  display: flex;
+  flex-direction: column;  // Changed to column for vertical layout
+}
+
+.hero-section {
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba($secondary-color, 0.9), rgba($secondary-color, 0.75));
+  text-align: center; // Center content
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+
+  .hero-content {
+    // Styling for content within hero section
+    .brand-logo {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1rem; /* Adjust spacing as needed */
+    
+      // Optional: Add animation
+      animation: logoPulse 2s infinite; // Example animation, customize as desired
+    }
+    
+    .brand-logo img {
+      width: auto;   // Maintain aspect ratio
+      height: 4rem;  // Set a fixed height or adjust as needed
+      // Optional: Smooth transitions for hover effects, etc.
+      transition: transform 0.2s ease-in-out;
+    
+      &:hover {
+        transform: scale(1.05); // Slight scale up on hover
+      }
+    }
+    
+    @keyframes logoPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); } // Adjust scale factor
+      100% { transform: scale(1); }
+    }
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: $text-color;
+    }
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: $muted-text;
+      margin-bottom: 2rem;
+    }
+    .hero-title, 
+    .hero-subtitle {
+      text-align: center;      // Also center text within title/subtitle elements
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typing 1s steps(100, end) forwards;
+      margin: 0 auto; // Center block-level elements
+       display: inline-block;
+    }
+
+    .hero-subtitle {
+      animation-delay: 1s;
+      opacity: 0;
+      animation: typing-subtitle 1.25s steps(100, end) forwards 1s;
+    }
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    
+    @keyframes typing-subtitle {
+      from { width: 0; opacity: 0; }
+      to { width: 100%; opacity: 1; }
+    }
+  }
+}
+
+
+.templates-section, .features-section {
+  padding: 2rem;
+  background: $background-dark;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: $text-color;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: $muted-text;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); // Adjust minmax as needed
+  gap: 1rem;
+
+  .template-card {
+    @include rounded-corners;
+    @include snappy-transition;
+    padding: 1.5rem;
+    background-color: rgba($background-light, 0.5);
+    border: 1px solid rgba($accent-color, 0.1);
+    cursor: pointer;
+    display: flex;          // Make card content flexible
+    flex-direction: column; // Stack content vertically
+    min-height: 150px;      // Ensure a minimum height for better layout
+
+    &.featured {
+        border: 2px solid $secondary-color;
+        background: linear-gradient(135deg, rgba($secondary-color, 0.2), rgba($primary-color, 0.2));
+    }
+
+    &:hover {
+      transform: scale(0.98);
+      border-color: rgba($secondary-color, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-content {
+      flex-grow: 1;           // Allow content to grow and take up available space
+      display: flex;
+      flex-direction: column;
+      justify-content: center; // Center content vertically
+
+      ion-icon {
+        font-size: 2rem;
+        color: $accent-color;
+        margin-bottom: 1rem;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: $text-color;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+        color: $muted-text;
+      }
+    }
+
+    .card-action {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end; // Align to the right
+      margin-top: 1rem;
+
+      span {
+        font-size: 0.9rem;
+        color: $secondary-color;
+        margin-right: 0.5rem;
+      }
+
+      ion-icon {
+        font-size: 1rem;
+        color: $secondary-color;
+      }
+    }
+  }
+}
+.templates-grid {
+  display: grid;
+  gap: 1rem; // Set your desired gap between cards
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+
+  @media (min-width: 768px) {
+    // Use minmax() to prevent excessive spacing between cards
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    // justify-content: center; // Align the grid items to the center
+    // Optional: limit the overall width of the grid on very large screens.
+    max-width: 800px; // Adjust this value as needed
+    margin: 0 auto;   // Center the grid horizontally
+    // Or set specific padding or margin to .templates-section/.templates-grid
+    padding: 0 20px; 
+    }
+}
+
+.template-card {
+    &.featured {
+        border: 2px solid $secondary-color;
+        background: linear-gradient(135deg, rgba($secondary-color, 0.2), rgba($primary-color, 0.2));
+    }
 }

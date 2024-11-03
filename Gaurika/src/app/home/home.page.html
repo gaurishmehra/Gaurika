@@ -102,29 +102,55 @@
   [class.right-sidebar-open]="isRightSidebarOpen">
   <div class="content-container">
     <!-- Templates Page -->
-    <div *ngIf="showTemplatesPage" class="templates-page">
-      <div class="templates-header">
-        <h1 class="page-title">
-          I'm Gaurika
-        </h1>
-        <p class="page-subtitle">
-          Some responses may be inaccurate.
-        </p>
+    <!-- Templates Page / Landing Page -->
+<div *ngIf="showTemplatesPage" class="landing-page">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+            
+    <div class="brand-logo">
+      <img src="../../assets/icon/favicon.png" alt="Gaurika Logo" width="100" height="100">  </div>   
+      <h1 class="hero-title">Gaurika</h1>
+      <p class="hero-subtitle">Your AI-powered Helper</p>
+    </div>
+  </div>
+
+  <!-- Templates Grid Section -->
+  <div class="templates-section">
+    <h2 class="section-title">Start a Conversation</h2>
+    <p class="section-subtitle">Select a template or start from scratch</p>
+    
+    <div class="templates-grid">
+      <!-- Quick Start Card -->
+      <div class="template-card featured" (click)="startConversation({name: 'Quick Start', prompt: ''})">
+        <div class="card-content">
+          <ion-icon name="rocket-outline"></ion-icon>
+          <h3>Quick Start</h3>
+          <p>Begin a fresh conversation with Gaurika</p>
+        </div>
+        <div class="card-action">
+          <span>Get Started</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </div>
       </div>
-      <div class="templates-grid">
-        <div *ngFor="let template of templateConversations" 
-          class="template-item" 
-          (click)="startConversation(template)">
-          <div class="template-icon">
-            <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
-          </div>
-          <div class="template-content">
-            <h2 class="template-title">{{ template.name }}</h2>
-            <p class="template-description">{{ template.prompt }}</p>
-          </div>
+
+      <!-- Template Cards -->
+      <div *ngFor="let template of templateConversations" 
+           class="template-card"
+           (click)="startConversation(template)">
+        <div class="card-content">
+          <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
+          <h3>{{template.name}}</h3>
+          <p>{{template.prompt}}</p>
+        </div>
+        <div class="card-action">
+          <span>Select</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
     <!-- Chat Page -->
     <div *ngIf="!showTemplatesPage && currentSessionIndex >= 0" class="chat-page">
@@ -215,7 +241,7 @@
   <div class="bottom-toolbar">
     <ion-input #messageInput
                [(ngModel)]="userInput"
-               placeholder="Send a message to start a conversation..."
+               placeholder="Send a message..."
                (keydown)="handleKeyDown($event)"
                [disabled]="isStreaming">
       <ion-icon name="chatbox-outline" slot="start" class="ml-2 mr-2"></ion-icon>
