@@ -853,13 +853,27 @@ export class HomePage implements OnInit {
   getIconForTemplate(templateName: string): string {
     switch (templateName) {
       case 'Creative Writing':
-        return 'create-outline';
-      case 'Code Generation':
+        return 'pencil-outline';
+      case 'Programming / Coding':
         return 'code-slash-outline';
       case 'Physics':
-        return 'flask-outline';
+        return 'planet-outline';
       case 'Chemistry':
         return 'flask-outline';
+      case 'History':
+        return 'book-outline';
+      case 'Math / Problem Solving':
+        return 'calculator-outline';
+      case 'Business':
+        return 'briefcase-outline';
+      case 'Language':
+        return 'language-outline';
+      case 'Environmental Science':
+        return 'leaf-outline';
+      case 'Data Analysis':
+        return 'bar-chart-outline';
+      case 'Music':
+        return 'musical-notes-outline';
       default:
         return 'chatbubbles-outline';
     }
