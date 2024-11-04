@@ -135,7 +135,7 @@ export class HomePage implements OnInit {
       description: 'Get help with creative writing including stories, poems, and scripts.'
     },
     {
-      name: 'Programming Help',
+      name: 'Programming / Coding',
       prompt: 'Help me write a function to reverse a string in Python.',
       description: 'Get assistance with coding problems across different programming languages.'
     },
