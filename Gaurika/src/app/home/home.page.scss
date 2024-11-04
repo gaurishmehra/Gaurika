@@ -218,7 +218,32 @@ ion-item {
     }
 
     &.writing-message {
-      position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .brand-logo {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+      animation: spin 1s linear infinite;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+  }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
       
       &::before {
         content: '';
@@ -288,7 +313,6 @@ ion-item {
       }
     }
   }
-}
 
 // Bottom Bar Styles 
 .bottom-bar {
@@ -1264,8 +1288,8 @@ ion-buttons {
   }
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    transform: scale(0.95);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
 
     ion-icon {
       transform: scale(1.1) rotate(20deg);

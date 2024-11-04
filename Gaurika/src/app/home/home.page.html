@@ -227,8 +227,12 @@
         </ion-item>
 
         <!-- Writing Indicator -->
+        <!-- Replace the existing writing indicator with this -->
         <ion-item *ngIf="isStreaming">
           <ion-label class="writing-message">
+            <div class="brand-logo">
+              <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
+            </div>
             <span class="message-sender">
               <ion-icon name="desktop-outline" class="mr-2"></ion-icon>
               Gaurika :

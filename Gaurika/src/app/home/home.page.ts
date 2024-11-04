@@ -320,9 +320,11 @@ export class HomePage implements OnInit {
     if (!this.templateSearchInput) {
       this.filteredTemplates = [...this.templateConversations];
     } else {
+      const searchTerm = this.templateSearchInput.toLowerCase();
       this.filteredTemplates = this.templateConversations.filter(template => {
-        return template.name.toLowerCase().includes(this.templateSearchInput.toLowerCase()) ||
-               template.description.toLowerCase().includes(this.templateSearchInput.toLowerCase());
+        return template.name.toLowerCase().includes(searchTerm) ||
+               template.description.toLowerCase().includes(searchTerm) ||
+               template.prompt.toLowerCase().includes(searchTerm);
       });
     }
   }
