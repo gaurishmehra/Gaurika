@@ -47,6 +47,8 @@ export class SettingsPage implements OnInit {
   speechToTextBaseUrl = '';
   liveLLMApiKey = '';
   liveLLMBaseUrl = '';
+  isLearning = false;
+  learnedUserInfo = '';
 
   constructor(
     private router: Router,
@@ -80,6 +82,8 @@ export class SettingsPage implements OnInit {
     this.speechToTextBaseUrl = (await this.storage.get('speechToTextBaseUrl')) || '';
     this.liveLLMApiKey = (await this.storage.get('liveLLMApiKey')) || '';
     this.liveLLMBaseUrl = (await this.storage.get('liveLLMBaseUrl')) || '';
+    this.isLearning = (await this.storage.get('isLearning')) || false;
+    this.learnedUserInfo = (await this.storage.get('learnedUserInfo')) || '';
 
     this.ensureSelectedIndicesWithinBounds();
     this.onModelChange();
@@ -97,6 +101,13 @@ export class SettingsPage implements OnInit {
       this.isImageGenEnabled = false;
     }
   }
+  onPersonalizedLearningToggleChange() {
+    if (!this.isLearning) {
+      this.learnedUserInfo = '';
+      this.saveSettings();
+    }
+  }
+
 
   ionViewDidEnter() {
     console.log('SettingsPage ionViewDidEnter() executed');
@@ -298,6 +309,8 @@ export class SettingsPage implements OnInit {
       await this.storage.set('speechToTextBaseUrl', this.speechToTextBaseUrl);
       await this.storage.set('liveLLMApiKey', this.liveLLMApiKey);
       await this.storage.set('liveLLMBaseUrl', this.liveLLMBaseUrl);
+      await this.storage.set('isLearning', this.isLearning);
+      await this.storage.set('learnedUserInfo', this.learnedUserInfo);
 
       console.log('Settings saved successfully!');
       window.location.reload();

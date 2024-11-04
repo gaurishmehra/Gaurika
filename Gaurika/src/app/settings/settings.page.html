@@ -9,6 +9,26 @@
 
 <ion-content>
   <ion-list>
+    <ion-item-group>
+      <ion-item-divider>
+        <ion-label>Personalized Learning</ion-label>
+      </ion-item-divider>
+    
+      <ion-item>
+        <ion-label>Enable Personalized Learning</ion-label>
+        <ion-toggle [(ngModel)]="isLearning" (ionChange)="onPersonalizedLearningToggleChange()"></ion-toggle>
+      </ion-item>
+    
+      <ion-item *ngIf="isLearning">
+        <ion-label position="stacked">Learned User Information</ion-label>
+        <ion-textarea 
+          [(ngModel)]="learnedUserInfo" 
+          readonly
+          rows="4"
+          placeholder="The AI will learn about you during conversations...">
+        </ion-textarea>
+      </ion-item>
+    </ion-item-group>
 
     <ion-item-group>
       <ion-item-divider>
