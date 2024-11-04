@@ -11,9 +11,14 @@
   <ion-list>
     <ion-item-group>
       <ion-item-divider>
-        <ion-label>Personalized Learning</ion-label>
+        <ion-label>Features - Unstable [DOES NOT WORK WITH MULTIMODAL MODELS]</ion-label>
       </ion-item-divider>
-    
+
+      <ion-item>
+        <ion-label>Enable Web Grounding</ion-label>
+        <ion-toggle [(ngModel)]="isWebGroundingEnabled" (ionChange)="onWebGroundingToggleChange()"></ion-toggle>
+      </ion-item>
+
       <ion-item>
         <ion-label>Enable Personalized Learning</ion-label>
         <ion-toggle [(ngModel)]="isLearning" (ionChange)="onPersonalizedLearningToggleChange()"></ion-toggle>
@@ -23,21 +28,20 @@
         <ion-label position="stacked">Learned User Information</ion-label>
         <ion-textarea 
           [(ngModel)]="learnedUserInfo" 
-          readonly
           rows="4"
-          placeholder="The AI will learn about you during conversations...">
-        </ion-textarea>
-      </ion-item>
-    </ion-item-group>
-
-    <ion-item-group>
-      <ion-item-divider>
-        <ion-label>Features - Unstable</ion-label>
-      </ion-item-divider>
-
-      <ion-item>
-        <ion-label>Enable Web Grounding</ion-label>
-        <ion-toggle [(ngModel)]="isWebGroundingEnabled" (ionChange)="onWebGroundingToggleChange()"></ion-toggle>
+          placeholder="Enter or modify learned information..."
+        ></ion-textarea>
+        <ion-note color="medium" class="ion-padding-top">
+          Warning: Manually editing this information may affect the AI's understanding of your preferences.
+        </ion-note>
+        <ion-buttons slot="end">
+          <ion-button fill="clear" (click)="clearLearnedInfo()">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" (click)="saveLearnedInfo()">
+            <ion-icon name="save-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-item>
 
     </ion-item-group>

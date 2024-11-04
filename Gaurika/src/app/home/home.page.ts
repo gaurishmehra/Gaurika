@@ -41,6 +41,12 @@ interface Message {
   generatedImages?: string[];
 }
 
+interface LearningToolCall {
+  action: 'add' | 'remove';
+  information: string;
+  reason?: string;
+}
+
 interface MessagePart {
   type: 'text' | 'code';
   content: string;
@@ -125,6 +131,9 @@ export class HomePage implements OnInit {
   // Add these properties
   editingSessionIndex: number | null = null;
   editedSessionName: string = '';
+
+  isLearning = false;
+  learnedUserInfo = '';
   
   templateSearchInput = '';
   
@@ -224,6 +233,8 @@ export class HomePage implements OnInit {
     await this.storage.create();
     this.isImageGenEnabled = 
     (await this.storage.get('isImageGenEnabled')) || false;
+    this.isLearning = (await this.storage.get('isLearning')) || false;
+    this.learnedUserInfo = (await this.storage.get('learnedUserInfo')) || '';
 
     const storedModel = await this.storage.get('model');
     const storedSystemPrompt = await this.storage.get('systemPrompt');
@@ -1224,6 +1235,121 @@ export class HomePage implements OnInit {
       await runConversation();
     }
 
+    else if (this.isLearning) {
+      this.messages.push({ role: 'user', content: messageContent });
+    
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'learningtool',
+            description: 'Use this tool to save or remove important information about the user for personalized interactions',
+            parameters: {
+              type: 'object',
+              properties: {
+                action: {
+                  type: 'string',
+                  enum: ['add', 'remove'],
+                  description: 'Whether to add new information or remove existing information',
+                },
+                information: {
+                  type: 'string',
+                  description: 'The information to add or remove about the user',
+                },
+                reason: {
+                  type: 'string',
+                  description: 'Optional reason for adding or removing this information',
+                },
+              },
+              required: ['action', 'information'],
+            },
+          },
+        },
+      ];
+    
+      const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
+        const systemPromptWithLearning = this.isLearning
+          ? `${this.systemPrompt} Note that you may call the learningtool to save or remove important information about the user for more personalized interactions.`
+          : this.systemPrompt;
+    
+        const messagesToSend = isInitialCall
+          ? this.messages
+          : [...this.messages, ...toolMessages];
+    
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(systemPromptWithLearning
+                ? [{ role: 'system', content: systemPromptWithLearning }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+    
+          let assistantMessage = { role: 'assistant', content: '' };
+          this.messages.push(assistantMessage);
+    
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+    
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
+              if (toolCall.function.name === 'learningtool') {
+                const args: LearningToolCall = JSON.parse(toolCall.function.arguments);
+    
+                // Show "Processing..." message in the UI
+                this.messages.push({
+                  role: 'assistant',
+                  content: 'Learning Tool is processing...',
+                  tool_call_id: toolCall.id,
+                });
+    
+                if (args.information) {
+                  const learningResult = await this.learningtool(args);
+                  console.log('learningtool:', args);
+    
+                  // Remove the processing message
+                  this.messages = this.messages.filter(
+                    (m) => m.tool_call_id !== toolCall.id
+                  );
+    
+                  const toolMessage: Message = {
+                    role: 'tool',
+                    name: 'Learning Tool',
+                    content: learningResult,
+                    tool_call_id: toolCall.id,
+                  };
+    
+                  await runConversation(false, [toolMessage]);
+                  return;
+                }
+              }
+            }
+    
+            this.content.scrollToBottom(300);
+          }
+    
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+    
+        } catch (error) {
+          console.error('Error in learning tool:', error);
+          await this.showErrorToast('Sorry, I encountered an error while processing user information.');
+        }
+      };
+    
+      await runConversation();
+    }
+
      else {
       this.messages.push({ role: 'user', content: messageContent });
 
@@ -1289,6 +1415,40 @@ export class HomePage implements OnInit {
     this.content.scrollToBottom(300);
   }
 
+  async learningtool(args: LearningToolCall): Promise<string> {
+    try {
+      const currentInfo = await this.storage.get('learnedUserInfo') || '';
+      let updatedInfo = currentInfo;
+  
+      if (args.action === 'add') {
+        // Add new information while avoiding duplicates
+        const newInfo = args.information.trim();
+        if (!currentInfo.includes(newInfo)) {
+          updatedInfo = currentInfo ? `${currentInfo}\n${newInfo}` : newInfo;
+        }
+      } else if (args.action === 'remove') {
+        // Remove specific information
+        const lines = currentInfo.split('\n');
+        updatedInfo = lines
+          .filter((line: string) => !line.includes(args.information))
+          .join('\n');
+      }
+  
+      await this.storage.set('learnedUserInfo', updatedInfo);
+      
+      // Update system prompt with learned information
+      const basePrompt = await this.storage.get('systemPrompt');
+      const updatedPrompt = `${basePrompt}\n\nLearned information about the user:\n${updatedInfo}`;
+      await this.storage.set('systemPrompt', updatedPrompt);
+  
+      return args.action === 'add'
+        ? `Successfully learned: ${args.information}`
+        : `Successfully removed information about: ${args.information}`;
+    } catch (error) {
+      console.error('Error in learning tool:', error);
+      throw new Error('Failed to process learning operation');
+    }
+  }
 
   async imagetool(description: string): Promise<string> {
     const together = new OpenAI({baseURL:"https://api.gaurish.xyz/api/together/v1/", apiKey:"aaa", dangerouslyAllowBrowser:true});

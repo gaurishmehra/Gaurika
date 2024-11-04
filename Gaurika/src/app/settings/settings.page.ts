@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Storage } from '@ionic/storage-angular';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { AddApiKeyModalComponent } from '../add-api-key-modal/add-api-key-modal.component';
 import { AddApiProviderModalComponent } from '../add-api-provider-modal/add-api-provider-modal.component';
@@ -54,7 +54,8 @@ export class SettingsPage implements OnInit {
     private router: Router,
     private storage: Storage,
     private modalController: ModalController,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
+    private toastController: ToastController  // Add this line
   ) {}
 
   async ngOnInit() {
@@ -101,12 +102,78 @@ export class SettingsPage implements OnInit {
       this.isImageGenEnabled = false;
     }
   }
-  onPersonalizedLearningToggleChange() {
-    if (!this.isLearning) {
-      this.learnedUserInfo = '';
-      this.saveSettings();
+  async saveLearnedInfo() {
+    try {
+      // Save the manually edited learned information
+      await this.storage.set('learnedUserInfo', this.learnedUserInfo);
+      
+      // Update the system prompt to reflect manual changes
+      const basePrompt = this.systemPrompt.split('\n\nLearned information about the user:')[0];
+      const updatedPrompt = this.learnedUserInfo 
+        ? `${basePrompt}\n\nLearned information about the user:\n${this.learnedUserInfo}`
+        : basePrompt;
+      
+      await this.storage.set('systemPrompt', updatedPrompt);
+      this.systemPrompt = updatedPrompt;
+
+      const toast = await this.toastController.create({
+        message: 'Learned information updated successfully PLEASE CLICK SAVE SETTINGS',
+        duration: 5000,
+        position: 'bottom',
+        color: 'success'
+      });
+      toast.present();
+      
+    } catch (error) {
+      console.error('Error saving learned info:', error);
+      const toast = await this.toastController.create({
+        message: 'Error updating learned information ',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      toast.present();
     }
   }
+
+  async clearLearnedInfo() {
+    try {
+      // Clear the learned information
+      this.learnedUserInfo = '';
+      await this.storage.set('learnedUserInfo', '');
+      
+      // Reset system prompt to remove learned information section
+      const basePrompt = this.systemPrompt.split('\n\nLearned information about the user:')[0];
+      await this.storage.set('systemPrompt', basePrompt);
+      this.systemPrompt = basePrompt;
+
+      const toast = await this.toastController.create({
+        message: 'Learned information cleared successfully PLEASE CLICK SAVE SETTINGS',
+        duration: 5000,
+        position: 'bottom',
+        color: 'success'
+      });
+      toast.present();
+      
+    } catch (error) {
+      console.error('Error clearing learned info:', error);
+      const toast = await this.toastController.create({
+        message: 'Error clearing learned information',
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger'
+      });
+      toast.present();
+    }
+  }
+
+  async onPersonalizedLearningToggleChange() {
+    if (!this.isLearning) {
+      await this.clearLearnedInfo();
+    }
+    await this.saveSettings();
+  }
+  
 
 
   ionViewDidEnter() {
