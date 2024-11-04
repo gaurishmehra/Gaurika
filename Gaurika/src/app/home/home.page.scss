@@ -31,6 +31,27 @@ $font-family: 'Inter', sans-serif;
   transition: $property $duration $easing;
 }
 
+$text-sizes: (
+  xs: 0.75rem,
+  sm: 0.875rem,
+  base: 1rem,
+  lg: 1.125rem,
+  xl: 1.25rem,
+  '2xl': 1.5rem,
+  '3xl': 1.875rem,
+  '4xl': 2.25rem,
+  '5xl': 3rem
+);
+
+// Mixins
+@mixin text-gradient {
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
 @keyframes rotatingBorder {
   0% {
     clip-path: inset(0 0 90% 0);
@@ -295,7 +316,7 @@ ion-item {
     align-items: center;
 
     ion-input {
-      --background: #{rgba($background-light, 0.5)};
+      --background: #{rgba($background-light, 0)};
       --color: #{$text-color};
       --placeholder-color: #{$muted-text};
       --placeholder-opacity: 0.8;
@@ -1048,202 +1069,287 @@ ion-buttons {
   }
 }
 // Templates/Landing Page Styles
-
 .landing-page {
   color: $text-color;
   background-color: $background-dark;
-  height: 100%;
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;  // Changed to column for vertical layout
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-x: hidden;
+
+  ion-searchbar {
+    margin: 1.5rem auto;
+    max-width: 600px;
+    width: 90%;
+    --background: rgba(255, 255, 255, 0.08);
+    --color: $text-color;
+    --placeholder-color: $muted-text;
+    --icon-color: $secondary-color;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    &::part(native) {
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+    }
+
+    &:focus-within {
+      --background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+      transition: all 0.3s ease;
+    }
+  }
 }
 
 .hero-section {
-  padding: 2rem;
-  background: linear-gradient(135deg, rgba($secondary-color, 0.9), rgba($secondary-color, 0.75));
-  text-align: center; // Center content
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
+  padding: 3rem 2rem;
+  background: linear-gradient(
+    135deg,
+    rgba($secondary-color, 0.95),
+    rgba($secondary-color, 0.8),
+    rgba($primary-color, 0.7)
+  );
+  text-align: center;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
   .hero-content {
-    // Styling for content within hero section
+    max-width: 800px;
+    margin: 0 auto;
+
     .brand-logo {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 1rem; /* Adjust spacing as needed */
-    
-      // Optional: Add animation
-      animation: logoPulse 2s infinite; // Example animation, customize as desired
-    }
-    
-    .brand-logo img {
-      width: auto;   // Maintain aspect ratio
-      height: 4rem;  // Set a fixed height or adjust as needed
-      // Optional: Smooth transitions for hover effects, etc.
-      transition: transform 0.2s ease-in-out;
-    
-      &:hover {
-        transform: scale(1.05); // Slight scale up on hover
+      margin-bottom: 2rem;
+      
+      img {
+        width: auto;
+        height: 5rem;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        &:hover {
+          transform: scale(1.08) rotate(5deg);
+          filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+        }
       }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+
+      animation: float 3s ease-in-out infinite;
     }
-    
-    @keyframes logoPulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); } // Adjust scale factor
-      100% { transform: scale(1); }
-    }
+
     .hero-title {
-      font-size: 2.5rem;
-      font-weight: 700;
+      font-size: map-get($text-sizes, '5xl');
+      font-weight: 800;
       margin-bottom: 1rem;
       color: $text-color;
+      letter-spacing: -0.02em;
+      @include text-gradient;
     }
+
     .hero-subtitle {
-      font-size: 1.2rem;
-      color: $muted-text;
-      margin-bottom: 2rem;
+      font-size: map-get($text-sizes, 'xl');
+      color: rgba($text-color, 0.9);
+      margin-bottom: 2.5rem;
+      font-weight: 500;
     }
+
     .hero-title, 
     .hero-subtitle {
-      text-align: center;      // Also center text within title/subtitle elements
-      white-space: nowrap;
-      overflow: hidden;
-      width: 0;
-      animation: typing 1s steps(100, end) forwards;
-      margin: 0 auto; // Center block-level elements
-       display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.8s ease forwards;
     }
 
     .hero-subtitle {
-      animation-delay: 1s;
-      opacity: 0;
-      animation: typing-subtitle 1.25s steps(100, end) forwards 1s;
+      animation-delay: 0.3s;
     }
-    @keyframes typing {
-      from { width: 0; }
-      to { width: 100%; }
-    }
-    
-    @keyframes typing-subtitle {
-      from { width: 0; opacity: 0; }
-      to { width: 100%; opacity: 1; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   }
 }
 
-
-.templates-section, .features-section {
-  padding: 2rem;
+.templates-section {
+  padding: 3rem 2rem;
   background: $background-dark;
-}
+  position: relative;
 
-.section-title {
-  font-size: 2rem;
-  font-weight: 600;
-  color: $text-color;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.section-subtitle {
-  font-size: 1.1rem;
-  color: $muted-text;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-
-.templates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); // Adjust minmax as needed
-  gap: 1rem;
-
-  .template-card {
-    @include rounded-corners;
-    @include snappy-transition;
-    padding: 1.5rem;
-    background-color: rgba($background-light, 0.5);
-    border: 1px solid rgba($accent-color, 0.1);
-    cursor: pointer;
-    display: flex;          // Make card content flexible
-    flex-direction: column; // Stack content vertically
-    min-height: 150px;      // Ensure a minimum height for better layout
-
-    &.featured {
-        border: 2px solid $secondary-color;
-        background: linear-gradient(135deg, rgba($secondary-color, 0.2), rgba($primary-color, 0.2));
-    }
-
-    &:hover {
-      transform: scale(0.98);
-      border-color: rgba($secondary-color, 0.3);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-content {
-      flex-grow: 1;           // Allow content to grow and take up available space
-      display: flex;
-      flex-direction: column;
-      justify-content: center; // Center content vertically
-
-      ion-icon {
-        font-size: 2rem;
-        color: $accent-color;
-        margin-bottom: 1rem;
-      }
-
-      h3 {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: $text-color;
-        margin-bottom: 0.5rem;
-      }
-
-      p {
-        font-size: 0.9rem;
-        color: $muted-text;
-      }
-    }
-
-    .card-action {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end; // Align to the right
-      margin-top: 1rem;
-
-      span {
-        font-size: 0.9rem;
-        color: $secondary-color;
-        margin-right: 0.5rem;
-      }
-
-      ion-icon {
-        font-size: 1rem;
-        color: $secondary-color;
-      }
-    }
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba($secondary-color, 0.5),
+      transparent
+    );
   }
 }
+
 .templates-grid {
   display: grid;
-  gap: 1rem; // Set your desired gap between cards
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
 
   @media (min-width: 768px) {
-    // Use minmax() to prevent excessive spacing between cards
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    // justify-content: center; // Align the grid items to the center
-    // Optional: limit the overall width of the grid on very large screens.
-    max-width: 800px; // Adjust this value as needed
-    margin: 0 auto;   // Center the grid horizontally
-    // Or set specific padding or margin to .templates-section/.templates-grid
-    padding: 0 20px; 
-    }
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .template-card {
-    &.featured {
-        border: 2px solid $secondary-color;
-        background: linear-gradient(135deg, rgba($secondary-color, 0.2), rgba($primary-color, 0.2));
+  @include glass-effect;
+  padding: 1.75rem;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.featured {
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, 
+      rgba($secondary-color, 0.3),
+      rgba($primary-color, 0.2)
+    );
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 16px;
+      padding: 2px;
+      background: linear-gradient(135deg, $secondary-color, $primary-color);
+      -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+      mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
     }
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+    ion-icon {
+      transform: scale(1.1) rotate(5deg);
+      color: $secondary-color;
+    }
+  }
+
+      .card-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+
+        ion-icon {
+          font-size: map-get($text-sizes, '3xl');
+          color: $accent-color;
+          transition: all 0.3s ease;
+        }
+
+        h3 {
+          font-size: map-get($text-sizes, 'xl');
+          font-weight: 700;
+          color: $text-color;
+          letter-spacing: -0.01em;
+          margin: 0;
+        }
+      }
+
+      .card-description {
+        font-size: map-get($text-sizes, 'base');
+        color: $muted-text;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+
+      .card-prompt {
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba($accent-color, 0.1);
+
+        .prompt-label {
+          display: block;
+          font-size: map-get($text-sizes, 'xs');
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: rgba($secondary-color, 0.8);
+          margin-bottom: 0.5rem;
+          font-weight: 600;
+        }
+
+        .prompt-text {
+          font-size: map-get($text-sizes, 'sm');
+          color: rgba($muted-text, 0.8);
+          line-height: 1.4;
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+  }
+}
+
+.no-results {
+  text-align: center;
+  grid-column: 1 / -1;
+  padding: 3rem;
+  @include glass-effect;
+  border-radius: 16px;
+
+  ion-icon {
+    font-size: map-get($text-sizes, '3xl');
+    color: $muted-text;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: map-get($text-sizes, 'lg');
+    color: $muted-text;
+  }
 }

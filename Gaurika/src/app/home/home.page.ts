@@ -56,6 +56,12 @@ interface ActionSheetButton {
   disabled?: boolean;
 }
 
+interface Template {
+  name: string;
+  prompt: string;
+  description: string;
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -119,23 +125,69 @@ export class HomePage implements OnInit {
   // Add these properties
   editingSessionIndex: number | null = null;
   editedSessionName: string = '';
-
-  templateConversations: { name: string; prompt: string }[] = [
+  
+  templateSearchInput = '';
+  
+  templateConversations: Template[] = [
     {
       name: 'Creative Writing',
-      prompt:
-        'Write a short story about a talking cat who goes on an adventure.',
+      prompt: 'Write a short story about a magical library.',
+      description: 'Get help with creative writing including stories, poems, and scripts.'
     },
     {
-      name: 'Code Generation',
-      prompt:
-        'Generate Python code for a function that calculates the factorial of a number.',
+      name: 'Programming Help',
+      prompt: 'Help me write a function to reverse a string in Python.',
+      description: 'Get assistance with coding problems across different programming languages.'
     },
     {
       name: 'Physics',
-      prompt: 'What is the theory of general relativity and how is it different from the theory of special relativity?',
+      prompt: 'Explain how gravity works in simple terms.',
+      description: 'Learn about physics concepts with clear explanations and examples.'
     },
+    {
+      name: 'Chemistry',
+      prompt: 'What happens when you mix baking soda and vinegar?',
+      description: 'Understand chemical reactions and molecular structures simply.'
+    },
+    {
+      name: 'History',
+      prompt: 'What were the main causes of World War II?',
+      description: 'Explore historical events and their impact on our world.'
+    },
+    {
+      name: 'Math / Problem Solving',
+      prompt: 'Help me solve this equation: 2x + 5 = 13',
+      description: 'Get step-by-step help with math problems at any level.'
+    },
+    {
+      name: 'Business',
+      prompt: 'How do I write a simple business plan?',
+      description: 'Learn about business planning, strategy, and analysis.'
+    },
+    {
+      name: 'Language',
+      prompt: 'Teach me 5 basic Punjabi greetings.',
+      description: 'Practice new languages and learn essential phrases.'
+    },
+    {
+      name: 'Environmental Science',
+      prompt: 'What are 3 things I can do to help the environment?',
+      description: 'Learn about environmental issues and sustainability.'
+    },
+    {
+      name: 'Data Analysis',
+      prompt: 'How do I calculate the average of these numbers: 4, 8, 15, 16, 23, 42?',
+      description: 'Get help analyzing and understanding data.'
+    },
+    {
+      name: 'Music',
+      prompt: 'Explain what makes a major scale different from a minor scale.',
+      description: 'Learn music fundamentals, theory, and composition basics.'
+    }
   ];
+  
+  filteredTemplates: Template[] = [...this.templateConversations];
+  
 
   constructor(
     private router: Router,
@@ -261,6 +313,22 @@ export class HomePage implements OnInit {
 
   renderMarkdown(text: string): string {
     return this.md.render(text); 
+  }
+
+
+  filterTemplates() {
+    if (!this.templateSearchInput) {
+      this.filteredTemplates = [...this.templateConversations];
+    } else {
+      this.filteredTemplates = this.templateConversations.filter(template => {
+        return template.name.toLowerCase().includes(this.templateSearchInput.toLowerCase()) ||
+               template.description.toLowerCase().includes(this.templateSearchInput.toLowerCase());
+      });
+    }
+  }
+  
+  startQuickChat() {
+    this.startConversation({ name: 'Quick Start', prompt: '', description: '' });
   }
 
   async showFileContext(content: string) {
@@ -756,7 +824,7 @@ export class HomePage implements OnInit {
     }
   }
 
-  async startConversation(template: { name: string; prompt: string }) {
+  async startConversation(template: Template) {
     this.showTemplatesPage = false;
   
     // Create new session

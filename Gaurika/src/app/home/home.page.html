@@ -101,56 +101,67 @@
   [class.sidebar-open]="isSidebarOpen" 
   [class.right-sidebar-open]="isRightSidebarOpen">
   <div class="content-container">
-    <!-- Templates Page -->
-    <!-- Templates Page / Landing Page -->
-<div *ngIf="showTemplatesPage" class="landing-page">
-  <!-- Hero Section -->
-  <div class="hero-section">
-    <div class="hero-content">
-            
-    <div class="brand-logo">
-      <img src="../../assets/icon/favicon.png" alt="Gaurika Logo" width="100" height="100">  </div>   
-      <h1 class="hero-title">Gaurika</h1>
-      <p class="hero-subtitle">Your AI-powered Helper</p>
-    </div>
-  </div>
-
-  <!-- Templates Grid Section -->
-  <div class="templates-section">
-    <h2 class="section-title">Start a Conversation</h2>
-    <p class="section-subtitle">Select a template or start from scratch</p>
+    <div *ngIf="showTemplatesPage" class="landing-page">
+      <div class="hero-section">
+        <div class="hero-content">
+          <div class="brand-logo">
+            <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
+          </div>
+          <h1 class="hero-title">Gaurika</h1>
+          <p class="hero-subtitle">Your AI-powered Helper</p>
+          <ion-searchbar 
+            [(ngModel)]="templateSearchInput" 
+            (ionInput)="filterTemplates()" 
+            placeholder="Search templates..." 
+            showCancelButton="focus" 
+            animated>
+          </ion-searchbar>
+        </div>
+      </div>
     
-    <div class="templates-grid">
-      <!-- Quick Start Card -->
-      <div class="template-card featured" (click)="startConversation({name: 'Quick Start', prompt: ''})">
-        <div class="card-content">
-          <ion-icon name="rocket-outline"></ion-icon>
-          <h3>Quick Start</h3>
-          <p>Begin a fresh conversation with Gaurika</p>
-        </div>
-        <div class="card-action">
-          <span>Get Started</span>
-          <ion-icon name="arrow-forward-outline"></ion-icon>
-        </div>
-      </div>
-
-      <!-- Template Cards -->
-      <div *ngFor="let template of templateConversations" 
-           class="template-card"
-           (click)="startConversation(template)">
-        <div class="card-content">
-          <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
-          <h3>{{template.name}}</h3>
-          <p>{{template.prompt}}</p>
-        </div>
-        <div class="card-action">
-          <span>Select</span>
-          <ion-icon name="arrow-forward-outline"></ion-icon>
+      <div class="templates-section">
+        <div class="templates-grid">
+          <!-- Quick Start Card -->
+          <div class="template-card featured" (click)="startQuickChat()">
+            <div class="card-content">
+              <div class="card-header">
+                <ion-icon name="rocket-outline"></ion-icon>
+                <h3>Quick Start</h3>
+              </div>
+              <p class="card-description">Start a fresh conversation</p>
+              <div class="card-prompt">
+                <span class="prompt-label">Prompt : </span>
+                <p class="prompt-text">[Ask anything you want!]</p>
+              </div>
+            </div>
+          </div>
+    
+          <!-- Template Cards -->
+          <div *ngFor="let template of filteredTemplates" 
+               class="template-card" 
+               (click)="startConversation(template)">
+            <div class="card-content">
+              <div class="card-header">
+                <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
+                <h3>{{ template.name }}</h3>
+              </div>
+              <p class="card-description">{{ template.description }}</p>
+              <div class="card-prompt">
+                <span class="prompt-label">Prompt : </span>
+                <p class="prompt-text">{{ template.prompt }}</p>
+              </div>
+            </div>
+          </div>
+    
+          <!-- No Results Message -->
+          <div *ngIf="filteredTemplates.length === 0 && templateSearchInput" 
+               class="no-results">
+            <ion-icon name="search-outline"></ion-icon>
+            <p>No templates found matching "{{ templateSearchInput }}"</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
     <!-- Chat Page -->
     <div *ngIf="!showTemplatesPage && currentSessionIndex >= 0" class="chat-page">
