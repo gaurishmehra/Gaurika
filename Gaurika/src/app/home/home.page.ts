@@ -1879,7 +1879,6 @@ async copyCode(code: string) {
 }
 
   showTemplatesAndRefresh() {
-    this.showTemplates(); // Use the updated showTemplates method
     window.location.reload();
   }
 
