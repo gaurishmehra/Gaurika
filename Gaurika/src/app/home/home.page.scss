@@ -454,6 +454,7 @@ pre {
     margin: 0;
     display: block;
     line-height: 1.5;
+    background-color: $background-light;
   }
 }
 
@@ -784,6 +785,7 @@ ion-buttons {
       overflow-x: auto; 
       white-space: pre-wrap; // Enable word wrap within the <pre> element
       word-wrap: break-word;
+      
   
       // Avoid overriding highlight.js default styles:
       &.hljs { // Target only <pre> with class "hljs"
@@ -801,6 +803,7 @@ ion-buttons {
         margin: 0;
         display: block;
         line-height: 1.5;
+
       }
     
 

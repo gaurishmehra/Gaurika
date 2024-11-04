@@ -616,7 +616,7 @@ export class HomePage implements OnInit {
           currentPart = { 
             type: 'code', 
             content: '', 
-            language: language || 'plaintext',
+            language: language || 'Text',
             startIndex: lineNumber 
           };
           isInCodeBlock = true;
