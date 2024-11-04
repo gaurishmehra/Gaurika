@@ -734,12 +734,14 @@ export class HomePage implements OnInit {
     }
   }
 
-  loadCurrentSession() {
+  async loadCurrentSession() {
     this.showTemplatesPage = false;
-    // Only load messages if there's a valid session
     if (this.currentSessionIndex >= 0 && this.currentSessionIndex < this.sessions.length) {
       this.messages = this.sessions[this.currentSessionIndex].messages;
       this.currentSessionName = this.sessions[this.currentSessionIndex].name;
+
+      // Refresh system prompt from storage
+      this.systemPrompt = await this.storage.get('systemPrompt') || ''; // Get updated prompt
     } else {
       this.messages = [];
       this.currentSessionName = '';
@@ -755,20 +757,20 @@ export class HomePage implements OnInit {
   }
 
   switchSession(index: number, event?: Event) {
-    // If editing a session name, don't switch sessions
     if (this.editingSessionIndex !== null) {
       return;
     }
-  
+
     if (!this.isMultimodalEnabled && this.sessions[index].messages.some(m => m.image)) {
       this.showErrorToast('This session contains images and cannot be accessed with the current model. Please enable multimodal mode in settings.');
       return;
     }
-  
+
     this.currentSessionIndex = index;
-    this.loadCurrentSession();
+    this.loadCurrentSession();  // This will now refresh the prompt
     this.toggleSidebar();
   }
+
 
   deleteSession(index: number) {
     if (this.sessions.length > 1) {
