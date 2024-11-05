@@ -106,8 +106,8 @@
         <div class="hero-content">
           <div class="brand-logo">
             <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
+            <h1 class="hero-title">aurika</h1>
           </div>
-          <h1 class="hero-title">Gaurika</h1>
           <p class="hero-subtitle">Your AI-powered Helper</p>
           <ion-searchbar 
             [(ngModel)]="templateSearchInput" 
@@ -169,10 +169,11 @@
         <ion-item *ngFor="let message of getFilteredMessages(); let i = index">
           <ion-label [class.user-message]="message.role === 'user'"
                     [class.assistant-message]="message.role === 'assistant'">
-            <span class="message-sender">
-              <ion-icon [name]="message.role === 'user' ? 'person-circle-outline' : 'desktop-outline'" class="mr-2"></ion-icon>
-              {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
-            </span>
+                    <span class="message-sender">
+                      <img *ngIf="message.role === 'assistant'" src="../../assets/icon/favicon.png" alt="Gaurika Logo" class="message-icon">
+                      <ion-icon *ngIf="message.role === 'user'" name="person-circle-outline" class="message-icon"></ion-icon>
+                      {{ message.role === 'user' ? 'User :' : 'aurika :' }} <!-- Removed "Gaurika" text -->
+                    </span>
 
             <!-- Assistant Message Content -->
             <div *ngIf="message.role === 'assistant'" class="message-content">
@@ -217,29 +218,21 @@
                          color="danger">
                 <ion-icon name="trash-outline"></ion-icon>
               </ion-button>
-              <ion-button *ngIf="message.role === 'assistant'"
+            </ion-buttons>
+            <ion-button *ngIf="message.role === 'assistant'"
                          (click)="showAssistantMessageOptions(message, i)"
-                         fill="clear">
+                         fill="clear"
+                         class="ass-butt">
                 <ion-icon name="ellipsis-vertical"></ion-icon>
               </ion-button>
-            </ion-buttons>
           </ion-label>
         </ion-item>
 
         <!-- Writing Indicator -->
-        <!-- Replace the existing writing indicator with this -->
-        <ion-item *ngIf="isStreaming">
-          <ion-label class="writing-message">
-            <div class="brand-logo">
-              <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
-            </div>
-            <span class="message-sender">
-              <ion-icon name="desktop-outline" class="mr-2"></ion-icon>
-              Writing...
-            </span>
-            <p class="message-content"></p>
-          </ion-label>
-        </ion-item>
+        <div class="brand-logo-bottom" 
+        [class.spinning]="isStreaming"  *ngIf="getFilteredMessages().length > 0">
+     <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
+   </div>
       </ion-list>
     </div>
 

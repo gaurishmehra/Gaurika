@@ -30,7 +30,14 @@ $font-family: 'Inter', sans-serif;
 @mixin snappy-transition($property: all, $duration: 0.2s, $easing: cubic-bezier(0.6, 0, 0.4, 1.2)) {
   transition: $property $duration $easing;
 }
-
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 $text-sizes: (
   xs: 0.75rem,
   sm: 0.875rem,
@@ -45,7 +52,7 @@ $text-sizes: (
 
 // Mixins
 @mixin text-gradient {
-  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  background: linear-gradient(135deg, #ff006f, $primary-color);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -968,7 +975,7 @@ ion-buttons {
     max-width: 800px;
     margin: 0 auto;
 
-    .brand-logo {
+    .brand-logo{
       display: flex;
       justify-content: center;
       align-items: center;
@@ -979,11 +986,6 @@ ion-buttons {
         height: 5rem;
         filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        
-        &:hover {
-          transform: scale(1.08) rotate(5deg);
-          filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
-        }
       }
 
       @keyframes float {
@@ -991,7 +993,7 @@ ion-buttons {
         50% { transform: translateY(-10px); }
       }
 
-      animation: float 3s ease-in-out infinite;
+      animation: float 0s ease-in-out infinite;
     }
 
     .hero-title {
@@ -1242,13 +1244,14 @@ ion-item {
         font-size: 20px;
         margin-right: 8px;
         position: relative;
-        // top: 1px; // Fine-tune vertical alignment
+      }
+      .message-icon{
+        width: 24px;
       }
     }
 
     &.user-message {
       background: linear-gradient(135deg, rgba($primary-color, 0.3), rgba($primary-color, 0.2));
-      border-top-left-radius: 0;
 
       &::before {
         content: '';
@@ -1273,7 +1276,12 @@ ion-item {
     &.assistant-message {
       color: $text-color;
       background: linear-gradient(135deg, rgba($secondary-color, 0.3), rgba($secondary-color, 0.2));
-      border-top-right-radius: 0;
+      .ass-butt {
+        position: absolute;
+        top: 5px; /* Adjust as needed */
+        right: 5px;   /* Adjust as needed */
+        color: $text-color;
+      }
 
       &::before {
         content: '';
@@ -1319,14 +1327,6 @@ ion-item {
         margin-bottom: 0;
       }
 
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
 
       &::before {
         content: '';
@@ -1411,6 +1411,61 @@ ion-item {
   }
 }
 
+// Update message options button positioning
+.message-options {
+  position: static !important;
+  justify-content: flex-end;
+  margin-top: 8px;
+  
+  ion-button {
+    --background: transparent;
+    --color: $accent-color;
+    margin: 0 2px;
+
+    &:hover {
+      --background: rgba($accent-color, 0.15);
+    }
+
+    ion-icon {
+      font-size: 18px;
+      margin: 0;
+    }
+  }
+}
+
+// Add bottom brand logo styles
+.brand-logo-bottom {
+  display: flex;
+  justify-content: left;
+  align-items: start;
+  margin: 20px 0;
+  padding: 10px;
+  opacity: 1;
+  
+  img {
+    width: 50px;
+    height: 50px;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      // opacity: 1;
+      transform: rotate(360deg);
+    }
+  }
+}
+
+// Remove the old absolute positioning for buttons
+ion-label {
+  ion-buttons {
+    &:not(.message-options) {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+  }
+}
+
 // Bottom bar icon alignment
 .bottom-toolbar {
   ion-input {
@@ -1428,4 +1483,7 @@ ion-item {
       margin: 0;
     }
   }
+}
+.brand-logo-bottom.spinning img {
+  animation: spin 0.5s linear infinite;
 }
