@@ -170,9 +170,8 @@
           <ion-label [class.user-message]="message.role === 'user'"
                     [class.assistant-message]="message.role === 'assistant'">
                     <span class="message-sender">
-                      <img *ngIf="message.role === 'assistant'" src="../../assets/icon/favicon.png" alt="Gaurika Logo" class="message-icon">
-                      <ion-icon *ngIf="message.role === 'user'" name="person-circle-outline" class="message-icon"></ion-icon>
-                      {{ message.role === 'user' ? 'User :' : ' :' }} <!-- Removed "Gaurika" text -->
+                      <ion-icon [name]="message.role === 'user' ? 'person-circle-outline' : 'desktop-outline'" class="mr-2"></ion-icon>
+                      {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
                     </span>
 
             <!-- Assistant Message Content -->
