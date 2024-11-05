@@ -106,8 +106,8 @@
         <div class="hero-content">
           <div class="brand-logo">
             <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
-            <h1 class="hero-title">aurika</h1>
           </div>
+          <h1 class="hero-title">Gaurika</h1>
           <p class="hero-subtitle">Your AI-powered Helper</p>
           <ion-searchbar 
             [(ngModel)]="templateSearchInput" 
@@ -172,7 +172,7 @@
                     <span class="message-sender">
                       <img *ngIf="message.role === 'assistant'" src="../../assets/icon/favicon.png" alt="Gaurika Logo" class="message-icon">
                       <ion-icon *ngIf="message.role === 'user'" name="person-circle-outline" class="message-icon"></ion-icon>
-                      {{ message.role === 'user' ? 'User :' : 'aurika :' }} <!-- Removed "Gaurika" text -->
+                      {{ message.role === 'user' ? 'User :' : ' :' }} <!-- Removed "Gaurika" text -->
                     </span>
 
             <!-- Assistant Message Content -->

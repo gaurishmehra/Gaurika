@@ -979,11 +979,10 @@ ion-buttons {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 2rem;
       
       img {
         width: auto;
-        height: 5rem;
+        height: 4rem;
         filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
@@ -993,7 +992,7 @@ ion-buttons {
         50% { transform: translateY(-10px); }
       }
 
-      animation: float 0s ease-in-out infinite;
+      animation: float 2s ease-in-out;
     }
 
     .hero-title {
