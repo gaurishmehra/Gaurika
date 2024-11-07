@@ -715,6 +715,14 @@ ion-header {
 
 ion-label {
   color: $text-color;
+  position: relative;
+  .message-timestamp {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 0.75rem;
+    color: $muted-text;
+  }
 }
 
 ion-button {
@@ -1250,7 +1258,14 @@ ion-item {
     }
 
     &.user-message {
-      background: linear-gradient(135deg, rgba($primary-color, 0.3), rgba($primary-color, 0.2));
+      // background: linear-gradient(135deg, rgba($primary-color, 0.3), rgba($primary-color, 0.2));
+      background: $background-light;
+      .user-butt {
+        position: absolute;
+        top: 5px; /* Adjust as needed */
+        right: 5px;   /* Adjust as needed */
+        color: $text-color;
+      }
 
       &::before {
         content: '';
@@ -1274,7 +1289,9 @@ ion-item {
 
     &.assistant-message {
       color: $text-color;
-      background: linear-gradient(135deg, rgba($secondary-color, 0.3), rgba($secondary-color, 0.2));
+      // background: linear-gradient(135deg, rgba($secondary-color, 0.3), rgba($secondary-color, 0.2));
+      
+      background: rgba($primary-color, 0.2);
       .ass-butt {
         position: absolute;
         top: 5px; /* Adjust as needed */
@@ -1485,4 +1502,42 @@ ion-label {
 }
 .brand-logo-bottom.spinning img {
   animation: spin 0.5s linear infinite;
+}
+
+.message-timestamp {
+  font-size: 0.8em;
+  color: var(--ion-color-medium);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.message-options-button {
+  opacity: 0.6;
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.edit-message-container {
+  width: 100%;
+  
+  .edit-message-input {
+    border: 1px solid var(--ion-color-medium);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+    min-height: 60px;
+    background: var(--ion-color-light);
+  }
+
+  .edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+  }
 }

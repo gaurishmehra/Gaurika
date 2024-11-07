@@ -39,6 +39,7 @@ interface Message {
   isToolCallInProgress?: boolean
   name?: string;
   generatedImages?: string[];
+  // timestamp?: Date;
 }
 
 interface LearningToolCall {
@@ -136,6 +137,9 @@ export class HomePage implements OnInit {
   learnedUserInfo = '';
   
   templateSearchInput = '';
+
+  isUserMessageOptionsOpen = false;  // Add this
+  userActionSheetButtons: ActionSheetButton[] = []; // Add this
   
   templateConversations: Template[] = [
     {
@@ -326,6 +330,107 @@ export class HomePage implements OnInit {
     return this.md.render(text); 
   }
 
+  async showUserMessageOptions(message: Message, index: number) { // Add this method
+    // Only allow editing the latest user message
+    const isLatestUserMessage = this.isLatestUserMessage(index);
+    
+    this.isUserMessageOptionsOpen = true;
+    this.userActionSheetButtons = [
+      {
+        text: 'Edit Message',
+        icon: 'create',
+        handler: () => {
+          if (isLatestUserMessage) {
+            this.startEditUserMessage(index);
+          } else {
+            this.showErrorToast('You can only edit the latest message.');
+          }
+        }
+      },
+      {
+        text: 'Copy Message',
+        icon: 'copy',
+        handler: async () => {
+          if (message.content) {
+            try {
+              await Clipboard.write({
+                string: message.content
+              });
+              const toast = await this.toastController.create({
+                message: 'Message copied to clipboard',
+                duration: 2000,
+                position: 'top',
+                color: 'success'
+              });
+              toast.present();
+            } catch (error) {
+              console.error('Failed to copy message:', error);
+              const toast = await this.toastController.create({
+                message: 'Failed to copy message',
+                duration: 2000,
+                position: 'top',
+                color: 'danger'
+              });
+              toast.present();
+            }
+          }
+        }
+      },
+      {
+        text: 'Delete',
+        role: 'destructive',
+        icon: 'trash',
+        handler: () => this.deleteMessage(index)
+      },
+      {
+        text: 'Cancel',
+        role: 'cancel',
+        icon: 'close'
+      }
+    ];
+    
+    this.isUserMessageOptionsOpen = true;
+  }
+
+  isLatestUserMessage(index: number): boolean {
+    for (let i = index + 1; i < this.messages.length; i++) {
+      if (this.messages[i].role === 'user') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  startEditUserMessage(index: number) {
+    this.editingUserMessageIndex = index;
+    this.editingUserMessageContent = this.messages[index].content;
+  }
+
+  async saveUserMessageEdit(index: number) {
+    if (this.editingUserMessageContent.trim() === '') {
+      await this.showErrorToast('Message cannot be empty');
+      return;
+    }
+
+    // Update the message content
+    this.messages[index].content = this.editingUserMessageContent;
+
+    // Remove all subsequent messages (assistant responses)
+    this.messages = this.messages.slice(0, index + 1);
+
+    // Reset editing state
+    this.editingUserMessageIndex = null;
+    this.editingUserMessageContent = '';
+
+    // Trigger new assistant response
+    this.isStreaming = true;
+    await this.sendMessage(true); // Add a parameter to indicate this is a redo
+  }
+
+  cancelUserMessageEdit() {
+    this.editingUserMessageIndex = null;
+    this.editingUserMessageContent = '';
+  }
 
   filterTemplates() {
     if (!this.templateSearchInput) {
@@ -591,7 +696,6 @@ export class HomePage implements OnInit {
     this.isSidebarOpen = !this.isSidebarOpen;
     this.isSidebarManuallyOpened = this.isSidebarOpen; // Update manual open status
   }
-
 
   extractCodeFromLine(line: string): string {
     const codeStartIndex = line.indexOf('```');
@@ -894,7 +998,7 @@ export class HomePage implements OnInit {
     }
   }
 
-  async sendMessage() {
+  async sendMessage(isRedo: boolean = false) {
     if (!this.client) {
       await this.initializeOpenAIClient();
       if (!this.client) {
@@ -904,7 +1008,7 @@ export class HomePage implements OnInit {
     }
 
     const messageContent = this.userInput.trim();
-    if (messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex].fileContext) return;
+    if (!isRedo && messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex].fileContext) return;
 
     // If starting a new conversation from templates or if no sessions exist, create a new session
     if (this.showTemplatesPage || this.sessions.length === 0) {
@@ -929,7 +1033,7 @@ export class HomePage implements OnInit {
       // Create a new message for each file
       this.messages.push({
         role: 'user',
-        content: messageContent + (messageContent ? "\n\n" : "") + `File Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}` 
+        content: messageContent + (messageContent ? "\n\n" : "") + `File Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`,
       });
   
       try {
@@ -943,7 +1047,7 @@ export class HomePage implements OnInit {
           stream: true,
         });
 
-        let assistantMessage: Message = { role: 'assistant', content: '' };
+        let assistantMessage: Message = { role: 'assistant', content: ''};
         this.messages.push(assistantMessage);
 
         for await (const part of response) {
@@ -996,7 +1100,7 @@ export class HomePage implements OnInit {
           stream: true,
         });
 
-        let assistantMessage: Message = { role: 'assistant', content: '' };
+        let assistantMessage: Message = { role: 'assistant', content: ''};
         this.messages.push(assistantMessage);
 
         for await (const part of response) {
@@ -1020,7 +1124,7 @@ export class HomePage implements OnInit {
       }
 
     }  else if (this.isWebGroundingEnabled) {
-      this.messages.push({ role: 'user', content: messageContent });
+      this.messages.push({ role: 'user', content: messageContent});
     
       const tools = [
         {
@@ -1066,7 +1170,7 @@ export class HomePage implements OnInit {
             tools: isInitialCall ? tools : undefined,
           });
     
-          let assistantMessage = { role: 'assistant', content: '' };
+          let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
           this.messages.push(assistantMessage);
     
           for await (const part of response) {
@@ -1127,7 +1231,7 @@ export class HomePage implements OnInit {
     } 
 
     else if (this.isImageGenEnabled) {
-      this.messages.push({ role: 'user', content: messageContent });
+      this.messages.push({ role: 'user', content: messageContent});
     
       const tools = [
         {
@@ -1172,7 +1276,7 @@ export class HomePage implements OnInit {
             tools: isInitialCall ? tools : undefined,
           });
     
-          let assistantMessage = { role: 'assistant', content: '' };
+          let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
           this.messages.push(assistantMessage);
     
           for await (const part of response) {
@@ -1238,7 +1342,7 @@ export class HomePage implements OnInit {
     }
 
     else if (this.isLearning) {
-      this.messages.push({ role: 'user', content: messageContent });
+      this.messages.push({ role: 'user', content: messageContent});
     
       const tools = [
         {
@@ -1292,7 +1396,7 @@ export class HomePage implements OnInit {
             tools: isInitialCall ? tools : undefined,
           });
     
-          let assistantMessage = { role: 'assistant', content: '' };
+          let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
           this.messages.push(assistantMessage);
     
           for await (const part of response) {
@@ -1353,7 +1457,7 @@ export class HomePage implements OnInit {
     }
 
      else {
-      this.messages.push({ role: 'user', content: messageContent });
+      this.messages.push({ role: 'user', content: messageContent});
 
       this.abortController = new AbortController();
 
@@ -1370,7 +1474,7 @@ export class HomePage implements OnInit {
           stream: true
         });
 
-        let assistantMessage = { role: 'assistant', content: '' };
+        let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
         this.messages.push(assistantMessage);
 
         for await (const part of response) {
@@ -1635,118 +1739,6 @@ export class HomePage implements OnInit {
     this.isEditingMessage = true;
   }
 
-  async applyMagicSelectChanges(index: number, changes: string) {
-    this.isMagicSelectionMode = false;
-    this.isMagicDoneButtonVisible = false;
-    this.isEditingMessage = false;
-
-    const originalMessage = this.messages[index].content;
-    const lines = originalMessage.split('\n');
-
-    let selectedText = "";
-    let isInCodeBlock = false;
-    let codeBlockLines: number[] = [];
-
-
-    lines.forEach((line, i) => {
-      if (line.trim().startsWith('```')) {
-        isInCodeBlock = !isInCodeBlock;
-        if (isInCodeBlock) {
-          codeBlockLines.push(i);
-        }
-      } else if (isInCodeBlock) {
-        codeBlockLines.push(i);
-      }
-    });
-
-
-    this.selectedLines.forEach(lineNumber => {
-      if (codeBlockLines.includes(lineNumber)) {
-
-        const firstCodeBlockLine = codeBlockLines.find(lineNum => this.selectedLines.includes(lineNum));
-
-        if (firstCodeBlockLine !== undefined) {
-          const codeBlockStartIndex = codeBlockLines.indexOf(firstCodeBlockLine);
-          const codeBlockEndIndex = codeBlockLines.lastIndexOf(firstCodeBlockLine);
-
-
-          for (let i = codeBlockStartIndex; i <= codeBlockEndIndex; i++) {
-            if (!this.selectedLines.includes(codeBlockLines[i])) {
-              this.selectedLines.push(codeBlockLines[i]);
-            }
-          }
-        }
-      }
-    });
-
-
-    this.selectedLines = [...new Set(this.selectedLines)].sort((a, b) => a - b);
-
-
-    this.selectedLines.forEach(lineNumber => {
-      selectedText += lines[lineNumber] + "\n";
-    });
-
-    this.isStreaming = true;
-    this.isStreamStopped = false;
-
-    try {
-      const contextMessages = this.messages.slice(0, index).map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-
-      const response = await this.client.chat.completions.create({
-        messages: [
-          ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-          ...contextMessages,
-          {
-            role: 'user',
-            content: `Original response: "${originalMessage}"
-
-I want to specifically edit these lines:
-${selectedText}
-
-Changes to make: ${changes}
-
-Please provide the COMPLETE updated response, with ONLY the specified lines edited. Keep all other parts of the response exactly the same. Make sure to properly handle any code blocks, preserving their formatting. DO not mention this is an update or anything of that nature.`
-          }
-        ],
-        model: this.model,
-        temperature: 0.75,
-        stream: true
-      });
-
-      let newContent = ' ';
-
-      for await (const part of response) {
-        if (this.isStreamStopped) break;
-
-        if (part.choices[0].delta?.content) {
-          newContent += part.choices[0].delta.content;
-          this.messages[index].content = newContent;
-        }
-
-        this.content.scrollToBottom(300);
-      }
-
-      if (this.isStreamStopped) {
-        this.messages[index].content += " [aborted]";
-      }
-
-    } catch (error) {
-      console.error('Error updating message:', error);
-      await this.showErrorToast('Sorry, I encountered an error updating the message.');
-      this.messages[index].content = originalMessage;
-    } finally {
-      this.isStreaming = false;
-      this.saveCurrentSession();
-      this.selectedLines = [];
-      this.editMessageInput = ' ';
-      this.selectedAssistantMessageIndex = undefined;
-    }
-  }
-
   async applyMessageChanges(index: number, changes: string) {
     this.isEditingMessage = false;
     const originalMessage = this.messages[index].content;
@@ -1808,50 +1800,61 @@ Please provide the COMPLETE updated response, with ONLY the specified lines edit
   }
 
   async redoAssistantMessage(index: number) {
-    if (index === this.messages.length - 1) {
-      this.retryLastAssistantMessage();
+    // Find the preceding user message
+    let userMessageIndex = -1;
+    for (let i = index - 1; i >= 0; i--) {
+      if (this.messages[i].role === 'user') {
+        userMessageIndex = i;
+        break;
+      }
+    }
+
+    if (userMessageIndex === -1) {
+      await this.showErrorToast('Cannot redo: No user message found.');
       return;
     }
-  
-    const messagesToSend = this.messages.slice(0, index);
+
+    // Get messages up to and including the user message
+    const messagesToSend = this.messages.slice(0, userMessageIndex + 1);
     const originalMessage = this.messages[index].content;
-  
+
     this.isStreaming = true;
     this.isStreamStopped = false;
-  
+
     try {
       const response = await this.client.chat.completions.create({
         messages: [
           ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-          ...messagesToSend // No need to modify messagesToSend as file content is already embedded
+          ...messagesToSend 
         ],
         model: this.model,
         temperature: 0.75,
         stream: true
       });
-  
-      let newContent = '';
-  
+
+      // Remove all messages after the user message
+      this.messages = this.messages.slice(0, userMessageIndex + 1);
+      
+      let assistantMessage = { role: 'assistant', content: '' };
+      this.messages.push(assistantMessage);
+
       for await (const part of response) {
         if (this.isStreamStopped) break;
-  
+
         if (part.choices[0].delta?.content) {
-          newContent += part.choices[0].delta.content;
-  
-          this.messages[index].content = newContent;
+          assistantMessage.content += part.choices[0].delta.content;
         }
-  
+
         this.content.scrollToBottom(300);
       }
-  
+
       if (this.isStreamStopped) {
-        this.messages[index].content += " [aborted]";
+        assistantMessage.content += " [aborted]";
       }
-  
+
     } catch (error) {
       console.error('Error redoing message:', error);
       await this.showErrorToast('Sorry, I encountered an error redoing the message.');
-  
       this.messages[index].content = originalMessage;
     } finally {
       this.isStreaming = false;
@@ -1955,5 +1958,8 @@ async copyCode(code: string) {
     this.editingSessionIndex = null;
     this.editedSessionName = '';
   }
+
+  editingUserMessageIndex: number | null = null;
+  editingUserMessageContent: string = '';
 
 }

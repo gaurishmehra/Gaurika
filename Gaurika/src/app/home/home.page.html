@@ -193,31 +193,46 @@
                      [src]="image" 
                      class="generated-image" />
               </div>
+              <!-- Time Stamp -->
+              <!-- <div class="message-timestamp">
+                {{ message.timestamp | date: 'shortTime' }}
+              </div> -->
             </div>
 
             <!-- User Message Content -->
             <div *ngIf="message.role === 'user'" class="message-content">
-              <div [innerHTML]="renderMarkdown(getDisplayContent(message.content))"></div>
-              <ion-button *ngIf="hasFileContext(message.content)"
-                         fill="clear"
-                         size="large"
-                         (click)="showFileContext(message.content)"
-                         class="file-preview">
-                <ion-icon name="document-text-outline" class="mr-2"></ion-icon>
-                <span class="file-preview-name">{{ extractFileNameFromContent(message.content) }}</span>
+              <!-- Edit mode -->
+              <div *ngIf="editingUserMessageIndex === i" class="edit-message-container">
+                <ion-textarea
+                  [(ngModel)]="editingUserMessageContent"
+                  auto-grow="true"
+                  class="edit-message-input">
+                </ion-textarea>
+                <div class="edit-actions">
+                  <ion-button fill="clear" color="success" (click)="saveUserMessageEdit(i)">
+                    <ion-icon name="checkmark-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="danger" (click)="cancelUserMessageEdit()">
+                    <ion-icon name="close-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+              
+              <!-- Display mode -->
+              <div *ngIf="editingUserMessageIndex !== i">
+                <div [innerHTML]="renderMarkdown(getDisplayContent(message.content))"></div>
+                <!-- Rest of your existing user message content -->
+              </div>
+            
+              <!-- Remove condition to show options for all messages -->
+              <ion-button
+                (click)="showUserMessageOptions(message, i)"
+                fill="clear"
+                class="user-butt">
+                <ion-icon name="ellipsis-vertical"></ion-icon>
               </ion-button>
-              <img *ngIf="message.image" [src]="message.image" class="message-image" />
             </div>
 
-            <!-- Message Actions -->
-            <ion-buttons slot="end">
-              <ion-button *ngIf="message.role === 'user'"
-                         (click)="deleteMessage(i)"
-                         fill="clear"
-                         color="danger">
-                <ion-icon name="trash-outline"></ion-icon>
-              </ion-button>
-            </ion-buttons>
             <ion-button *ngIf="message.role === 'assistant'"
                          (click)="showAssistantMessageOptions(message, i)"
                          fill="clear"
@@ -309,7 +324,7 @@
     <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
   </ion-item>
   <div class="dialog-actions">
-    <ion-button (click)="applyMagicSelectChanges(selectedAssistantMessageIndex, editMessageInput)">
+    <ion-button (click)="applyMessageChanges(selectedAssistantMessageIndex, editMessageInput)">
       <ion-icon name="checkmark-outline" class="mr-2"></ion-icon>
       Apply Changes
     </ion-button>
@@ -325,4 +340,11 @@
   [isOpen]="isAssistantMessageOptionsOpen"
   (didDismiss)="isAssistantMessageOptionsOpen = false"
   [buttons]="actionSheetButtons">
+</ion-action-sheet>
+
+<!-- User Message Options Action Sheet -->
+<ion-action-sheet
+  [isOpen]="isUserMessageOptionsOpen"
+  (didDismiss)="isUserMessageOptionsOpen = false"
+  [buttons]="userActionSheetButtons">
 </ion-action-sheet>
