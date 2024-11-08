@@ -158,6 +158,7 @@
                class="no-results">
             <ion-icon name="search-outline"></ion-icon>
             <p>No templates found matching "{{ templateSearchInput }}"</p>
+            <p>Try searching for another keyword or ask a question directly!</p>
           </div>
         </div>
       </div>
@@ -301,35 +302,38 @@
   </ng-container>
 </div>
 
-<!-- Edit Message Dialog -->
-<div id="editMessageDialog" 
-     class="custom-dialog" 
-     *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
-  <div class="message-being-edited">
-    <ion-label class="assistant-message">
-      <div *ngFor="let line of messages[selectedAssistantMessageIndex].content.split('\n'); let j = index"
-           [ngClass]="{ 'selected-line': isLineSelected(j) }">
-        <ng-container *ngIf="line.trim().startsWith('```')">
-          <pre><code>{{ line.substring(3).trim() }}</code></pre>
-        </ng-container>
-        <ng-container *ngIf="!line.trim().startsWith('```')">
-          {{ line }}
-        </ng-container>
-      </div>
-    </ion-label>
+<!-- Add backdrop div just before the dialog -->
+<div class="dialog-backdrop" *ngIf="isEditingMessage"></div>
+
+<!-- Replace existing edit message dialog -->
+<div id="editMessageDialog" *ngIf="isEditingMessage && selectedAssistantMessageIndex !== undefined">
+  <div class="dialog-header">
+    <h2>
+      <ion-icon name="create-outline"></ion-icon>
+      Get a refined response
+    </h2>
   </div>
+  
+  <div class="message-being-edited">
+    {{ messages[selectedAssistantMessageIndex].content }}
+  </div>
+  
   <ion-item>
-    <ion-icon name="create-outline" slot="start" class="mr-2"></ion-icon>
-    <ion-label position="floating">Edit Selected Lines</ion-label>
-    <ion-input [(ngModel)]="editMessageInput" placeholder="Enter your changes"></ion-input>
+    <ion-label position="stacked">How should I modify this response?</ion-label>
+    <ion-input 
+      [(ngModel)]="editMessageInput" 
+      placeholder="Describe your desired changes..."
+      autofocus>
+    </ion-input>
   </ion-item>
+
   <div class="dialog-actions">
     <ion-button (click)="applyMessageChanges(selectedAssistantMessageIndex, editMessageInput)">
-      <ion-icon name="checkmark-outline" class="mr-2"></ion-icon>
+      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
       Apply Changes
     </ion-button>
-    <ion-button color="danger" (click)="cancelEdit()">
-      <ion-icon name="close-outline" class="mr-2"></ion-icon>
+    <ion-button color="medium" (click)="cancelEdit()">
+      <ion-icon name="close-outline" slot="start"></ion-icon>
       Cancel
     </ion-button>
   </div>

@@ -254,94 +254,186 @@ ion-header {
 
 
 
-// Edit Message Dialog Styles
+// Enhanced Edit Message Dialog
 #editMessageDialog {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: $background-light;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  z-index: 11;
   width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  @include glass-effect(15px, 0.15);
+  max-width: 600px;
+  background: rgba($background-dark, 0.95);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba($secondary-color, 0.1);
+  z-index: 1000;
+  animation: dialogFadeIn 0.3s ease-out;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 
-  @media (min-width: 768px) {
-    padding: 24px;
+  @keyframes dialogFadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -48%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  .dialog-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba($accent-color, 0.2);
+
+    h2 {
+      font-size: 1.25rem;
+      color: $text-color;
+      margin: 0;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-icon {
+        color: $secondary-color;
+        font-size: 1.4rem;
+      }
+    }
   }
 
   .message-being-edited {
-    background-color: rgba($secondary-color, 0.1);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 16px;
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    background: rgba($background-light, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid rgba($accent-color, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: $muted-text;
 
-    ion-label {
-      color: $text-color;
-      font-size: 1.1rem;
-      white-space: pre-wrap;
-      margin: 10px;
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba($accent-color, 0.2);
+      border-radius: 3px;
     }
   }
 
   ion-item {
     --background: transparent;
-    margin-bottom: 16px;
+    --border-color: rgba($accent-color, 0.2);
+    --border-radius: 12px;
+    --padding-start: 0;
+    margin-bottom: 24px;
+    width: 100%;
 
     ion-label {
+      // margin-bottom: 8px;
       color: $text-color;
-      margin: 10px;
+      font-weight: 500;
+      width: 100%;
+      // margin-top: 20px;
+      margin-bottom: 20px;
     }
 
     ion-input {
-      --background: rgba($primary-color, 0.15);
+      --background: rgba($background-light, 0.3);
       --color: $text-color;
-      --placeholder-color: $muted-text;
+      --padding-start: 16px;
+      --padding-end: 16px;
+      --placeholder-color: rgba($text-color, 0.5);
+      min-height: 50px;
       border-radius: 12px;
-      font-size: 1.1rem;
-      margin: 10px;
+      margin-top: 8px;
+      border: 1px solid rgba($accent-color, 0.2);
+      transition: border-color 0.2s ease;
+      color: $text-color;
+      --color:#{$text-color};
+
+      &:focus {
+        border-color: $secondary-color;
+      }
     }
   }
 
-  ion-button {
-    margin-top: 8px;
-    height: 44px;
-    font-size: 1.1rem;
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
 
-    &:first-of-type {
-      --background: #{$secondary-color};
-      --color: #{$text-color};
-      margin-right: 8px;
+    ion-button {
+      min-width: 120px;
+      height: 44px;
+      font-weight: 500;
+      
+      &:first-child {
+        --background: #{$secondary-color};
+        --color: #{$text-color};
+        
+        &:hover {
+          --background: #{adjust-color($secondary-color, $lightness: 5%)};
+        }
+      }
+      
+      &:last-child {
+        --background: rgba($accent-color, 0.15);
+        --color: #{$accent-color};
+        
+        &:hover {
+          --background: rgba($accent-color, 0.25);
+        }
+      }
+
+      ion-icon {
+        font-size: 18px;
+      }
     }
+  }
 
-    &:last-of-type {
-      --background: rgba($accent-color, 0.2);
-      --color: #{$accent-color};
+  // Mobile optimizations
+  @media (max-width: 576px) {
+    padding: 20px;
+    width: 95%;
+    
+    .dialog-actions {
+      flex-direction: column;
+      
+      ion-button {
+        width: 100%;
+        margin: 0;
+      }
     }
   }
 }
 
-// Retry Button Styles
-.retry-button {
-  --border-radius: 20px;
-  border-radius: 20px;
-  --background: #{$secondary-color};
-  background-color: $secondary-color;
-  width: fit-content;
-  margin: 8px auto;
-  @include snappy-transition;
+// Add a backdrop overlay
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  z-index: 999;
+  animation: backdropFadeIn 0.3s ease-out;
 
-  &:active {
-    transform: scale(0.96);
+  @keyframes backdropFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 }
 
@@ -947,6 +1039,7 @@ ion-buttons {
     max-width: 600px;
     width: 90%;
     --background: rgba(255, 255, 255, 0.08);
+    background-color: transparent;
     --color: $text-color;
     --placeholder-color: $muted-text;
     --icon-color: $secondary-color;
@@ -970,10 +1063,34 @@ ion-buttons {
   padding: 3rem 2rem;
   background: linear-gradient(
     135deg,
-    rgba($secondary-color, 0.95),
-    rgba($secondary-color, 0.8),
+    rgba($secondary-color, 0.7),
+    rgba($secondary-color, 0.6),
+    rgba($secondary-color, 0.5),
+    rgba($secondary-color, 0.4),
+    rgba($secondary-color, 0.3),
+    rgba($secondary-color, 0.2),
+    rgba($secondary-color, 0.1),
+    rgba($primary-color, 0.2),
+    rgba($primary-color, 0.3),
+    rgba($primary-color, 0.4),
+    rgba($primary-color, 0.5),
+    rgba($primary-color, 0.6),
     rgba($primary-color, 0.7)
   );
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
   text-align: center;
   border-bottom-left-radius: 32px;
   border-bottom-right-radius: 32px;
@@ -982,11 +1099,17 @@ ion-buttons {
   .hero-content {
     max-width: 800px;
     margin: 0 auto;
+    background-color: rgba($background-dark, 0.5);
+    // padding: 10px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    @include rounded-corners(25px);
 
     .brand-logo{
       display: flex;
       justify-content: center;
       align-items: center;
+      
       
       img {
         width: auto;

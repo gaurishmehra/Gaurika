@@ -1717,13 +1717,13 @@ export class HomePage implements OnInit {
 
   startEditMessage(index: number) {
     this.selectedAssistantMessageIndex = index;
-    this.editMessageInput = ' ';
+    this.editMessageInput = '';
     this.isEditingMessage = true;
   }
 
   cancelEdit() {
     this.isEditingMessage = false;
-    this.editMessageInput = ' ';
+    this.editMessageInput = '';
   }
 
   startMagicSelect(index: number) {
