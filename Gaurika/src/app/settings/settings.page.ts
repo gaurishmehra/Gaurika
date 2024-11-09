@@ -453,7 +453,7 @@ export class SettingsPage implements OnInit {
 
     const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Default API Provider');
     if (!defaultApiProviderExists) {
-      this.apiProviders.push({ name: 'Default API Provider', baseUrl: '' }); 
+      this.apiProviders.push({ name: 'Default API Provider', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' }); 
     }
 
     const defaultModelExists = this.models.some(model => model.name === 'default');
