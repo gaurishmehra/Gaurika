@@ -41,24 +41,6 @@ interface Message {
   generatedImages?: string[];
   // timestamp?: Date;
 }
-interface Tool {
-  type: 'function';
-  function: {
-    name: string;
-    description: string;
-    parameters: {
-      type: 'object';
-      properties: {
-        [key: string]: {
-          type: string;
-          description?: string;
-          enum?: string[];
-        };
-      };
-      required: string[];
-    };
-  };
-}
 
 interface LearningToolCall {
   action: 'add' | 'remove';
@@ -1026,201 +1008,407 @@ export class HomePage implements OnInit {
     }
 
     const messageContent = this.userInput.trim();
-    if (!isRedo && messageContent === '' && !this.selectedFile && !this.selectedImage && !this.sessions[this.currentSessionIndex].fileContext) return;
+    if (!isRedo && messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex].fileContext) return;
 
+    // If starting a new conversation from templates or if no sessions exist, create a new session
     if (this.showTemplatesPage || this.sessions.length === 0) {
       await this.createNewSessionFromMessage(messageContent);
-      return;
+      return; // The message has already been sent in createNewSessionFromMessage
     }
 
     this.isStreaming = true;
     this.isStreamStopped = false;
 
-    let newMessage: Message = {
-      role: 'user',
-      content: messageContent,
-      image: this.selectedImage || undefined,
-      file: this.selectedFile && !this.selectedFile.type.startsWith('image/')
-        ? {
-            name: this.selectedFile.name,
-            type: this.selectedFile.type,
-            content: await this.readFileAsText(this.selectedFile)
-          }
-        : undefined
-    };
-
-    this.messages.push(newMessage);
+    let imageContent = this.selectedImage;
 
 
-    const tools: Tool[] = []; // Use the defined Tool interface
-    if (this.isWebGroundingEnabled) {
-      tools.push({
-        type: 'function',
-        function: {
-          name: 'webgroundtool',
-          description: "Use this tool to search the web for factual information related to the user's request.",
-          parameters: {
-            type: 'object',
-            properties: {
-              query: {
-                type: 'string',
-                description: 'query to search the web',
-              },
-            },
-            required: ['query'],
-          },
-        },
+    if (this.selectedFile && !this.selectedFile.type.startsWith('image/')) {
+      const fileContent = await this.readFileAsText(this.selectedFile);
+      this.sessions[this.currentSessionIndex].fileContext = {
+        name: this.selectedFile.name,
+        type: this.selectedFile.type,
+        content: fileContent
+      };
+  
+      // Create a new message for each file
+      this.messages.push({
+        role: 'user',
+        content: messageContent + (messageContent ? "\n\n" : "") + `File Context - Title: ${this.selectedFile.name}\nContent: ${fileContent}`,
       });
-    }
-
-    if (this.isImageGenEnabled) {
-      tools.push({
-        type: 'function',
-        function: {
-          name: 'imagetool',
-          description: "Use this tool to generate an image based on the user's description.",
-          parameters: {
-            type: 'object',
-            properties: {
-              description: {
-                type: 'string',
-                description: 'Description of the image to generate',
-              },
-            },
-            required: ['description'],
-          },
-        },
-      });
-    }
-    if (this.isLearning){
-      tools.push({
-        type: 'function',
-        function: {
-          name: 'learningtool',
-          description: 'Use this tool to save or remove important information about the user for personalized interactions',
-          parameters: {
-            type: 'object',
-            properties: {
-              action: {
-                type: 'string',
-                enum: ['add', 'remove'],
-                description: 'Whether to add new information or remove existing information',
-              },
-              information: {
-                type: 'string',
-                description: 'The information to add or remove about the user',
-              },
-              reason: {
-                type: 'string',
-                description: 'Optional reason for adding or removing this information',
-              },
-            },
-            required: ['action', 'information'],
-          },
-        },
-      })
-    }
-
-
-
-    const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
-
-      const combinedSystemPrompt = [
-        this.systemPrompt,
-        this.isWebGroundingEnabled ? 'Note: You can use the webgroundtool to get information from the web.' : '',
-        this.isImageGenEnabled ? 'Note: You can use the imagetool to generate images.' : '',
-        this.isLearning ? 'Note: you can use the learningtool to add or remove info about the user' : ''
-      ].filter(part => part).join('\n\n');
-
-
-      const messagesToSend = isInitialCall
-        ? this.messages
-        : [...this.messages, ...toolMessages];
-
+  
       try {
         const response = await this.client.chat.completions.create({
-          messages: [
-            ...(combinedSystemPrompt ? [{ role: 'system', content: combinedSystemPrompt }] : []),
-            ...messagesToSend
-          ],
           model: this.model,
-          temperature: 0.75,
+          messages: [
+            ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
+            ...this.messages 
+          ],
+          max_tokens: 4096,
           stream: true,
-          tools: isInitialCall && tools.length > 0 ? tools : undefined
         });
 
-        let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
+        let assistantMessage: Message = { role: 'assistant', content: ''};
         this.messages.push(assistantMessage);
-
 
         for await (const part of response) {
           if (this.isStreamStopped) {
             break;
           }
-          if (part.choices[0].delta?.content) {
+
+          if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
             assistantMessage.content += part.choices[0].delta.content;
-          } else if (part.choices[0].delta?.tool_calls) {
-            const toolCall = part.choices[0].delta.tool_calls[0];
+            this.content.scrollToBottom(300);
+          }
+        }
 
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
+        }
 
+      } catch (error) {
+        console.error('Error calling OpenAI API with file:', error);
+        await this.showErrorToast('Sorry, I encountered an error processing your request with the file.');
+      }
+
+    } else if (this.isMultimodalEnabled) {
+      let newMessage: Message = {
+        role: 'user',
+        content: messageContent,
+        image: imageContent || undefined,
+      };
+      this.messages.push(newMessage);
+
+      let apiMessages = await Promise.all(this.messages.map(async (msg) => {
+        if (msg.image) {
+          return {
+            role: msg.role,
+            content: [
+              { type: 'text', text: msg.content },
+              { type: 'image_url', image_url: { url: msg.image } }
+            ]
+          };
+        } else {
+          return { role: msg.role, content: msg.content };
+        }
+      }));
+
+      try {
+        const response = await this.client.chat.completions.create({
+          model: this.model,
+          messages: apiMessages,
+          max_tokens: 4096,
+          stream: true,
+        });
+
+        let assistantMessage: Message = { role: 'assistant', content: ''};
+        this.messages.push(assistantMessage);
+
+        for await (const part of response) {
+          if (this.isStreamStopped) {
+            break;
+          }
+
+          if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
+            this.content.scrollToBottom(300);
+          }
+        }
+
+        if (this.isStreamStopped) {
+          assistantMessage.content += " [aborted]";
+        }
+
+      } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        await this.showErrorToast('Sorry, I encountered an error processing your request.');
+      }
+
+    }  else if (this.isWebGroundingEnabled) {
+      this.messages.push({ role: 'user', content: messageContent});
+    
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'webgroundtool',
+            description: "Use this tool to search the web for factual information related to the user's request.",
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'query to search the web',
+                },
+              },
+              required: ['query'],
+            },
+          },
+        },
+      ];
+    
+      const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
+        // Add the webgroundtool instruction to the system prompt if enabled
+        const systemPromptWithWebGrounding = this.isWebGroundingEnabled
+          ? `${this.systemPrompt} Note that you may call the webgroundtool to gain information on a current topic and or a topic you believe you do not have information on.`
+          : this.systemPrompt;
+    
+        const messagesToSend = isInitialCall
+          ? this.messages
+          : [...this.messages, ...toolMessages];
+    
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(systemPromptWithWebGrounding
+                ? [{ role: 'system', content: systemPromptWithWebGrounding }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+    
+          let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
+          this.messages.push(assistantMessage);
+    
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+    
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
               if (toolCall.function.name === 'webgroundtool') {
                 const args = JSON.parse(toolCall.function.arguments);
                 const query = args.query;
-
+    
+                // Show "Processing..." message in the UI (without isToolCallInProgress)
                 this.messages.push({
                   role: 'assistant',
                   content: 'WebGround Tool is processing...',
                   tool_call_id: toolCall.id,
                 });
-
+    
                 if (query) {
                   const webgroundingResult = await this.webgroundtool(query);
                   console.log('webgroundtool query:', query);
-
+    
                   this.messages = this.messages.filter(
                     (m) => m.tool_call_id !== toolCall.id
                   );
-
+    
                   const toolMessage: Message = {
                     role: 'tool',
                     name: 'WebGround Tool',
                     content: webgroundingResult,
                     tool_call_id: toolCall.id,
                   };
-
+    
                   await runConversation(false, [toolMessage]);
                   return;
                 }
-              } else if (toolCall.function.name === 'imagetool') {
+              }
+            }
+    
+            this.content.scrollToBottom(300);
+          }
+    
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+    
+        } catch (error) {
+          console.error('Error in web grounding1:', error);
+          await this.showErrorToast('Sorry, I encountered an error during web grounding.');
+        }
+      };
+    
+      await runConversation();
+    } 
+
+    else if (this.isImageGenEnabled) {
+      this.messages.push({ role: 'user', content: messageContent});
+    
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'imagetool',
+            description: "Use this tool to generate an image based on the user's description.",
+            parameters: {
+              type: 'object',
+              properties: {
+                description: {
+                  type: 'string',
+                  description: 'Description of the image to generate',
+                },
+              },
+              required: ['description'],
+            },
+          },
+        },
+      ];
+    
+      const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
+        const systemPromptWithImageGen = this.isImageGenEnabled
+          ? `${this.systemPrompt} Note that you may call the imagetool to generate an image.`
+          : this.systemPrompt;
+    
+        const messagesToSend = isInitialCall
+          ? this.messages
+          : [...this.messages, ...toolMessages];
+    
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(systemPromptWithImageGen
+                ? [{ role: 'system', content: systemPromptWithImageGen }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+    
+          let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
+          this.messages.push(assistantMessage);
+    
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+    
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
+              if (toolCall.function.name === 'imagetool') {
                 const args = JSON.parse(toolCall.function.arguments);
                 const description = args.description;
-
+    
                 this.messages.push({
                   role: 'assistant',
                   content: 'Image Tool is processing...',
                   tool_call_id: toolCall.id,
                 });
-
+    
                 if (description) {
                   const imageGenerationResult = await this.imagetool(description);
-
+    
+                  // Find the message with the matching tool_call_id
                   const messageToUpdate = this.messages.find(m => m.tool_call_id === toolCall.id);
-
+    
                   if (messageToUpdate) {
+                    // Remove the "Image Tool is processing..." message
                     this.messages = this.messages.filter(m => m !== messageToUpdate);
-
+    
+                    // Update the content of the assistant message with the image URL or description
                     messageToUpdate.content = this.isMultimodalEnabled
-                      ? imageGenerationResult
-                      : `Image generated with description: ${description}`;
-
-                    messageToUpdate.generatedImages = [imageGenerationResult];
-
+                      ? imageGenerationResult  // Use image URL if multimodal is enabled
+                      : `Image generated with description: ${description}`; // Otherwise, use description
+                    messageToUpdate.generatedImages = [imageGenerationResult]; // Store the image URL
+    
+                    // Add the updated message back to the messages array
                     this.messages.push(messageToUpdate);
+    
+                    // Call runConversation recursively without any tool messages
+                    // await runConversation(false, []); // No tool messages needed here
                     return;
                   }
                 }
               }
-              else if (toolCall.function.name === 'learningtool'){
+            }
+    
+            this.content.scrollToBottom(300);
+          }
+    
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+    
+        } catch (error) {
+          console.error('Error in image generation:', error);
+          await this.showErrorToast('Sorry, I encountered an error during image generation.');
+        }
+      };
+    
+      await runConversation();
+    }
+
+    else if (this.isLearning) {
+      this.messages.push({ role: 'user', content: messageContent});
+    
+      const tools = [
+        {
+          type: 'function',
+          function: {
+            name: 'learningtool',
+            description: 'Use this tool to save or remove important information about the user for personalized interactions',
+            parameters: {
+              type: 'object',
+              properties: {
+                action: {
+                  type: 'string',
+                  enum: ['add', 'remove'],
+                  description: 'Whether to add new information or remove existing information',
+                },
+                information: {
+                  type: 'string',
+                  description: 'The information to add or remove about the user',
+                },
+                reason: {
+                  type: 'string',
+                  description: 'Optional reason for adding or removing this information',
+                },
+              },
+              required: ['action', 'information'],
+            },
+          },
+        },
+      ];
+    
+      const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
+        const systemPromptWithLearning = this.isLearning
+          ? `${this.systemPrompt} Note that you may call the learningtool to save or remove important information about the user for more personalized interactions.`
+          : this.systemPrompt;
+    
+        const messagesToSend = isInitialCall
+          ? this.messages
+          : [...this.messages, ...toolMessages];
+    
+        try {
+          const response = await this.client.chat.completions.create({
+            messages: [
+              ...(systemPromptWithLearning
+                ? [{ role: 'system', content: systemPromptWithLearning }]
+                : []),
+              ...messagesToSend,
+            ],
+            model: this.model,
+            temperature: 0.75,
+            stream: true,
+            tools: isInitialCall ? tools : undefined,
+          });
+    
+          let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
+          this.messages.push(assistantMessage);
+    
+          for await (const part of response) {
+            if (this.isStreamStopped) {
+              break;
+            }
+    
+            if (part.choices[0].delta?.content) {
+              assistantMessage.content += part.choices[0].delta.content;
+            } else if (part.choices[0].delta?.tool_calls) {
+              const toolCall = part.choices[0].delta.tool_calls[0];
+              if (toolCall.function.name === 'learningtool') {
                 const args: LearningToolCall = JSON.parse(toolCall.function.arguments);
     
                 // Show "Processing..." message in the UI
@@ -1250,7 +1438,52 @@ export class HomePage implements OnInit {
                   return;
                 }
               }
+            }
+    
+            this.content.scrollToBottom(300);
+          }
+    
+          if (this.isStreamStopped) {
+            assistantMessage.content += " [aborted]";
+          }
+    
+        } catch (error) {
+          console.error('Error in learning tool:', error);
+          await this.showErrorToast('Sorry, I encountered an error while processing user information.');
+        }
+      };
+    
+      await runConversation();
+    }
 
+     else {
+      this.messages.push({ role: 'user', content: messageContent});
+
+      this.abortController = new AbortController();
+
+      try {
+        const response = await this.client.chat.completions.create({
+          messages: [
+            ...(this.systemPrompt
+              ? [{ role: 'system', content: this.systemPrompt }]
+              : []),
+            ...this.messages,
+          ],
+          model: this.model,
+          temperature: 0.75,
+          stream: true
+        });
+
+        let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
+        this.messages.push(assistantMessage);
+
+        for await (const part of response) {
+          if (this.isStreamStopped) {
+            break;
+          }
+
+          if (part.choices[0].delta?.content) {
+            assistantMessage.content += part.choices[0].delta.content;
           }
 
           this.content.scrollToBottom(300);
@@ -1259,149 +1492,27 @@ export class HomePage implements OnInit {
         if (this.isStreamStopped) {
           assistantMessage.content += " [aborted]";
         }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('Request aborted');
+        } else if (error.response) {
 
-      } catch (error) {
-        console.error('Error in runConversation:', error);
-        await this.showErrorToast('Sorry, I encountered an error processing your request.');
-      }
+          console.error('Server Error:', error.response.data);
+          await this.showErrorToast(`Server Error: ${error.response.data.error.message || 'Unknown error'}`);
+        } else if (error.request) {
 
-    };
-
-    if (this.isMultimodalEnabled && newMessage.image) {
-
-      let apiMessages = await Promise.all(this.messages.map(async (msg) => {
-        if (msg.image) {
-          return {
-            role: msg.role,
-            content: [
-              { type: 'text', text: msg.content },
-              { type: 'image_url', image_url: { url: msg.image } }
-            ]
-          };
-        } else if (msg.file) {
-          return {
-            role: msg.role,
-            content: msg.content // Include file content directly in the message
-          };
+          console.error('Network Error:', error.request);
+          await this.showErrorToast('Network Error: Could not connect to the server.');
         } else {
-          return { role: msg.role, content: msg.content };
+
+          console.error('Client Error:', error.message);
+          await this.showErrorToast(`Client Error: ${error.message}`);
         }
-      }));
-
-      try {
-        const response = await this.client.chat.completions.create({
-          model: this.model,
-          messages: apiMessages,
-          max_tokens: 4096,
-          stream: true,
-          tools: tools.length > 0 ? tools : undefined
-        });
-        // ... (rest of multimodal response handling similar as in runConversation)
-      } catch (error) {
-        console.error('Error calling OpenAI API (multimodal):', error);
-        await this.showErrorToast('Sorry, I encountered an error processing your request.');
+      } finally {
+        this.abortController = null;
       }
-    } else if (newMessage.file || this.sessions[this.currentSessionIndex].fileContext) {
-            try {
-              const response = await this.client.chat.completions.create({
-                model: this.model,
-                messages: [
-                  ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-                  ...this.messages
-                ],
-                max_tokens: 4096,
-                stream: true,
-                tools: tools.length > 0 ? tools : undefined
-              });
+    }
 
-              let assistantMessage: Message = { role: 'assistant', content: '' };
-              this.messages.push(assistantMessage);
-      
-              for await (const part of response) {
-                if (this.isStreamStopped) {
-                  break;
-                }
-      
-                if (part.choices && part.choices[0] && part.choices[0].delta?.content) {
-                  assistantMessage.content += part.choices[0].delta.content;
-                  this.content.scrollToBottom(300);
-                } else if (part.choices[0].delta?.tool_calls) {
-                  const toolCall = part.choices[0].delta.tool_calls[0];
-
-                  if (toolCall.function.name === 'webgroundtool') {
-                    const webArgs = JSON.parse(toolCall.function.arguments);
-                    const webQuery = webArgs.query;
-
-                    if (webQuery) {
-                      const webgroundingResult = await this.webgroundtool(webQuery);
-                      console.log('webgroundtool query:', webQuery);
-      
-                      this.messages = this.messages.filter(
-                        (m) => m.tool_call_id !== toolCall.id
-                      );
-      
-                      const toolMessage: Message = {
-                        role: 'tool',
-                        name: 'WebGround Tool',
-                        content: webgroundingResult,
-                        tool_call_id: toolCall.id,
-                      };
-      
-                      // await runConversation(false, [toolMessage]);
-                      return;
-                    }
-                  } else if (toolCall.function.name === 'imagetool') {
-
-                    const imageArgs = JSON.parse(toolCall.function.arguments);
-                    const imageDescription = imageArgs.description;
-
-                    if (imageDescription) {
-                      const imageGenerationResult = await this.imagetool(imageDescription);
-                
-                      // Find the message with the matching tool_call_id
-                      const messageToUpdate = this.messages.find(m => m.tool_call_id === toolCall.id);
-                
-                      if (messageToUpdate) {
-                        // Remove the "Image Tool is processing..." message
-                        this.messages = this.messages.filter(m => m !== messageToUpdate);
-                
-                        // Update the content of the assistant message with the image URL or description
-                        messageToUpdate.content = this.isMultimodalEnabled
-                          ? imageGenerationResult  // Use image URL if multimodal is enabled
-                          : `Image generated with description: ${imageDescription}`; // Otherwise, use description
-                        messageToUpdate.generatedImages = [imageGenerationResult]; // Store the image URL
-                
-                        // Add the updated message back to the messages array
-                        this.messages.push(messageToUpdate);
-                        return;
-                      }
-                    }
-                  }
-                  else if(toolCall.function.name === 'learningtool'){
-                    const learningArgs = JSON.parse(toolCall.function.arguments);
-
-                    if (learningArgs.information) {
-                    const learningResult = await this.learningtool(learningArgs);
-                  }
-
-                  }
-                }
-      
-            }
-              if (this.isStreamStopped) {
-                assistantMessage.content += " [aborted]";
-              }
-      
-            } catch (error) {
-              console.error('Error calling OpenAI API with file:', error);
-              await this.showErrorToast('Sorry, I encountered an error processing your request with the file.');
-            }
-          }
-          else {
-
-            await runConversation();
-          }
-        
     this.userInput = '';
     this.selectedImage = null;
     this.selectedFile = null;
