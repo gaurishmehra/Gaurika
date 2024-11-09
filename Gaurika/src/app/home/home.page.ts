@@ -150,6 +150,7 @@ export class HomePage implements OnInit {
   learnedUserInfo = '';
   
   templateSearchInput = '';
+  templateSuggestions: Template[] = [];
 
   isUserMessageOptionsOpen = false;  // Add this
   userActionSheetButtons: ActionSheetButton[] = []; // Add this
@@ -214,6 +215,28 @@ export class HomePage implements OnInit {
   
   filteredTemplates: Template[] = [...this.templateConversations];
   
+  // Add these properties to your class
+  popularTopics = [
+    { text: 'Write me Python code for...', icon: 'code-slash-outline' },
+    { text: 'Help me understand...', icon: 'bulb-outline' },
+    { text: 'How do I create...', icon: 'build-outline' },
+    { text: 'Explain the concept of...', icon: 'school-outline' },
+    { text: 'Give me ideas for...', icon: 'sparkles-outline' }
+  ];
+
+  recentSearches = [
+    { text: 'How to implement authentication' },
+    { text: 'Best practices for API design' },
+    { text: 'Tips for improving code performance' }
+  ];
+
+  aiSuggestions = [
+    { text: 'What are the best practices for writing clean code?' },
+    { text: 'Can you help me debug this error...' },
+    { text: 'How can I improve my programming skills?' },
+    { text: 'Explain machine learning concepts in simple terms' },
+    { text: 'What are the latest trends in web development?' }
+  ];
 
   constructor(
     private router: Router,
@@ -302,6 +325,7 @@ export class HomePage implements OnInit {
     const isLightMode = await this.storage.get('isLightMode');
     this.applyTheme(isLightMode === true ? 'light' : 'dark');
 
+    this.templateSuggestions = [...this.templateConversations];
 
   }
 
@@ -446,18 +470,19 @@ export class HomePage implements OnInit {
   }
 
   filterTemplates() {
-    if (!this.templateSearchInput) {
-      this.filteredTemplates = [...this.templateConversations];
+    const searchTerm = this.templateSearchInput.toLowerCase();
+    if (searchTerm) {
+      this.templateSuggestions = this.templateConversations.filter(template =>
+        template.name.toLowerCase().includes(searchTerm) ||
+        template.description.toLowerCase().includes(searchTerm) ||
+        template.prompt.toLowerCase().includes(searchTerm)
+      );
+      // Suggestions will be displayed even if empty
     } else {
-      const searchTerm = this.templateSearchInput.toLowerCase();
-      this.filteredTemplates = this.templateConversations.filter(template => {
-        return template.name.toLowerCase().includes(searchTerm) ||
-               template.description.toLowerCase().includes(searchTerm) ||
-               template.prompt.toLowerCase().includes(searchTerm);
-      });
+      this.templateSuggestions = [...this.templateConversations];
     }
   }
-  
+
   startQuickChat() {
     this.startConversation({ name: 'Quick Start', prompt: '', description: '' });
   }
@@ -1663,5 +1688,29 @@ async copyCode(code: string) {
 
   editingUserMessageIndex: number | null = null;
   editingUserMessageContent: string = '';
+
+  selectSuggestion(suggestion: any) {
+    this.templateSearchInput = suggestion.text;
+    // If you want to immediately start a conversation with this suggestion:
+    this.startConversation({
+      name: 'Quick Chat',
+      prompt: suggestion.text,
+      description: ''
+    });
+  }
+
+  submitSearch() {
+    const searchTerm = this.templateSearchInput.trim();
+    if (searchTerm) {
+      // Start a new chat session with the search term as prompt
+      this.createNewSessionFromMessage(searchTerm);
+      // Clear search input
+      this.templateSearchInput = '';
+      // Hide suggestions window
+      this.templateSuggestions = [];
+    }
+  }
+
+
 
 }

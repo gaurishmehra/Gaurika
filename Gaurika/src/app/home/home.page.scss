@@ -1104,6 +1104,10 @@ ion-buttons {
     padding-top: 30px;
     padding-bottom: 30px;
     @include rounded-corners(25px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 
     .brand-logo{
       display: flex;
@@ -1133,6 +1137,22 @@ ion-buttons {
       color: $text-color;
       letter-spacing: -0.02em;
       @include text-gradient;
+      position: relative;
+      // cursor: help;
+      overflow: visible;
+      display: inline-block;
+      white-space: nowrap;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% center;
+      }
+      100% {
+        background-position: 200% center;
+      }
     }
 
     .hero-subtitle {
@@ -1140,7 +1160,7 @@ ion-buttons {
       color: rgba($text-color, 0.9);
       margin-bottom: 2.5rem;
       font-weight: 500;
-    }
+      padding: 5px;    }
 
     .hero-title, 
     .hero-subtitle {
@@ -1162,6 +1182,137 @@ ion-buttons {
         opacity: 1;
         transform: translateY(0);
       }
+    }
+  }
+
+
+// Update search container positioning
+.search-container {
+  position: relative;
+  max-width: 600px;
+  // margin: 1.5rem auto;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// Update suggestions window positioning and animation
+.suggestions-window {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  background: rgba($background-dark, 0.98);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid rgba($secondary-color, 0.2);
+  animation: slideDown 0.2s ease-out;
+
+  .suggestion-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    background: rgba($background-light, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    border: 1px solid transparent;
+
+    &:hover {
+      transform: translateY(-2px);
+      background: rgba($secondary-color, 0.15);
+      border-color: rgba($secondary-color, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    ion-icon {
+      font-size: 1.5rem;
+      margin-right: 12px;
+      color: $secondary-color;
+    }
+
+    .suggestion-content {
+      flex: 1;
+      .template-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: $text-color;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .template-description {
+        font-size: 0.85rem;
+        color: $muted-text;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .template-prompt {
+        font-size: 0.8rem;
+        color: rgba($secondary-color, 0.8);
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// Styles for suggestion item content
+.suggestion-content {
+  display: flex;
+  flex-direction: column;
+  margin-left: 8px;
+
+  .template-name {
+    font-weight: 600;
+    color: $text-color;
+  }
+
+  .template-description {
+    font-size: 0.9rem;
+    color: $muted-text;
+  }
+
+  .template-prompt {
+    font-size: 0.85rem;
+    color: $muted-text;
+    font-style: italic;
+    margin-top: 4px;
+  }
+}
+
+// Styles when no templates are found
+.no-templates-found {
+  .suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+
+    ion-icon {
+      font-size: 1.2rem;
+      margin-right: 8px;
+      color: $secondary-color;
+    }
+
+    span {
+      color: $text-color;
+    }
+
+    &:hover {
+      background: rgba($secondary-color, 0.15);
     }
   }
 }

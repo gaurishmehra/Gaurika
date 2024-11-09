@@ -107,15 +107,45 @@
           <div class="brand-logo">
             <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
           </div>
-          <h1 class="hero-title">Gaurika</h1>
-          <p class="hero-subtitle">Your AI-powered Helper</p>
-          <ion-searchbar 
-            [(ngModel)]="templateSearchInput" 
-            (ionInput)="filterTemplates()" 
-            placeholder="Search templates..." 
-            showCancelButton="focus" 
-            animated>
-          </ion-searchbar>
+          <h1 class="hero-title">
+            Gaurika
+
+          </h1>
+          <p class="hero-subtitle">Gaurish's Advanced Universal Reasoning Interactive Knowledge Aid</p>
+          
+          <div class="search-container">
+            <ion-searchbar 
+              [(ngModel)]="templateSearchInput" 
+              (ionInput)="filterTemplates()" 
+              (ionClear)="filterTemplates()"
+              (ionSearch)="submitSearch()"
+              placeholder="Search templates or ask anything..." 
+              showCancelButton="focus" 
+              animated>
+            </ion-searchbar>
+            
+            <!-- Suggestions Dropdown -->
+            <div class="suggestions-window" *ngIf="templateSearchInput">
+              <div *ngIf="templateSuggestions.length > 0">
+                <div class="suggestion-item"
+                     *ngFor="let template of templateSuggestions"
+                     (click)="startConversation(template)">
+                  <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
+                  <div class="suggestion-content">
+                    <span class="template-name">{{ template.name }}</span>
+                    <span class="template-description">{{ template.description }}</span>
+                    <span class="template-prompt">{{ template.prompt }}</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="templateSuggestions.length === 0" class="no-templates-found">
+                <div class="suggestion-item" (click)="submitSearch()">
+                  <ion-icon name="chatbubbles-outline"></ion-icon>
+                  <span>Start a new chat with "{{ templateSearchInput }}"</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     
