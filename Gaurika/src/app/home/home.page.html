@@ -222,7 +222,11 @@
               <!-- Display mode -->
               <div *ngIf="editingUserMessageIndex !== i">
                 <div [innerHTML]="renderMarkdown(getDisplayContent(message.content))"></div>
-                <!-- Rest of your existing user message content -->
+                <!-- Add this section to display user images -->
+                <div *ngIf="message.image" class="user-image-container">
+                  <img [src]="message.image" class="user-sent-image" alt="User sent image" />
+                </div>
+                <!-- Rest of existing user message content -->
               </div>
             
               <!-- Remove condition to show options for all messages -->

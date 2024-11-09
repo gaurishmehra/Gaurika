@@ -1664,3 +1664,15 @@ ion-label {
     }
   }
 }
+
+.user-image-container {
+  margin: 10px 0;
+  max-width: 100%;
+  
+  .user-sent-image {
+    max-width: 300px;
+    max-height: 300px;
+    border-radius: 8px;
+    object-fit: contain;
+  }
+}
