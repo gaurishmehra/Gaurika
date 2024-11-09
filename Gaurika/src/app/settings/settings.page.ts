@@ -395,40 +395,6 @@ export class SettingsPage implements OnInit {
       this.isMultimodalEnabled = selectedModel.isMultimodal || false;
     }
 
-    // Update speechToTextApiKey and speechToTextBaseUrl
-    this.updateSpeechToTextSettings();
-    // Update liveLLMApiKey and liveLLMBaseUrl
-    this.updateLiveLLMSettings();
-  }
-
-  updateSpeechToTextSettings() {
-    const speechToTextModelIndex = this.models.findIndex(model => model.value === this.selectedSpeechToTextModel);
-    if (speechToTextModelIndex !== -1) {
-      const apiKeyIndex = this.models[speechToTextModelIndex].apiKeyIndex || 0;
-      const apiProviderIndex = this.models[speechToTextModelIndex].apiProviderIndex || 0;
-      
-      if (!this.speechToTextApiKey) {
-        this.speechToTextApiKey = this.apiKeys[apiKeyIndex].key;
-      }
-      if (!this.speechToTextBaseUrl) {
-        this.speechToTextBaseUrl = this.apiProviders[apiProviderIndex].baseUrl || '';
-      }
-    }
-  }
-
-  updateLiveLLMSettings() {
-    const liveLLMModelIndex = this.models.findIndex(model => model.value === this.selectedLiveLLMModel);
-    if (liveLLMModelIndex !== -1) {
-      const apiKeyIndex = this.models[liveLLMModelIndex].apiKeyIndex || 0;
-      const apiProviderIndex = this.models[liveLLMModelIndex].apiProviderIndex || 0;
-      
-      if (!this.liveLLMApiKey) {
-        this.liveLLMApiKey = this.apiKeys[apiKeyIndex].key;
-      }
-      if (!this.liveLLMBaseUrl) {
-        this.liveLLMBaseUrl = this.apiProviders[apiProviderIndex].baseUrl || '';
-      }
-    }
   }
 
   ensureSelectedIndicesWithinBounds() {
