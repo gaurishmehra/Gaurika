@@ -1100,30 +1100,57 @@ export class HomePage implements OnInit {
     switch (templateName) {
       case 'Creative Writing':
         return 'pencil-outline';
+      case 'Character Development':
+        return 'person-outline';
       case 'Programming / Coding':
         return 'code-slash-outline';
+      case 'Web Development':
+        return 'globe-outline';
       case 'Physics':
         return 'planet-outline';
+      case 'Quantum Mechanics':
+        return 'nuclear-outline';
       case 'Chemistry':
         return 'flask-outline';
+      case 'Organic Chemistry':
+        return 'beaker-outline';
       case 'History':
         return 'book-outline';
+      case 'Ancient Civilizations':
+        return 'school-outline';
       case 'Math / Problem Solving':
         return 'calculator-outline';
+      case 'Statistics':
+        return 'stats-chart-outline';
       case 'Business':
         return 'briefcase-outline';
+      case 'Marketing':
+        return 'megaphone-outline';
       case 'Language':
+        return 'language-outline';
+      case 'Language (French)':
         return 'language-outline';
       case 'Environmental Science':
         return 'leaf-outline';
+      case 'Climate Change':
+        return 'thermometer-outline';
       case 'Data Analysis':
         return 'bar-chart-outline';
+      case 'Machine Learning':
+        return 'hardware-chip-outline';
       case 'Music':
         return 'musical-notes-outline';
+      case 'Music Composition':
+        return 'musical-notes-outline';
+      case 'Art & Drawing':
+        return 'color-palette-outline';
+      case 'Painting Techniques':
+        return 'brush-outline';
       default:
         return 'chatbubbles-outline';
     }
   }
+  
 
   async sendMessage(isRedo: boolean = false) {
     if (!this.client) {
