@@ -52,30 +52,30 @@ $text-sizes: (
 
 // Mixins
 @mixin text-gradient {
-  background: linear-gradient(135deg, #ff006f, $primary-color);
+  background: linear-gradient(135deg, 
+    $secondary-color,
+    adjust-color($secondary-color, $lightness: 15%),
+    $primary-color
+  );
+  background-size: 200% 200%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: gradientMove 5s ease infinite;
 }
 
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
 @keyframes rotatingBorder {
   0% {
     clip-path: inset(0 0 90% 0);
   }
   25% {
-    clip-path: inset(0 0 0 90%);
-  }
-  50% {
-    clip-path: inset(90% 0 0 0);
-  }
-  75% {
-    clip-path: inset(0 90% 0 0);
-  }
-  100% {
-    clip-path: inset(0 0 90% 0);
-  }
-  }
+  }}
 
 
 // Global Styles
@@ -1131,27 +1131,82 @@ ion-buttons {
     }
 
     .hero-title {
-      font-size: map-get($text-sizes, '5xl');
-      font-weight: 800;
-      margin-bottom: 1rem;
-      color: $text-color;
-      letter-spacing: -0.02em;
-      @include text-gradient;
       position: relative;
-      // cursor: help;
-      overflow: visible;
       display: inline-block;
-      white-space: nowrap;
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: 1.5rem 0;
+      cursor: pointer;
+      text-align: center;
+      width: 100%;
+      min-height: 0; // Add minimum height to accommodate both texts
+      
+      .title {
+        display: block;
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(
+          135deg,
+          $secondary-color,
+          adjust-color($secondary-color, $lightness: 15%),
+          $primary-color
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: gradientMove 5s ease infinite;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        transform: translateY(0);
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 1rem;
       }
-    }
 
-    @keyframes shimmer {
-      0% {
-        background-position: -200% center;
+      .full-name {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 90%;
+        max-width: 600px;
+        font-size: 1.8rem;
+        font-weight: 600;
+        background: linear-gradient(
+          135deg,
+          $secondary-color,
+          adjust-color($secondary-color, $lightness: 15%),
+          $primary-color
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        transform: translate(-50%, 20px);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: normal;
+        text-align: center;
+        line-height: 1.4;
+        padding: 0 1rem;
+
+        @media (max-width: 768px) {
+          font-size: 1.4rem;
+          width: 95%;
+        }
       }
-      100% {
-        background-position: 200% center;
+
+      &:hover {
+        .title {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        
+        .full-name {
+          opacity: 1;
+          visibility: visible;
+          transform: translate(-50%, -50%);
+        }
       }
     }
 
@@ -1185,6 +1240,44 @@ ion-buttons {
     }
   }
 
+// ...existing code...
+
+.hero-title {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 3rem;
+  font-weight: 700;
+
+  span {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+
+    &::after {
+      content: attr(data-word);
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      white-space: nowrap;
+      color: $accent-color;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+
+    &:hover {
+      color: transparent;
+
+      &::after {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+}
+}
 
 // Update search container positioning
 .search-container {
@@ -1778,12 +1871,7 @@ ion-label {
   animation: spin 0.5s linear infinite;
 }
 
-.message-timestamp {
-  font-size: 0.8em;
-  color: var(--ion-color-medium);
-  text-align: right;
-  margin-top: 4px;
-}
+
 
 .message-options-button {
   opacity: 0.6;
@@ -1827,3 +1915,46 @@ ion-label {
     object-fit: contain;
   }
 }
+
+// ...existing code...
+.hero-title {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  
+  .title {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    opacity: 1;
+    @include text-gradient;
+    transition: all 0.3s ease;
+  }
+
+  .full-name {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% + 20px));
+    word-wrap: break-word;
+    font-size: 1.5rem;
+    visibility: hidden;
+    @include text-gradient;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &:hover {
+    .title {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    .full-name {
+      visibility: visible;
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+// ...existing code...
