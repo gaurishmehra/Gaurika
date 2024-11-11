@@ -63,10 +63,14 @@ interface ActionSheetButton {
   disabled?: boolean;
 }
 
+// Update the Template interface
 interface Template {
   name: string;
   prompt: string;
   description: string;
+  category: string;
+  icon?: string;
+  tags?: string[];
 }
 
 interface Tool {
@@ -155,88 +159,175 @@ export class HomePage implements OnInit {
   isUserMessageOptionsOpen = false;  // Add this
   userActionSheetButtons: ActionSheetButton[] = []; // Add this
   
-  templateConversations: Template[] = [
+  // Add categories array
+  categories = [
+    { id: 'all', name: 'All', icon: 'grid-outline' },
+    { id: 'creative', name: 'Creative', icon: 'pencil-outline' },
+    { id: 'development', name: 'Development', icon: 'code-slash-outline' },
+    { id: 'academic', name: 'Academic', icon: 'school-outline' },
+    { id: 'business', name: 'Business', icon: 'briefcase-outline' },
+    { id: 'language', name: 'Language', icon: 'language-outline' }
+  ];
+
+  selectedCategory = 'all';
+
+  // Update your template data with categories
+  templateConversations = [
     {
       name: 'Creative Writing',
       prompt: 'Write a short story about a magical library.',
-      description: 'Get help with creative writing including stories, poems, and scripts.'
+      description: 'Get help with creative writing including stories, poems, and scripts.',
+      category: 'creative',
+      tags: ['creative', 'story']
+    },
+    {
+      name: 'Character Development',
+      prompt: 'Help me develop a complex character for my novel.',
+      description: 'Explore methods for building characters with depth and backstory.',
+      category: 'creative',
+      tags: ['character','story']
     },
     {
       name: 'Programming / Coding',
       prompt: 'Help me write a function to reverse a string in Python.',
-      description: 'Get assistance with coding problems across different programming languages.'
+      description: 'Get assistance with coding problems across different programming languages.',
+      category: 'development',
+      tags: ['coding', 'programming', 'technical']
+    },
+    {
+      name: 'Web Development',
+      prompt: 'How do I create a responsive navbar in HTML and CSS?',
+      description: 'Learn about front-end development for creating websites and web apps.',
+      category: 'development',
+      tags: ['HTML', 'CSS', 'responsive design']
     },
     {
       name: 'Physics',
       prompt: 'Explain how gravity works in simple terms.',
-      description: 'Learn about physics concepts with clear explanations and examples.'
+      description: 'Learn about physics concepts with clear explanations and examples.',
+      category: 'academic'
+    },
+    {
+      name: 'Quantum Mechanics',
+      prompt: 'What is quantum entanglement?',
+      description: 'Explore advanced physics concepts with simplified explanations.',
+      category: 'academic'
     },
     {
       name: 'Chemistry',
       prompt: 'What happens when you mix baking soda and vinegar?',
-      description: 'Understand chemical reactions and molecular structures simply.'
+      description: 'Understand chemical reactions and molecular structures simply.',
+      category: 'academic'
+    },
+    {
+      name: 'Organic Chemistry',
+      prompt: 'Explain the basic structure of a carbon ring.',
+      description: 'Dive into organic chemistry structures and their reactions.',
+      category: 'academic'
     },
     {
       name: 'History',
       prompt: 'What were the main causes of World War II?',
-      description: 'Explore historical events and their impact on our world.'
+      description: 'Explore historical events and their impact on our world.',
+      category: 'academic'
+    },
+    {
+      name: 'Ancient Civilizations',
+      prompt: 'What were the major achievements of the Egyptians?',
+      description: 'Discover the cultures and innovations of ancient civilizations.',
+      category: 'academic'
     },
     {
       name: 'Math / Problem Solving',
       prompt: 'Help me solve this equation: 2x + 5 = 13',
-      description: 'Get step-by-step help with math problems at any level.'
+      description: 'Get step-by-step help with math problems at any level.',
+      category: 'academic'
+    },
+    {
+      name: 'Statistics',
+      prompt: 'How do I calculate the standard deviation of a dataset?',
+      description: 'Learn the fundamentals of data statistics and probability.',
+      category: 'academic'
     },
     {
       name: 'Business',
       prompt: 'How do I write a simple business plan?',
-      description: 'Learn about business planning, strategy, and analysis.'
+      description: 'Learn about business planning, strategy, and analysis.',
+      category: 'business'
+    },
+    {
+      name: 'Marketing',
+      prompt: 'What are some effective strategies for social media marketing?',
+      description: 'Get insights into marketing strategies and techniques.',
+      category: 'business'
     },
     {
       name: 'Language',
       prompt: 'Teach me 5 basic Punjabi greetings.',
-      description: 'Practice new languages and learn essential phrases.'
+      description: 'Practice new languages and learn essential phrases.',
+      category: 'language'
+    },
+    {
+      name: 'Language (French)',
+      prompt: 'How do you introduce yourself in French?',
+      description: 'Learn common phrases and basics of the French language.',
+      category: 'language'
     },
     {
       name: 'Environmental Science',
       prompt: 'What are 3 things I can do to help the environment?',
-      description: 'Learn about environmental issues and sustainability.'
+      description: 'Learn about environmental issues and sustainability.',
+      category: 'academic'
+    },
+    {
+      name: 'Climate Change',
+      prompt: 'How does carbon dioxide contribute to climate change?',
+      description: 'Understand the science behind climate change and its effects.',
+      category: 'academic'
     },
     {
       name: 'Data Analysis',
       prompt: 'How do I calculate the average of these numbers: 4, 8, 15, 16, 23, 42?',
-      description: 'Get help analyzing and understanding data.'
+      description: 'Get help analyzing and understanding data.',
+      category: 'academic'
+    },
+    {
+      name: 'Machine Learning',
+      prompt: 'What is supervised learning in machine learning?',
+      description: 'Learn about machine learning concepts and techniques.',
+      category: 'academic'
     },
     {
       name: 'Music',
       prompt: 'Explain what makes a major scale different from a minor scale.',
-      description: 'Learn music fundamentals, theory, and composition basics.'
+      description: 'Learn music fundamentals, theory, and composition basics.',
+      category: 'creative'
+    },
+    {
+      name: 'Music Composition',
+      prompt: 'How do I write a simple melody?',
+      description: 'Get help with creating melodies and harmonies in music composition.',
+      category: 'academic'
+    },
+    {
+      name: 'Art & Drawing',
+      prompt: 'How do I draw a human face with basic proportions?',
+      description: 'Learn foundational drawing techniques and tips for art.',
+      category: 'creative'
+    },
+    {
+      name: 'Painting Techniques',
+      prompt: 'What are some beginner watercolor techniques?',
+      description: 'Discover techniques for various painting mediums.',
+      category: 'creative'
     }
   ];
+  
   
   filteredTemplates: Template[] = [...this.templateConversations];
   
   // Add these properties to your class
-  popularTopics = [
-    { text: 'Write me Python code for...', icon: 'code-slash-outline' },
-    { text: 'Help me understand...', icon: 'bulb-outline' },
-    { text: 'How do I create...', icon: 'build-outline' },
-    { text: 'Explain the concept of...', icon: 'school-outline' },
-    { text: 'Give me ideas for...', icon: 'sparkles-outline' }
-  ];
 
-  recentSearches = [
-    { text: 'How to implement authentication' },
-    { text: 'Best practices for API design' },
-    { text: 'Tips for improving code performance' }
-  ];
-
-  aiSuggestions = [
-    { text: 'What are the best practices for writing clean code?' },
-    { text: 'Can you help me debug this error...' },
-    { text: 'How can I improve my programming skills?' },
-    { text: 'Explain machine learning concepts in simple terms' },
-    { text: 'What are the latest trends in web development?' }
-  ];
 
   constructor(
     private router: Router,
@@ -475,16 +566,13 @@ export class HomePage implements OnInit {
       this.templateSuggestions = this.templateConversations.filter(template =>
         template.name.toLowerCase().includes(searchTerm) ||
         template.description.toLowerCase().includes(searchTerm) ||
-        template.prompt.toLowerCase().includes(searchTerm)
+        template.prompt.toLowerCase().includes(searchTerm) ||
+        template.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
       );
       // Suggestions will be displayed even if empty
     } else {
       this.templateSuggestions = [...this.templateConversations];
     }
-  }
-
-  startQuickChat() {
-    this.startConversation({ name: 'Quick Start', prompt: '', description: '' });
   }
 
   async showFileContext(content: string) {
@@ -1047,10 +1135,10 @@ export class HomePage implements OnInit {
     }
 
     const messageContent = this.userInput.trim();
-    if (!isRedo && messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex].fileContext) return;
+    if (!isRedo && messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex]?.fileContext) return;
 
-    // If starting a new conversation from templates or if no sessions exist, create a new session
-    if (this.showTemplatesPage || this.sessions.length === 0) {
+    // If starting a new conversation (no current session) or from templates, create a new session
+    if (this.currentSessionIndex === -1 || this.showTemplatesPage || this.sessions.length === 0) {
       await this.createNewSessionFromMessage(messageContent);
       return; // The message has already been sent in createNewSessionFromMessage
     }
@@ -1692,16 +1780,6 @@ async copyCode(code: string) {
   editingUserMessageIndex: number | null = null;
   editingUserMessageContent: string = '';
 
-  selectSuggestion(suggestion: any) {
-    this.templateSearchInput = suggestion.text;
-    // If you want to immediately start a conversation with this suggestion:
-    this.startConversation({
-      name: 'Quick Chat',
-      prompt: suggestion.text,
-      description: ''
-    });
-  }
-
   submitSearch() {
     const searchTerm = this.templateSearchInput.trim();
     if (searchTerm) {
@@ -1753,6 +1831,48 @@ async copyCode(code: string) {
       color: color
     });
     toast.present();
+  }
+
+  openDocumentation() {
+    window.open('https://github.com/your-repo/gaurika', '_blank');
+  }
+
+  getCategoryForTemplate(template: Template): string {
+    // Add logic to determine category based on template name or other properties
+    if (template.name.includes('Writing')) return 'Writing';
+    if (template.name.includes('Programming')) return 'Development';
+    if (template.name.includes('Physics') || template.name.includes('Math')) return 'Academic';
+    if (template.name.includes('Business')) return 'Business';
+    return 'General';
+  }
+
+  /**
+   * Starts a new chat session without a template
+   */
+  async startQuickChat() {
+    // Just switch to chat view without creating a session
+    this.showTemplatesPage = false;
+    
+    // Create empty messages array for the view
+    this.messages = [];
+    
+    // Reset current session index to indicate no active session
+    this.currentSessionIndex = -1;
+    this.currentSessionName = '';
+  }
+
+  /**
+   * Sets the active category and filters templates
+   */
+  setCategory(categoryId: string) {
+    this.selectedCategory = categoryId;
+    if (categoryId === 'all') {
+      this.filteredTemplates = [...this.templateConversations];
+    } else {
+      this.filteredTemplates = this.templateConversations.filter(
+        template => template.category === categoryId
+      );
+    }
   }
 
 }

@@ -2041,3 +2041,891 @@ ion-label {
 .toggle-actions {
   display: none;
 }
+
+// Landing Page Styles
+.landing-page {
+  color: $text-color;
+  background: $background-dark;
+  min-height: 100vh;
+  
+  .hero-section {
+    position: relative;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(to bottom, 
+      rgba($background-light, 0.05),
+      rgba($background-dark, 1)
+    );
+    border-bottom: 1px solid rgba($accent-color, 0.1);
+    
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      
+      .brand-logo {
+        margin-bottom: 1.5rem;
+        
+        img {
+          height: 3rem;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+      }
+      
+      .hero-title {
+        margin-bottom: 1rem;
+        
+        .title {
+          font-size: 2.5rem;
+          font-weight: 700;
+          background: linear-gradient(135deg, $text-color, $accent-color);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        
+        .full-name {
+          font-size: 1rem;
+          color: $muted-text;
+          margin-top: 0.5rem;
+        }
+      }
+      
+      .hero-subtitle {
+        font-size: 1.1rem;
+        color: $muted-text;
+        margin-bottom: 2rem;
+      }
+    }
+  }
+  
+  // Quick Actions Section
+  .quick-actions {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    
+    .action-card {
+      background: rgba($background-light, 0.05);
+      border: 1px solid rgba($accent-color, 0.1);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        background: rgba($background-light, 0.1);
+      }
+      
+      .action-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        
+        ion-icon {
+          font-size: 1.5rem;
+          color: $secondary-color;
+        }
+        
+        h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin: 0;
+        }
+      }
+      
+      .action-content {
+        color: $muted-text;
+        font-size: 0.9rem;
+      }
+    }
+  }
+  
+  // Templates Grid
+  .templates-grid {
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    
+    .template-card {
+      background: rgba($background-light, 0.05);
+      border: 1px solid rgba($accent-color, 0.1);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        background: rgba($background-light, 0.1);
+      }
+      
+      &.featured {
+        background: linear-gradient(135deg,
+          rgba($secondary-color, 0.1),
+          rgba($background-light, 0.05)
+        );
+        border: 1px solid rgba($secondary-color, 0.2);
+      }
+      
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        
+        ion-icon {
+          font-size: 1.5rem;
+          color: $secondary-color;
+        }
+        
+        h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin: 0;
+        }
+      }
+      
+      .card-description {
+        color: $muted-text;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+      
+      .card-prompt {
+        font-size: 0.85rem;
+        color: rgba($text-color, 0.7);
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba($accent-color, 0.1);
+      }
+    }
+  }
+}
+
+// Enhanced Search
+.search-container {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  
+  ion-searchbar {
+    --background: rgba($background-light, 0.1);
+    --box-shadow: none;
+    --border-radius: 12px;
+    --placeholder-color: #{$muted-text};
+    --icon-color: #{$accent-color};
+    --color: #{$text-color};
+    padding: 0;
+    
+    &::part(container) {
+      border: 1px solid rgba($accent-color, 0.1);
+    }
+    
+    &:focus-within::part(container) {
+      border-color: rgba($secondary-color, 0.3);
+    }
+  }
+  
+  .suggestions-window {
+    background: rgba($background-dark, 0.95);
+    border: 1px solid rgba($accent-color, 0.1);
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    
+    .suggestion-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba($accent-color, 0.1);
+      transition: all 0.2s ease;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      &:hover {
+        background: rgba($background-light, 0.1);
+      }
+      
+      .suggestion-content {
+        .template-name {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: $text-color;
+        }
+        
+        .template-description {
+          font-size: 0.8rem;
+          color: $muted-text;
+        }
+      }
+    }
+  }
+}
+
+// ...existing code...
+
+// Updated Landing Page Styles
+.landing-page {
+  color: $text-color;
+  background: $background-dark;
+  min-height: 100vh;
+  
+  .hero-section {
+    position: relative;
+    padding: 3rem 2rem;
+    background: linear-gradient(
+      165deg,
+      rgba($secondary-color, 0.08) 0%,
+      rgba($background-dark, 1) 100%
+    );
+    border-bottom: 1px solid rgba($accent-color, 0.1);
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(
+        circle at top right,
+        rgba($secondary-color, 0.1),
+        transparent 60%
+      );
+      pointer-events: none;
+    }
+    
+    .hero-content {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      
+      .brand-logo {
+        margin-bottom: 2rem;
+        
+        img {
+          height: 4rem;
+          filter: drop-shadow(0 0 20px rgba($secondary-color, 0.3));
+          transition: transform 0.3s ease;
+          
+          &:hover {
+            transform: scale(1.1);
+          }
+        }
+      }
+      
+      .hero-title {
+        margin-bottom: 1.5rem;
+        
+        .title {
+          font-size: 3.5rem;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          background: linear-gradient(
+            135deg,
+            $text-color 0%,
+            rgba($secondary-color, 0.9) 50%,
+            $accent-color 100%
+          );
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .full-name {
+          font-size: 1.1rem;
+          color: $muted-text;
+          margin-top: 0.75rem;
+          opacity: 0.9;
+          letter-spacing: 0.02em;
+        }
+      }
+      
+      .hero-subtitle {
+        font-size: 1.25rem;
+        color: $accent-color;
+        margin-bottom: 3rem;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        line-height: 1.6;
+      }
+    }
+  }
+
+  // Enhanced search container
+  .search-container {
+    position: relative;
+    max-width: 650px;
+    margin: -1.5rem auto 3rem;
+    padding: 0 1.5rem;
+    z-index: 2;
+    
+    ion-searchbar {
+      --background: rgba($background-light, 0.6);
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      --border-radius: 16px;
+      --placeholder-color: #{$muted-text};
+      --icon-color: #{$secondary-color};
+      --color: #{$text-color};
+      --placeholder-opacity: 0.7;
+      height: 60px;
+      
+      &::part(container) {
+        border: 1px solid rgba($secondary-color, 0.2);
+      }
+      
+      &:focus-within::part(container) {
+        border-color: rgba($secondary-color, 0.5);
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  // Updated templates grid
+  .templates-grid {
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    
+    .template-card {
+      background: rgba($background-light, 0.03);
+      border: 1px solid rgba($accent-color, 0.1);
+      border-radius: 16px;
+      padding: 1.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba($secondary-color, 0.5),
+          transparent
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      &:hover {
+        transform: translateY(-4px);
+        background: rgba($background-light, 0.08);
+        border-color: rgba($secondary-color, 0.2);
+        
+        &::before {
+          opacity: 1;
+        }
+        
+        .card-header ion-icon {
+          color: $secondary-color;
+          transform: scale(1.1);
+        }
+      }
+      
+      &.featured {
+        background: linear-gradient(
+          135deg,
+          rgba($secondary-color, 0.15),
+          rgba($background-light, 0.05)
+        );
+        border: 1px solid rgba($secondary-color, 0.3);
+        
+        .card-header {
+          h3 {
+            background: linear-gradient(135deg, $text-color, $secondary-color);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+        }
+      }
+      
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+        
+        ion-icon {
+          font-size: 1.75rem;
+          color: $accent-color;
+          transition: all 0.3s ease;
+        }
+        
+        h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
+      }
+      
+      .card-description {
+        color: $muted-text;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+      
+      .card-prompt {
+        padding-top: 1rem;
+        border-top: 1px solid rgba($accent-color, 0.1);
+        font-size: 0.9rem;
+        color: rgba($text-color, 0.7);
+      }
+    }
+  }
+}
+
+// Add these new styles for the redesigned templates section
+
+.primary-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+
+  .quick-start-card,
+  .docs-card {
+    background: linear-gradient(
+      135deg,
+      rgba($secondary-color, 0.1),
+      rgba($background-light, 0.05)
+    );
+    border: 1px solid rgba($secondary-color, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &:hover {
+      transform: translateY(-2px);
+      background: rgba($background-light, 0.1);
+      border-color: $secondary-color;
+
+      .action-hint {
+        transform: translateX(4px);
+        opacity: 1;
+      }
+    }
+
+    .card-content {
+      .primary-icon {
+        font-size: 2.5rem;
+        color: $secondary-color;
+        margin-bottom: 1rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: $text-color;
+      }
+
+      p {
+        color: $muted-text;
+        font-size: 0.9rem;
+      }
+    }
+
+    .action-hint {
+      color: $secondary-color;
+      font-size: 1.5rem;
+      opacity: 0.5;
+      transition: all 0.3s ease;
+    }
+  }
+}
+
+.templates-section {
+  padding: 2rem 1.5rem 4rem;
+  background: rgba($background-light, 0.02);
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: $text-color;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: $muted-text;
+      font-size: 1.1rem;
+    }
+  }
+
+  .category-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+
+    .category-tab {
+      background: transparent;
+      border: 1px solid rgba($accent-color, 0.2);
+      color: $muted-text;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba($accent-color, 0.1);
+        color: $text-color;
+      }
+
+      &.active {
+        background: rgba($secondary-color, 0.1);
+        border-color: $secondary-color;
+        color: $secondary-color;
+      }
+    }
+  }
+
+  .templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .template-card {
+      background: rgba($background-light, 0.05);
+      border: 1px solid rgba($accent-color, 0.1);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba($background-light, 0.1);
+        border-color: rgba($secondary-color, 0.3);
+        transform: translateY(-2px);
+
+        .template-action {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .template-icon {
+        background: rgba($secondary-color, 0.1);
+        color: $secondary-color;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+
+      .template-content {
+        flex-grow: 1;
+
+        h3 {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+          color: $text-color;
+        }
+
+        .description {
+          font-size: 0.9rem;
+          color: $muted-text;
+          margin-bottom: 0.5rem;
+        }
+
+        .template-tags {
+          display: flex;
+          gap: 0.5rem;
+
+          .tag {
+            background: rgba($accent-color, 0.1);
+            color: $accent-color;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+          }
+        }
+      }
+
+      .template-action {
+        color: $secondary-color;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: all 0.2s ease;
+      }
+    }
+  }
+}
+
+.no-results-state {
+  padding: 4rem 1.5rem;
+  text-align: center;
+
+  .no-results-content {
+    max-width: 400px;
+    margin: 0 auto;
+
+    .no-results-icon {
+      font-size: 3rem;
+      color: $muted-text;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: $text-color;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: $muted-text;
+      margin-bottom: 2rem;
+    }
+
+    .primary-button {
+      background: $secondary-color;
+      color: $text-color;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: adjust-color($secondary-color, $lightness: 5%);
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// Add responsive styles
+@media (max-width: 768px) {
+  .primary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .templates-section {
+    .templates-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Update the category tabs and template card styles
+
+.category-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  padding: 0 1rem;
+
+  .category-tab {
+    background: transparent;
+    border: none;
+    color: $muted-text;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    ion-icon {
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    .category-indicator {
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: $secondary-color;
+      transform: translateX(-50%);
+      transition: all 0.3s ease;
+      opacity: 0;
+    }
+
+    &:hover {
+      color: $text-color;
+      
+      ion-icon {
+        color: $secondary-color;
+        transform: scale(1.1);
+      }
+    }
+
+    &.active {
+      color: $text-color;
+      font-weight: 500;
+      
+      ion-icon {
+        color: $secondary-color;
+        transform: scale(1.1);
+      }
+      
+      .category-indicator {
+        width: 80%;
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.template-card {
+  background: rgba($background-light, 0.03);
+  border: 1px solid rgba($accent-color, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+      rgba($secondary-color, 0.1),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: rgba($secondary-color, 0.3);
+    
+    &::before {
+      opacity: 1;
+    }
+
+    .template-icon {
+      transform: scale(1.1);
+      background: rgba($secondary-color, 0.2);
+    }
+
+    .template-action {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  &.featured {
+    border-color: rgba($secondary-color, 0.3);
+    background: rgba($secondary-color, 0.05);
+  }
+
+  .template-icon {
+    background: rgba($secondary-color, 0.1);
+    color: $secondary-color;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .template-content {
+    flex-grow: 1;
+
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: $text-color;
+    }
+
+    .description {
+      font-size: 0.9rem;
+      color: $muted-text;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .template-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      .tag {
+        background: rgba($accent-color, 0.1);
+        color: $accent-color;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+
+        &.category-tag {
+          background: rgba($secondary-color, 0.1);
+          color: $secondary-color;
+        }
+
+        &:hover {
+          background: rgba($accent-color, 0.2);
+        }
+      }
+    }
+  }
+
+  .template-action {
+    color: $secondary-color;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+    font-size: 1.25rem;
+  }
+}

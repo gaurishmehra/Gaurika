@@ -109,9 +109,9 @@
           </div>
           <h1 class="hero-title">
             <span class="title">Gaurika</span>
-            <span class="full-name">Gaurish's Advanced Universal Reasoning Interactive Knowledge Aid</span>
+            <div class="full-name">Gaurish's Advanced Universal Reasoning Interactive Knowledge Aid</div>
           </h1>
-          <p class="hero-subtitle">AI Powered Knowledge Aid</p>
+          <p class="hero-subtitle">Experience the future of AI assistance with precision, creativity, and intelligence</p>
           
           <div class="search-container">
             <ion-searchbar 
@@ -119,7 +119,7 @@
               (ionInput)="filterTemplates()" 
               (ionClear)="filterTemplates()"
               (ionSearch)="submitSearch()"
-              placeholder="Search templates or ask anything..." 
+              placeholder="Ask anything or explore templates..." 
               showCancelButton="focus" 
               animated>
             </ion-searchbar>
@@ -148,48 +148,83 @@
           </div>
         </div>
       </div>
-    
-      <div class="templates-section">
-        <div class="templates-grid">
-          <!-- Quick Start Card -->
-          <div class="template-card featured" (click)="startQuickChat()">
-            <div class="card-content">
-              <div class="card-header">
-                <ion-icon name="rocket-outline"></ion-icon>
-                <h3>Quick Start</h3>
-              </div>
-              <p class="card-description">Start a fresh conversation</p>
-              <div class="card-prompt">
-                <span class="prompt-label">Prompt : </span>
-                <p class="prompt-text">[Ask anything you want!]</p>
-              </div>
-            </div>
+
+      <!-- Primary Actions Section -->
+      <div class="primary-actions">
+        <div class="quick-start-card" (click)="startQuickChat()">
+          <div class="card-content">
+            <ion-icon name="rocket-outline" class="primary-icon"></ion-icon>
+            <h2>Start Fresh Chat</h2>
+            <p>Begin a new conversation with no constraints</p>
           </div>
-    
-          <!-- Template Cards -->
+          <div class="action-hint">
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="docs-card" (click)="openDocumentation()">
+          <div class="card-content">
+            <ion-icon name="book-outline" class="primary-icon"></ion-icon>
+            <h2>Documentation</h2>
+            <p>Learn how to use Gaurika effectively</p>
+          </div>
+          <div class="action-hint">
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Templates Section -->
+      <div class="templates-section">
+        <div class="section-header">
+          <h2>Templates & Starting Points</h2>
+          <p>Choose from our curated collection of conversation starters</p>
+        </div>
+
+        <div class="category-tabs">
+          <button *ngFor="let cat of categories"
+                  class="category-tab"
+                  [class.active]="selectedCategory === cat.id"
+                  (click)="setCategory(cat.id)">
+            <ion-icon [name]="cat.icon"></ion-icon>
+            <span>{{ cat.name }}</span>
+            <div class="category-indicator"></div>
+          </button>
+        </div>
+
+        <div class="templates-grid">
           <div *ngFor="let template of filteredTemplates" 
                class="template-card" 
+               [class.featured]="template.category === selectedCategory"
                (click)="startConversation(template)">
-            <div class="card-content">
-              <div class="card-header">
-                <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
-                <h3>{{ template.name }}</h3>
-              </div>
-              <p class="card-description">{{ template.description }}</p>
-              <div class="card-prompt">
-                <span class="prompt-label">Prompt : </span>
-                <p class="prompt-text">{{ template.prompt }}</p>
+            <div class="template-icon">
+              <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
+            </div>
+            <div class="template-content">
+              <h3>{{ template.name }}</h3>
+              <p class="description">{{ template.description }}</p>
+              <div class="template-tags">
+                <span class="tag category-tag">{{ template.category | titlecase }}</span>
+                <span *ngFor="let tag of template.tags" class="tag">{{ tag }}</span>
               </div>
             </div>
+            <div class="template-action">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
           </div>
-    
-          <!-- No Results Message -->
-          <div *ngIf="filteredTemplates.length === 0 && templateSearchInput" 
-               class="no-results">
-            <ion-icon name="search-outline"></ion-icon>
-            <p>No templates found matching "{{ templateSearchInput }}"</p>
-            <p>Try searching for another keyword or ask a question directly!</p>
-          </div>
+        </div>
+      </div>
+
+      <!-- No Results State -->
+      <div *ngIf="filteredTemplates.length === 0 && templateSearchInput" 
+           class="no-results-state">
+        <div class="no-results-content">
+          <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
+          <h3>No matching templates</h3>
+          <p>Try different keywords or start a fresh chat</p>
+          <button class="primary-button" (click)="startQuickChat()">
+            Start Fresh Chat
+          </button>
         </div>
       </div>
     </div>
