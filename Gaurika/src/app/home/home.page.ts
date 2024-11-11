@@ -944,6 +944,7 @@ export class HomePage implements OnInit {
       this.messages.splice(index, 1);
       this.saveCurrentSession();
     }
+    this.activeMessageActions = null;
   }
 
   get lastAssistantMessage(): Message | undefined {
@@ -1446,6 +1447,7 @@ export class HomePage implements OnInit {
     this.selectedAssistantMessageIndex = index;
     this.editMessageInput = '';
     this.isEditingMessage = true;
+    this.activeMessageActions = null;
   }
 
   cancelEdit() {
@@ -1587,6 +1589,7 @@ export class HomePage implements OnInit {
       this.isStreaming = false;
       this.saveCurrentSession();
     }
+    this.activeMessageActions = null;
   }
 
  // Array to track copy status for each code block
@@ -1711,6 +1714,45 @@ async copyCode(code: string) {
     }
   }
 
+  // Add property to track active message actions menu
+  activeMessageActions: number | null = null;
 
+  // Add method to toggle message actions
+  toggleMessageActions(index: number, role: string) {
+    this.activeMessageActions = this.activeMessageActions === index ? null : index;
+  }
+
+  // Add method to copy message to clipboard
+  async copyMessageToClipboard(content: string) {
+    try {
+      await Clipboard.write({
+        string: content
+      });
+      this.showToast('Message copied to clipboard', 'success');
+    } catch (error) {
+      this.showErrorToast('Failed to copy message');
+    }
+    this.activeMessageActions = null;
+  }
+
+  // Add click handler to close menu when clicking outside
+  @HostListener('document:click', ['$event'])
+  handleClick(event: Event) {
+    if (this.activeMessageActions !== null && 
+        !(event.target as HTMLElement).closest('.message-actions') &&
+        !(event.target as HTMLElement).closest('.toggle-actions')) {
+      this.activeMessageActions = null;
+    }
+  }
+
+  async showToast(message: string, color: 'success' | 'danger' | 'warning' = 'success') {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 2000,
+      position: 'top',
+      color: color
+    });
+    toast.present();
+  }
 
 }

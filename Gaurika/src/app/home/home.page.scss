@@ -1957,4 +1957,91 @@ ion-label {
     }
   }
 }
-// ...existing code...
+
+// Updated message action styles
+ion-label {
+  &.user-message,
+  &.assistant-message {
+    .message-actions-wrapper {
+      position: relative; // Change from absolute
+      // margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      background: rgba($background-dark, 0);
+      backdrop-filter: blur(8px);
+      padding: 8px;
+      border-radius: 0 0 12px 12px;
+      border-top: 1px solid rgba($accent-color, 0.2);
+      justify-content: flex-end; // Align buttons to the right
+      
+      // Add subtle shadow for depth
+      // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      .action-button {
+        padding: 6px;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+        color: $muted-text;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+          color: $text-color;
+          background: rgba($accent-color, 0.15);
+          transform: translateY(-1px);
+        }
+
+        &.delete:hover {
+          color: $error-color;
+          background: rgba($error-color, 0.1);
+        }
+
+        ion-icon {
+          font-size: 18px;
+        }
+
+        // Add tooltip on hover for desktop
+        @media (min-width: 768px) {
+          position: relative;
+          
+          &::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: rgba($background-dark, 0.9);
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+          }
+
+          &:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+          }
+        }
+      }
+    }
+
+    // Adjust message padding to accommodate the actions
+    padding-bottom: 0 !important;
+    
+    .message-content {
+      padding-bottom: 8px;
+    }
+  }
+}
+
+// Remove the old toggle actions button styles
+.toggle-actions {
+  display: none;
+}

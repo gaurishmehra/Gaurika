@@ -260,20 +260,62 @@
               </div>
             
               <!-- Remove condition to show options for all messages -->
-              <ion-button
-                (click)="showUserMessageOptions(message, i)"
-                fill="clear"
-                class="user-butt">
+              <button class="toggle-actions" 
+                      (click)="toggleMessageActions(i, message.role)"
+                      *ngIf="message.role === 'user' || message.role === 'assistant'">
                 <ion-icon name="ellipsis-vertical"></ion-icon>
-              </ion-button>
+              </button>
             </div>
 
-            <ion-button *ngIf="message.role === 'assistant'"
-                         (click)="showAssistantMessageOptions(message, i)"
-                         fill="clear"
-                         class="ass-butt">
-                <ion-icon name="ellipsis-vertical"></ion-icon>
-              </ion-button>
+            <!-- Inside ion-label, modify the message content and actions -->
+
+            <div class="message-content">
+              <!-- ... existing message content ... -->
+            </div>
+
+            <!-- For user messages -->
+            <div *ngIf="message.role === 'user'" class="message-actions-wrapper">
+              <button class="action-button" 
+                      (click)="copyMessageToClipboard(message.content)" 
+                      title="Copy">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+              <button class="action-button" 
+                      *ngIf="isLatestUserMessage(i)"
+                      (click)="startEditUserMessage(i)" 
+                      title="Edit">
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+              <button class="action-button delete" 
+                      (click)="deleteMessage(i)" 
+                      title="Delete">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+
+            <!-- For assistant messages -->
+            <div *ngIf="message.role === 'assistant'" class="message-actions-wrapper">
+              <button class="action-button" 
+                      (click)="copyMessageToClipboard(message.content)" 
+                      title="Copy">
+                <ion-icon name="copy-outline"></ion-icon>
+              </button>
+              <button class="action-button" 
+                      (click)="startEditMessage(i)" 
+                      title="Refine">
+                <ion-icon name="sparkles-outline"></ion-icon>  <!-- Changed from create-outline to star-outline -->
+              </button>
+              <button class="action-button" 
+                      (click)="redoAssistantMessage(i)" 
+                      title="Regenerate">
+                <ion-icon name="refresh-outline"></ion-icon>
+              </button>
+              <button class="action-button delete" 
+                      (click)="deleteMessage(i)" 
+                      title="Delete">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
           </ion-label>
         </ion-item>
 
