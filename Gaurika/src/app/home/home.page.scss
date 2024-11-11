@@ -1964,18 +1964,14 @@ ion-label {
   &.assistant-message {
     .message-actions-wrapper {
       position: relative; // Change from absolute
-      // margin-top: 12px;
       display: flex;
       gap: 8px;
-      background: rgba($background-dark, 0);
-      backdrop-filter: blur(8px);
+      background: transparent;
+      // backdrop-filter: blur(8px);
       padding: 8px;
       border-radius: 0 0 12px 12px;
       border-top: 1px solid rgba($accent-color, 0.2);
       justify-content: flex-end; // Align buttons to the right
-      
-      // Add subtle shadow for depth
-      // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       
       .action-button {
         padding: 6px;
