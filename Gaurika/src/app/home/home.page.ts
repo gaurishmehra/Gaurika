@@ -1834,7 +1834,7 @@ async copyCode(code: string) {
   }
 
   openDocumentation() {
-    window.open('https://github.com/your-repo/gaurika', '_blank');
+    window.open('https://github.com/gaurishmehra/Gaurika/Gaurika/Documentation.md', '_blank');
   }
 
   getCategoryForTemplate(template: Template): string {
