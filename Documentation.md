@@ -131,7 +131,18 @@ Gaurika is an open-source project designed to allow users to plug in their own A
     - Provide your own API keys and configure the base URL in the advanced settings.
     - Once set up, the assistant can handle multimodal inputs and outputs.
 
+12) **Copy Messages**
 
+    You can copy any message in the conversation, whether it's yours or the assistant's.
+
+    **How to Use:**
+
+    - Click on the **Copy** icon next to the message you wish to copy.
+    - The message will be copied to your clipboard.
+
+    ![alt text](image-12.png)
+
+    ![alt text](image-13.png)
 
 # TODO
 
