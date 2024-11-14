@@ -8,3 +8,5 @@ Gaurika/electron
 Gaurika/.env
 Gaurika/.env.local
 Gaurika/.env.production
+WebGroundTool/.env
+research_results/

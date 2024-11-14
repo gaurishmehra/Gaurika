@@ -85,6 +85,35 @@ interface Tool {
     };
   };
 }
+interface ResearchRequest {
+  query: string;
+  max_results?: number;
+}
+
+interface ResearchSource {
+  title: string;
+  url: string;
+  content: string;
+  snippet: string;
+  fetch_time: string;
+}
+
+interface ResearchSummary {
+  query: string;
+  total_sources: number;
+  avg_content_length: number;
+  sources: string[];
+  titles: string[];
+  execution_time: number;
+  timestamp: string;
+}
+
+interface ResearchResponse {
+  summary: ResearchSummary;
+  results: ResearchSource[];
+  execution_time: number;
+}
+
 
 @Component({
   selector: 'app-home',
@@ -1355,7 +1384,6 @@ export class HomePage implements OnInit {
 
     await runConversation();
 
-    // ...existing cleanup code...
     this.userInput = '';
     this.selectedImage = null;
     this.selectedFile = null;
@@ -1433,19 +1461,34 @@ export class HomePage implements OnInit {
     }
   }
 
-  async webgroundtool(query: string): Promise<string> {
-    console.log('webgroundtool called with query:', query);
-  
+  async webgroundtool(query: string, maxResults = 5, baseUrl = 'http://localhost:5000'): Promise<string> {
     try {
-      const response = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`);
-      const text = await response.text(); // Get the response as text
+      const response = await fetch(`${baseUrl}/research`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, max_results: maxResults }),
+      });
   
-      // Return the first 6000 words (or less if the text is shorter)
-      const words = text.split(/\s+/);
-      return words.slice(0, 1000).join(' ');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data: ResearchResponse = await response.json();
+  
+      // Create a summary string from the research results
+      let summary = `Research results for "${query}":\n\n`;
+      data.results.forEach((result, index) => {
+        summary += `${index + 1}. ${result.title} (${result.url})\n`;
+        summary += `${result.snippet}\n\n`; // Add the snippet
+      });
+      summary += `Total results: ${data.summary.total_sources}, Execution time: ${data.execution_time}ms`;
+  
+      return summary;
+  
     } catch (error) {
-      console.error('Error calling webgroundtool:', error);
-      throw error;
+      console.error('Error performing research:', error);
+      // Return an error message to the model
+      return `Error performing research`; // Or a more user-friendly message
     }
   }
 
