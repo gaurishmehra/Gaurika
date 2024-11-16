@@ -119,6 +119,8 @@
               (ionInput)="filterTemplates()" 
               (ionClear)="filterTemplates()"
               (ionSearch)="submitSearch()"
+              (keydown)="handleKeyDown($event)"
+              (paste)="handlePaste($event, 'search')"
               placeholder="Ask anything or explore templates..." 
               showCancelButton="focus" 
               animated>
@@ -271,6 +273,8 @@
               <div *ngIf="editingUserMessageIndex === i" class="edit-message-container">
                 <ion-textarea
                   [(ngModel)]="editingUserMessageContent"
+                  (keydown)="handleKeyDown($event)"
+                  (paste)="handlePaste($event, 'edit')"
                   auto-grow="true"
                   class="edit-message-input">
                 </ion-textarea>
@@ -373,13 +377,17 @@
 <!-- Bottom Input Bar -->
 <div class="bottom-bar" *ngIf="!isEditingMessage">
   <div class="bottom-toolbar">
-    <ion-input #messageInput
+    <ion-textarea #messageInput
                [(ngModel)]="userInput"
                placeholder="Send a message..."
                (keydown)="handleKeyDown($event)"
-               [disabled]="isStreaming">
-      <ion-icon name="chatbox-outline" slot="start" class="ml-2 mr-2"></ion-icon>
-    </ion-input>
+               (paste)="handlePaste($event, 'user')"
+               [disabled]="isStreaming"
+               [autoGrow]="true"
+               [rows]="1"
+               class="message-input">
+      <ion-icon name="chatbox-outline" slot="start" class="input-icon"></ion-icon>
+    </ion-textarea>
     <ion-button class="upload-button" 
                 (click)="triggerFileUpload()" 
                 [disabled]="isStreaming">
@@ -434,6 +442,8 @@
     <ion-input 
       [(ngModel)]="editMessageInput" 
       placeholder="Describe your desired changes..."
+      (keydown)="handleKeyDown($event)"
+      (paste)="handlePaste($event, 'refine')"
       autofocus>
     </ion-input>
   </ion-item>

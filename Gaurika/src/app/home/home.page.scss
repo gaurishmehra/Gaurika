@@ -252,7 +252,29 @@ ion-header {
   }
 }
 
+.message-input {
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  --padding-start: 36px; // Space for icon
+  min-height: 40px;
+  max-height: 120px;
+  width: 100%;
+  
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
 
+// Ensure proper layout of bottom toolbar
+.bottom-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px;
+}
 
 // Enhanced Edit Message Dialog
 #editMessageDialog {

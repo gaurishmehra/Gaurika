@@ -1,0 +1,10 @@
+numpy
+pandas
+spacy
+newspaper3k
+flask
+beautifulsoup4
+trafilatura
+python-dotenv
+nltk
+requests

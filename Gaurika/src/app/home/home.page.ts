@@ -377,11 +377,50 @@ export class HomePage implements OnInit {
   @ViewChild('messageInput') messageInput!: ElementRef;
 
   handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        // Allow new line on Shift+Enter
+        return;
+      } else {
+        event.preventDefault();
+        if (!this.isStreaming && this.userInput.trim()) {
+          this.sendMessage();
+        }
+      }
     }
   }
+  
+  handlePaste(event: ClipboardEvent, inputType: string) {
+    if (!this.isImageGenEnabled) return;
+  
+    const items = event.clipboardData?.items;
+    if (!items) return;
+  
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          event.preventDefault();
+          this.processPastedImage(file, inputType);
+          return;
+        }
+      }
+    }
+  }
+  
+  private async processPastedImage(file: File, inputType: string) {
+    try {
+      const imageUrl = await this.readFileAsDataURL(file);
+      if (inputType === 'user') {
+        this.selectedImage = imageUrl;
+        this.selectedFile = file;
+      }
+    } catch (error) {
+      console.error('Error processing pasted image:', error);
+      await this.showErrorToast('Failed to process pasted image');
+    }
+  }
+  
 
   async ngOnInit() {
     // hljs.default.highlightAll(); // Initialize highlight.js 
