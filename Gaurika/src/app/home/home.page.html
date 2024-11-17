@@ -236,7 +236,7 @@
     <!-- Chat Page -->
     <div *ngIf="!showTemplatesPage && currentSessionIndex >= 0" class="chat-page">
       <ion-list lines="none">
-        <ion-item *ngFor="let message of getFilteredMessages(); let i = index">
+        <ion-item *ngFor="let message of getFilteredMessages(); let i = index" [ngClass]="{'message-enter': true}">
           <ion-label [class.user-message]="message.role === 'user'"
                     [class.assistant-message]="message.role === 'assistant'">
                     <span class="message-sender">
