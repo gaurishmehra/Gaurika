@@ -162,6 +162,10 @@ ion-header {
     bottom: 24px;
   }
 
+  @media (max-width: 576px) {
+    box-shadow: none; // Remove heavy shadows on mobile
+  }
+
   .bottom-toolbar {
     --background: transparent;
     --min-height: 54px;
@@ -294,15 +298,16 @@ ion-header {
   animation: dialogFadeIn 0.3s ease-out;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  will-change: opacity, transform;
 
   @keyframes dialogFadeIn {
     from {
       opacity: 0;
-      transform: translate(-50%, -48%);
+      transform: translateY(20px); // Use transform for better performance
     }
     to {
       opacity: 1;
-      transform: translate(-50%, -50%);
+      transform: translateY(0);
     }
   }
 
@@ -448,6 +453,7 @@ ion-header {
   backdrop-filter: blur(3px);
   z-index: 999;
   animation: backdropFadeIn 0.3s ease-out;
+  will-change: opacity;
 
   @keyframes backdropFadeIn {
     from {
@@ -1253,7 +1259,7 @@ ion-buttons {
     @keyframes fadeInUp {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(20px); // Use transform instead of position
       }
       to {
         opacity: 1;
@@ -1328,6 +1334,18 @@ ion-buttons {
   overflow-y: auto;
   border: 1px solid rgba($secondary-color, 0.2);
   animation: slideDown 0.2s ease-out;
+  will-change: opacity, transform;
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   .suggestion-item {
     padding: 12px;
@@ -2950,4 +2968,12 @@ ion-label {
     transition: all 0.3s ease;
     font-size: 1.25rem;
   }
+}
+
+// Add enter animation to messages
+.message-enter {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.25s ease-out forwards;
+  will-change: opacity, transform;
 }
