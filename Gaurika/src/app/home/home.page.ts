@@ -378,18 +378,17 @@ export class HomePage implements OnInit {
 
   handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
-      if (event.shiftKey) {
-        // Allow new line on Shift+Enter
-        return;
-      } else {
+      if (this.platform.is('mobile')) {
+        // Insert a newline on mobile devices
         event.preventDefault();
-        if (!this.isStreaming && this.userInput.trim()) {
-          this.sendMessage();
-        }
+        this.userInput += '\n';
+      } else {
+        // Send message on desktop devices
+        this.sendMessage();
       }
     }
   }
-  
+
   handlePaste(event: ClipboardEvent, inputType: string) {
     if (!this.isImageGenEnabled) return;
   
@@ -1981,6 +1980,30 @@ async copyCode(code: string) {
       this.filteredTemplates = this.templateConversations.filter(
         template => template.category === categoryId
       );
+    }
+  }
+
+  touchStartX: number = 0;
+  touchEndX: number = 0;
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].screenX;
+  }
+
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(event: TouchEvent) {
+    this.touchEndX = event.changedTouches[0].screenX;
+    this.handleGesture();
+  }
+
+  handleGesture() {
+    if (this.touchEndX - this.touchStartX > 50) {
+      // Swiped from left to right
+      this.isSidebarOpen = true;
+    } else if (this.touchStartX - this.touchEndX > 50) {
+      // Swiped from right to left
+      this.isSidebarOpen = false;
     }
   }
 

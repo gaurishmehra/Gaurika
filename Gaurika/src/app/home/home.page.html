@@ -38,7 +38,9 @@
   </div>
 
   <!-- Left Sidebar -->
-  <div class="sidebar" [class.open]="isSidebarOpen">
+  <div class="sidebar" [class.open]="isSidebarOpen"
+       (touchstart)="onTouchStart($event)"
+       (touchend)="onTouchEnd($event)">
     <div class="sidebar-header">
       <h2>
         <ion-icon name="chatbubbles-outline" class="mr-2"></ion-icon>
@@ -385,7 +387,9 @@
                [disabled]="isStreaming"
                [autoGrow]="true"
                [rows]="1"
-               class="message-input">
+               class="message-input"
+               inputmode="text"
+               enterkeyhint="enter">
       <ion-icon name="chatbox-outline" slot="start" class="input-icon"></ion-icon>
     </ion-textarea>
     <ion-button class="upload-button" 
