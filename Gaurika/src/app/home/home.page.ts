@@ -1317,11 +1317,11 @@ export class HomePage implements OnInit {
       });
     }
 
-    // Create the message object
+    // Create the message object with timestamp for local display
     let newMessage: Message = {
       role: 'user',
       content: messageContent + fileContextMessage,
-      timestamp: new Date(), // Set the current time
+      timestamp: new Date(),
     };
 
     // Add image if multimodal is enabled and image is selected
@@ -1331,18 +1331,14 @@ export class HomePage implements OnInit {
 
     this.messages.push(newMessage);
 
-    // Prepare API messages
-    let apiMessages = await Promise.all(this.messages.map(async (msg) => {
-      if (msg.image) {
-        return {
-          role: msg.role,
-          content: [
-            { type: 'text', text: msg.content },
-            { type: 'image_url', image_url: { url: msg.image } }
-          ]
-        };
-      }
-      return { role: msg.role, content: msg.content };
+    // Prepare the payload without timestamps
+    const apiMessages = this.messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      // Only include necessary properties for API
+      ...(msg.image && { image: msg.image }),
+      ...(msg.name && { name: msg.name }),
+      ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id })
     }));
 
     const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
@@ -1350,7 +1346,12 @@ export class HomePage implements OnInit {
         const response = await this.client.chat.completions.create({
           messages: [
             ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
-            ...(isInitialCall ? apiMessages : [...apiMessages, ...toolMessages]),
+            ...(isInitialCall ? apiMessages : [...apiMessages, ...toolMessages.map(msg => ({
+              role: msg.role,
+              content: msg.content,
+              name: msg.name,
+              tool_call_id: msg.tool_call_id
+            }))]),
           ],
           model: this.model,
           temperature: 0.75,
@@ -1358,7 +1359,12 @@ export class HomePage implements OnInit {
           tools: tools.length > 0 && isInitialCall ? tools : undefined,
         });
 
-        let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
+        // Add timestamp when creating assistant message locally
+        let assistantMessage = { 
+          role: 'assistant', 
+          content: '', 
+          timestamp: new Date()
+        };
         this.messages.push(assistantMessage);
 
         for await (const part of response) {
@@ -1743,7 +1749,15 @@ export class HomePage implements OnInit {
     }
 
     // Get messages up to and including the user message
-    const messagesToSend = this.messages.slice(0, userMessageIndex + 1);
+    const messagesToSend = this.messages.slice(0, userMessageIndex + 1).map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      // Only include necessary properties for API
+      ...(msg.image && { image: msg.image }),
+      ...(msg.name && { name: msg.name }),
+      ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id })
+    }));
+
     const originalMessage = this.messages[index].content;
 
     this.isStreaming = true;
