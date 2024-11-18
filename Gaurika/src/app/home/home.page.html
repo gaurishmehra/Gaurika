@@ -263,10 +263,6 @@
                      [src]="image" 
                      class="generated-image" />
               </div>
-              <!-- Time Stamp -->
-              <!-- <div class="message-timestamp">
-                {{ message.timestamp | date: 'shortTime' }}
-              </div> -->
             </div>
 
             <!-- User Message Content -->
@@ -309,53 +305,55 @@
             </div>
 
             <!-- Inside ion-label, modify the message content and actions -->
+            <div class="message-footer">
+              <div class="message-timestamp">
+                {{ message.timestamp | date: 'shortTime' }}
+              </div>
+              <div class="message-actions-wrapper">
+                <!-- For user messages -->
+                <div *ngIf="message.role === 'user'" class="message-actions-wrapper">
+                  <button class="action-button" 
+                          (click)="copyMessageToClipboard(message.content)" 
+                          title="Copy">
+                    <ion-icon name="copy-outline"></ion-icon>
+                  </button>
+                  <button class="action-button" 
+                          *ngIf="isLatestUserMessage(i)"
+                          (click)="startEditUserMessage(i)" 
+                          title="Edit">
+                    <ion-icon name="create-outline"></ion-icon>
+                  </button>
+                  <button class="action-button delete" 
+                          (click)="deleteMessage(i)" 
+                          title="Delete">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
 
-            <div class="message-content">
-              <!-- ... existing message content ... -->
-            </div>
-
-            <!-- For user messages -->
-            <div *ngIf="message.role === 'user'" class="message-actions-wrapper">
-              <button class="action-button" 
-                      (click)="copyMessageToClipboard(message.content)" 
-                      title="Copy">
-                <ion-icon name="copy-outline"></ion-icon>
-              </button>
-              <button class="action-button" 
-                      *ngIf="isLatestUserMessage(i)"
-                      (click)="startEditUserMessage(i)" 
-                      title="Edit">
-                <ion-icon name="create-outline"></ion-icon>
-              </button>
-              <button class="action-button delete" 
-                      (click)="deleteMessage(i)" 
-                      title="Delete">
-                <ion-icon name="trash-outline"></ion-icon>
-              </button>
-            </div>
-
-            <!-- For assistant messages -->
-            <div *ngIf="message.role === 'assistant'" class="message-actions-wrapper">
-              <button class="action-button" 
-                      (click)="copyMessageToClipboard(message.content)" 
-                      title="Copy">
-                <ion-icon name="copy-outline"></ion-icon>
-              </button>
-              <button class="action-button" 
-                      (click)="startEditMessage(i)" 
-                      title="Refine">
-                <ion-icon name="sparkles-outline"></ion-icon>  <!-- Changed from create-outline to star-outline -->
-              </button>
-              <button class="action-button" 
-                      (click)="redoAssistantMessage(i)" 
-                      title="Regenerate">
-                <ion-icon name="refresh-outline"></ion-icon>
-              </button>
-              <button class="action-button delete" 
-                      (click)="deleteMessage(i)" 
-                      title="Delete">
-                <ion-icon name="trash-outline"></ion-icon>
-              </button>
+                <!-- For assistant messages -->
+                <div *ngIf="message.role === 'assistant'" class="message-actions-wrapper">
+                  <button class="action-button" 
+                          (click)="copyMessageToClipboard(message.content)" 
+                          title="Copy">
+                    <ion-icon name="copy-outline"></ion-icon>
+                  </button>
+                  <button class="action-button" 
+                          (click)="startEditMessage(i)" 
+                          title="Refine">
+                    <ion-icon name="sparkles-outline"></ion-icon>  <!-- Changed from create-outline to star-outline -->
+                  </button>
+                  <button class="action-button" 
+                          (click)="redoAssistantMessage(i)" 
+                          title="Regenerate">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                  </button>
+                  <button class="action-button delete" 
+                          (click)="deleteMessage(i)" 
+                          title="Delete">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
             </div>
           </ion-label>
         </ion-item>

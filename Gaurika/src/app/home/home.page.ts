@@ -39,7 +39,7 @@ interface Message {
   isToolCallInProgress?: boolean
   name?: string;
   generatedImages?: string[];
-  // timestamp?: Date;
+  timestamp: Date;
 }
 
 interface LearningToolCall {
@@ -1321,6 +1321,7 @@ export class HomePage implements OnInit {
     let newMessage: Message = {
       role: 'user',
       content: messageContent + fileContextMessage,
+      timestamp: new Date(), // Set the current time
     };
 
     // Add image if multimodal is enabled and image is selected
@@ -1379,6 +1380,7 @@ export class HomePage implements OnInit {
                 role: 'assistant',
                 content: `${toolCall.function.name} is processing...`,
                 tool_call_id: toolCall.id,
+                timestamp: new Date(), // Add timestamp
               });
 
               switch (toolCall.function.name) {
@@ -1398,10 +1400,11 @@ export class HomePage implements OnInit {
 
               // Add tool result
               const toolMessage: Message = {
-                role: 'tool',
+                role: 'assistant',
                 name: toolCall.function.name,
                 content: toolResult,
                 tool_call_id: toolCall.id,
+                timestamp: new Date(), // Add timestamp
               };
 
               await runConversation(false, [toolMessage]);
@@ -1760,7 +1763,7 @@ export class HomePage implements OnInit {
       // Remove all messages after the user message
       this.messages = this.messages.slice(0, userMessageIndex + 1);
       
-      let assistantMessage = { role: 'assistant', content: '' };
+      let assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
       this.messages.push(assistantMessage);
 
       for await (const part of response) {

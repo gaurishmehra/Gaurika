@@ -1769,6 +1769,7 @@ ion-item {
       margin-top: 8px;
       white-space: pre-wrap;
       line-height: 1.6;
+      border-bottom: none;
     }
 
     // File preview improvements
@@ -1829,6 +1830,28 @@ ion-item {
           font-size: 18px;
           margin: 0;
         }
+      }
+    }
+
+    .message-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px; // Adjust as needed
+      // border-top: 1px solid rgba(255, 255, 255, 0.1); // Adjust color as needed
+
+      .message-timestamp {
+        // Remove position and alignment styles
+        position: static;
+        margin: 0;
+        font-size: 0.75rem;
+        color: $muted-text;
+        opacity: 0.8;
+      }
+
+      .message-actions-wrapper {
+        display: flex;
+        gap: 8px; // Space between action buttons
       }
     }
   }
@@ -2010,7 +2033,7 @@ ion-label {
       // backdrop-filter: blur(8px);
       padding: 8px;
       border-radius: 0 0 12px 12px;
-      border-top: 1px solid rgba($accent-color, 0.2);
+      // border-top: 1px solid rgba($accent-color, 0.2);
       justify-content: flex-end; // Align buttons to the right
       
       .action-button {
@@ -2976,4 +2999,53 @@ ion-label {
   transform: translateY(20px);
   animation: fadeInUp 0.25s ease-out forwards;
   will-change: opacity, transform;
+}
+
+.message-timestamp {
+  font-size: 0.75rem;
+  color: $muted-text;
+  position: relative;
+  margin-top: 8px;
+  text-align: left;
+  display: block;
+  opacity: 0.8;
+  top: auto;
+  bottom: 20px;
+  left: 10px;
+  right: auto;
+}
+
+ion-label {
+  // ...existing styles...
+
+  .message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px; // Adjust as needed
+
+    .message-timestamp {
+      // Remove position and alignment styles
+      position: static;
+      margin: 0;
+      font-size: 0.75rem;
+      color: $muted-text;
+      opacity: 0.8;
+    }
+
+    .message-actions-wrapper {
+      display: flex;
+      gap: 8px; // Space between action buttons
+    }
+  }
+  .message-content {
+    // Remove any border-bottom if present
+    border-bottom: none;
+  }
+
+  .message-footer {
+    // Add a border-top to serve as a single separator line
+    border-top: 2px solid rgba($accent-color, 0.4); // Adjust color as needed
+    margin-top: 8px; // Ensure proper spacing
+  }
 }
