@@ -271,12 +271,31 @@
               <div *ngIf="editingUserMessageIndex === i" class="edit-message-container">
                 <ion-textarea
                   [(ngModel)]="editingUserMessageContent"
-                  (keydown)="handleKeyDown($event)"
-                  (paste)="handlePaste($event, 'edit')"
                   auto-grow="true"
                   class="edit-message-input">
                 </ion-textarea>
+                
+                <!-- Show current attachments -->
+                <div *ngIf="selectedImage || selectedFile" class="edit-attachments">
+                  <div *ngIf="selectedImage" class="image-preview">
+                    <img [src]="selectedImage" alt="Selected image" />
+                    <ion-button (click)="removeAttachmentDuringEdit()" fill="clear" color="danger">
+                      <ion-icon name="close-circle"></ion-icon>
+                    </ion-button>
+                  </div>
+                  <div *ngIf="selectedFile && !selectedFile.type.startsWith('image/')" class="file-preview">
+                    <ion-icon [name]="getFileIcon(selectedFile.type)" class="file-preview-icon"></ion-icon>
+                    <span>{{ selectedFile.name }}</span>
+                    <ion-button (click)="removeAttachmentDuringEdit()" fill="clear" color="danger">
+                      <ion-icon name="close-circle"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+              
                 <div class="edit-actions">
+                  <ion-button fill="clear" (click)="triggerFileUpload()">
+                    <ion-icon name="attach-outline"></ion-icon>
+                  </ion-button>
                   <ion-button fill="clear" color="success" (click)="saveUserMessageEdit(i)">
                     <ion-icon name="checkmark-outline"></ion-icon>
                   </ion-button>
@@ -291,7 +310,10 @@
                 <div [innerHTML]="renderMarkdown(getDisplayContent(message.content))"></div>
                 <!-- Add this section to display user images -->
                 <div *ngIf="message.image" class="user-image-container">
-                  <img [src]="message.image" class="user-sent-image" alt="User sent image" />
+                  <img [src]="message.image" 
+                       class="user-sent-image" 
+                       alt="User sent image"
+                       (click)="showImagePreview(message.image)" />
                 </div>
                 <!-- Rest of existing user message content -->
               </div>
@@ -307,7 +329,8 @@
             <!-- Inside ion-label, modify the message content and actions -->
             <div class="message-footer">
               <div class="message-timestamp">
-                {{ message.timestamp | date: 'shortTime' }}
+                <span class="time">{{ message.timestamp | date: 'shortTime' }}</span>
+                <span class="date">{{ message.timestamp | date: 'MMM d, y' }}</span>
               </div>
               <div class="message-actions-wrapper">
                 <!-- For user messages -->
@@ -374,15 +397,21 @@
   </div>
 </ion-content>
 
+<!-- Move input type="file" here -->
+<input type="file" 
+       #fileInput 
+       (change)="onFileSelected($event)" 
+       style="display: none" />
+
 <!-- Bottom Input Bar -->
-<div class="bottom-bar" *ngIf="!isEditingMessage">
+<div class="bottom-bar" [class.disabled]="isInputDisabled()">
   <div class="bottom-toolbar">
     <ion-textarea #messageInput
                [(ngModel)]="userInput"
                placeholder="Send a message..."
                (keydown)="handleKeyDown($event)"
                (paste)="handlePaste($event, 'user')"
-               [disabled]="isStreaming"
+               [disabled]="isInputDisabled()"
                [autoGrow]="true"
                [rows]="1"
                class="message-input"
@@ -392,21 +421,18 @@
     </ion-textarea>
     <ion-button class="upload-button" 
                 (click)="triggerFileUpload()" 
-                [disabled]="isStreaming">
+                [disabled]="isInputDisabled()">
       <ion-icon name="attach-outline"></ion-icon>
     </ion-button>
-    <input type="file" 
-           #fileInput 
-           (change)="onFileSelected($event)" 
-           style="display: none" />
     <ion-button class="send-button" 
-                (click)="isStreaming ? stopStream() : sendMessage()">
+                (click)="isStreaming ? stopStream() : sendMessage()"
+                [disabled]="isInputDisabled()">
       <ion-icon [name]="isStreaming ? 'stop-outline' : 'paper-plane-outline'" class="mr-2"></ion-icon>
     </ion-button>
   </div>
-  
+
   <!-- File Preview -->
-  <ng-container *ngIf="selectedFile">
+  <ng-container *ngIf="selectedFile && !isInputDisabled()">
     <div *ngIf="selectedImage" class="image-preview">
       <img [src]="selectedImage" alt="Selected image" />
       <ion-button (click)="removeSelectedImage()" fill="clear" color="danger">
@@ -475,3 +501,16 @@
   (didDismiss)="isUserMessageOptionsOpen = false"
   [buttons]="userActionSheetButtons">
 </ion-action-sheet>
+
+<!-- Add image preview modal -->
+<div class="image-preview-modal" *ngIf="isImagePreviewOpen">
+  <div class="preview-header">
+    <ion-button (click)="closeImagePreview()">
+      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      Back to Chat
+    </ion-button>
+  </div>
+  <div class="preview-content">
+    <img [src]="selectedPreviewImage" alt="Preview" />
+  </div>
+</div>

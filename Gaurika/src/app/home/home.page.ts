@@ -389,7 +389,7 @@ export class HomePage implements OnInit {
     }
   }
 
-  handlePaste(event: ClipboardEvent, inputType: string) {
+  async handlePaste(event: ClipboardEvent, inputType: string) {
     if (!this.isImageGenEnabled) return;
   
     const items = event.clipboardData?.items;
@@ -400,24 +400,92 @@ export class HomePage implements OnInit {
         const file = item.getAsFile();
         if (file) {
           event.preventDefault();
-          this.processPastedImage(file, inputType);
-          return;
+          try {
+            // Validate file size (e.g., max 5MB)
+            const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+            if (file.size > MAX_SIZE) {
+              await this.showErrorToast('Image size too large. Maximum size is 5MB.');
+              return;
+            }
+  
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+              await this.showErrorToast('Invalid image type. Please use JPG, PNG or GIF.');
+              return;
+            }
+  
+            // Process the image
+            const compressedImage = await this.compressImage(file);
+            if (inputType === 'user') {
+              this.selectedImage = compressedImage;
+              this.selectedFile = file;
+            }
+          } catch (error) {
+            console.error('Error processing pasted image:', error);
+            await this.showErrorToast('Failed to process pasted image');
+          }
         }
       }
     }
   }
   
-  private async processPastedImage(file: File, inputType: string) {
-    try {
-      const imageUrl = await this.readFileAsDataURL(file);
-      if (inputType === 'user') {
-        this.selectedImage = imageUrl;
-        this.selectedFile = file;
-      }
-    } catch (error) {
-      console.error('Error processing pasted image:', error);
-      await this.showErrorToast('Failed to process pasted image');
-    }
+  // Add a new method to compress images
+  private async compressImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+  
+          // Max dimensions
+          const MAX_WIDTH = 1024;
+          const MAX_HEIGHT = 1024;
+  
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+  
+          canvas.width = width;
+          canvas.height = height;
+  
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'));
+            return;
+          }
+  
+          ctx.drawImage(img, 0, 0, width, height);
+  
+          // Convert to JPEG with reduced quality
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(compressedDataUrl);
+        };
+  
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+  
+        img.src = e.target?.result as string;
+      };
+  
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+  
+      reader.readAsDataURL(file);
+    });
   }
   
 
@@ -597,49 +665,119 @@ export class HomePage implements OnInit {
   }
 
   startEditUserMessage(index: number) {
+    if (!this.isLatestUserMessage(index)) {
+      this.showErrorToast('You can only edit the latest message');
+      return;
+    }
+  
     this.editingUserMessageIndex = index;
     this.editingUserMessageContent = this.messages[index].content;
+    // Clear any existing input
+    this.userInput = '';
+    
+    // Fix: Safely handle image and file assignments
+    const message = this.messages[index];
+    
+    // Handle image
+    if (message && message.image !== undefined) {
+      this.selectedImage = message.image;
+    }
+  
+    // Handle file
+    if (message && message.file) {
+      try {
+        this.selectedFile = new File([''], message.file.name, { 
+          type: message.file.type 
+        });
+      } catch (error) {
+        console.error('Error creating file:', error);
+        this.selectedFile = null;
+      }
+    }
   }
+  
+  removeAttachmentDuringEdit() {
+    if (this.editingUserMessageIndex !== null && this.editingUserMessageIndex >= 0) {
+      const message = this.messages[this.editingUserMessageIndex];
+      if (message) {
+        // Safely handle image removal
+        if ('image' in message) {
+          message.image = null;
+          this.selectedImage = null;
+        }
+  
+        // Safely handle file removal
+        if ('file' in message) {
+          message.file = undefined; // Use undefined instead of null to match the type
+          this.selectedFile = null;
+        }
+      }
+    }
+  }
+  
 
   async saveUserMessageEdit(index: number) {
+    // Validate that there's content to send
     if (this.editingUserMessageContent.trim() === '') {
       await this.showErrorToast('Message cannot be empty');
       return;
     }
-
+  
     // Update the message content
-    this.messages[index].content = this.editingUserMessageContent;
-
+    this.messages[index] = {
+      ...this.messages[index],
+      content: this.editingUserMessageContent,
+      image: this.selectedImage,
+      file: this.selectedFile ? {
+        name: this.selectedFile.name,
+        type: this.selectedFile.type,
+        content: await this.readFileAsText(this.selectedFile)
+      } : undefined
+    };
+  
     // Remove all subsequent messages (assistant responses)
     this.messages = this.messages.slice(0, index + 1);
-
+  
     // Reset editing state
     this.editingUserMessageIndex = null;
     this.editingUserMessageContent = '';
-
+  
+    // Clear the global attachment states
+    this.selectedImage = null;
+    this.selectedFile = null;
+  
     // Trigger new assistant response
     this.isStreaming = true;
-    await this.sendMessage(true); // Add a parameter to indicate this is a redo
+    await this.sendMessage(true);
   }
+  
 
   cancelUserMessageEdit() {
     this.editingUserMessageIndex = null;
     this.editingUserMessageContent = '';
+    // Make sure to clear any attachments
+    this.selectedImage = null;
+    this.selectedFile = null;
+    // Clear the input as well
+    this.userInput = '';
   }
 
   filterTemplates() {
     const searchTerm = this.templateSearchInput.toLowerCase();
-    if (searchTerm) {
-      this.templateSuggestions = this.templateConversations.filter(template =>
+    let filtered = searchTerm ? 
+      this.templateConversations.filter(template =>
         template.name.toLowerCase().includes(searchTerm) ||
         template.description.toLowerCase().includes(searchTerm) ||
         template.prompt.toLowerCase().includes(searchTerm) ||
         template.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
-      );
-      // Suggestions will be displayed even if empty
-    } else {
-      this.templateSuggestions = [...this.templateConversations];
+      ) : [...this.templateConversations];
+  
+    // Limit templates on mobile devices
+    if (this.platform.is('mobile')) {
+      filtered = filtered.slice(0, Math.ceil(filtered.length / 3));
     }
+    
+    this.templateSuggestions = filtered;
   }
 
   async showFileContext(content: string) {
@@ -1229,7 +1367,7 @@ export class HomePage implements OnInit {
     }
 
     const messageContent = this.userInput.trim();
-    if (!isRedo && messageContent === '' && !this.selectedFile && !this.sessions[this.currentSessionIndex]?.fileContext) return;
+    if (!isRedo && messageContent === '' && !this.selectedFile && !this.selectedImage) return;
 
     // If starting a new conversation (no current session) or from templates, create a new session
     if (this.currentSessionIndex === -1 || this.showTemplatesPage || this.sessions.length === 0) {
@@ -1329,16 +1467,43 @@ export class HomePage implements OnInit {
       newMessage.image = this.selectedImage;
     }
 
-    this.messages.push(newMessage);
+    // Only add a new user message if it's not a redo
+    if (!isRedo) {
+      this.messages.push({
+        role: 'user',
+        content: messageContent,
+        image: this.selectedImage,
+        file: this.selectedFile ? {
+          name: this.selectedFile.name,
+          type: this.selectedFile.type,
+          content: await this.readFileAsText(this.selectedFile)
+        } : undefined,
+        timestamp: new Date()
+      });
+  
+      // Clear the user input and attachments
+      this.userInput = '';
+      this.selectedImage = null;
+      this.selectedFile = null;
+    }
 
     // Prepare the payload without timestamps
     const apiMessages = this.messages.map(msg => ({
       role: msg.role,
-      content: msg.content,
-      // Only include necessary properties for API
-      ...(msg.image && { image: msg.image }),
       ...(msg.name && { name: msg.name }),
-      ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id })
+      ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
+      content: msg.image ? [
+        {
+          type: "text",
+          text: msg.content
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: msg.image
+          }
+        }
+      ] : msg.content
     }));
 
     const runConversation = async (isInitialCall = true, toolMessages: Message[] = []) => {
@@ -1348,9 +1513,20 @@ export class HomePage implements OnInit {
             ...(this.systemPrompt ? [{ role: 'system', content: this.systemPrompt }] : []),
             ...(isInitialCall ? apiMessages : [...apiMessages, ...toolMessages.map(msg => ({
               role: msg.role,
-              content: msg.content,
-              name: msg.name,
-              tool_call_id: msg.tool_call_id
+              ...(msg.name && { name: msg.name }),
+              ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
+              content: msg.image ? [
+                {
+                  type: "text",
+                  text: msg.content
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: msg.image
+                  }
+                }
+              ] : msg.content
             }))]),
           ],
           model: this.model,
@@ -1653,6 +1829,10 @@ export class HomePage implements OnInit {
     this.editMessageInput = '';
     this.isEditingMessage = true;
     this.activeMessageActions = null;
+    // Clear any existing input
+    this.userInput = '';
+    this.selectedImage = null;
+    this.selectedFile = null;
   }
 
   cancelEdit() {
@@ -1750,12 +1930,21 @@ export class HomePage implements OnInit {
 
     // Get messages up to and including the user message
     const messagesToSend = this.messages.slice(0, userMessageIndex + 1).map(msg => ({
-      role: msg.role,
-      content: msg.content,
-      // Only include necessary properties for API
-      ...(msg.image && { image: msg.image }),
-      ...(msg.name && { name: msg.name }),
-      ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id })
+          role: msg.role,
+          ...(msg.name && { name: msg.name }),
+          ...(msg.tool_call_id && { tool_call_id: msg.tool_call_id }),
+          content: msg.image ? [
+            {
+              type: "text",
+              text: msg.content
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: msg.image
+              }
+            }
+          ] : msg.content
     }));
 
     const originalMessage = this.messages[index].content;
@@ -2022,6 +2211,26 @@ async copyCode(code: string) {
       // Swiped from right to left
       this.isSidebarOpen = false;
     }
+  }
+
+  // Add this property
+  isImagePreviewOpen = false;
+  selectedPreviewImage: string | null = null;
+
+  // Add this method for image preview
+  async showImagePreview(imageUrl: string) {
+    this.selectedPreviewImage = imageUrl;
+    this.isImagePreviewOpen = true;
+  }
+
+  closeImagePreview() {
+    this.isImagePreviewOpen = false;
+    this.selectedPreviewImage = null;
+  }
+
+  // Add this helper method
+  isInputDisabled(): boolean {
+    return this.isStreaming || this.isEditingMessage || this.editingUserMessageIndex !== null;
   }
 
 }

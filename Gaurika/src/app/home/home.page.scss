@@ -147,23 +147,25 @@ ion-header {
 .bottom-bar {
   position: fixed;
   bottom: 16px;
-  left: 16px;
-  right: 16px;
+  left: 50%;  // Changed from left: 16px
+  transform: translateX(-50%);  // Added to center the bar
+  width: calc(100% - 32px);  // Added to maintain padding from edges
+  max-width: 800px;  // Keep max-width for larger screens
   @include rounded-corners;
   @include glass-effect(15px, 0.15); 
   background-color: rgba($background-light, 0.8); 
   padding: 10px;
   z-index: 1000;
+  margin: 0 auto; // Added to help with centering
 
-  @media (min-width: 768px) {
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-    bottom: 24px;
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 
-  @media (max-width: 576px) {
-    box-shadow: none; // Remove heavy shadows on mobile
+  @media (min-width: 768px) {
+    margin: 0 auto; // Ensure it stays centered on desktop
+    right: auto; // Remove right positioning
   }
 
   .bottom-toolbar {
@@ -171,6 +173,7 @@ ion-header {
     --min-height: 54px;
     display: flex;
     align-items: center;
+    align-self: center;
 
     ion-input {
       --background: #{rgba($background-light, 0)};
@@ -468,8 +471,12 @@ ion-header {
 // Responsive Design Enhancements
 @media (max-width: 576px) {
   .bottom-bar {
-    left: 10px;
-    right: 10px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 20px); // Slightly reduced padding for mobile
+    max-width: calc(100% - 20px);
+    margin: 0 auto;
 
     .bottom-toolbar {
       ion-input {
@@ -1971,11 +1978,13 @@ ion-label {
   margin: 10px 0;
   max-width: 100%;
   
+  
   .user-sent-image {
     max-width: 300px;
     max-height: 300px;
     border-radius: 8px;
     object-fit: contain;
+    cursor: pointer;
   }
 }
 
@@ -3047,5 +3056,86 @@ ion-label {
     // Add a border-top to serve as a single separator line
     border-top: 2px solid rgba($accent-color, 0.4); // Adjust color as needed
     margin-top: 8px; // Ensure proper spacing
+  }
+}
+
+// Add these styles
+
+// Optimized sidebar animation
+.sidebar {
+  will-change: transform;
+  transform: translateX(-100%);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.open {
+    transform: translateX(0);
+  }
+}
+
+// Image preview modal
+.image-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba($background-dark, 0.5);
+  backdrop-filter: blur(20px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease-out;
+
+  .preview-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba($background-light, 0.1);
+
+    ion-button {
+      --background: transparent;
+      --color: #{$text-color};
+    }
+  }
+
+  .preview-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+
+    img {
+      max-width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+    }
+  }
+}
+
+// Optimize animations for mobile
+@media (max-width: 768px) {
+  .sidebar,
+  .right-sidebar {
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .template-card {
+    transition: transform 0.15s ease;
+  }
+}
+
+// Update message timestamp style
+.message-timestamp {
+  font-size: 0.75rem;
+  color: $muted-text;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .date {
+    color: rgba($muted-text, 0.7);
   }
 }
