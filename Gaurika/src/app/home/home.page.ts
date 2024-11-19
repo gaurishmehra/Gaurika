@@ -123,6 +123,9 @@ interface ResearchResponse {
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class HomePage implements OnInit {
+  // Add version property
+  currentSystemPromptVersion = 7; // Keep in sync with settings page
+  
 
   md = new MarkdownIt({
     html: true, // Enable HTML tags in source
@@ -374,6 +377,8 @@ export class HomePage implements OnInit {
     
   ) {}
 
+  
+
   @ViewChild('messageInput') messageInput!: ElementRef;
 
   handleKeyDown(event: KeyboardEvent) {
@@ -429,6 +434,7 @@ export class HomePage implements OnInit {
       }
     }
   }
+  
   
   // Add a new method to compress images
   private async compressImage(file: File): Promise<string> {
@@ -490,7 +496,7 @@ export class HomePage implements OnInit {
   
 
   async ngOnInit() {
-    // hljs.default.highlightAll(); // Initialize highlight.js 
+    
     hljs.registerLanguage('javascript', javascript);
     hljs.registerLanguage('python', python);
     hljs.registerLanguage('xml', xml);
@@ -552,8 +558,53 @@ export class HomePage implements OnInit {
     this.applyTheme(isLightMode === true ? 'light' : 'dark');
 
     this.templateSuggestions = [...this.templateConversations];
+    await this.saveSettings();
 
   }
+
+  async saveSettings() {
+    try {
+      const storedVersion = await this.storage.get('systemPromptVersion') || 0;
+      console.log('Stored system prompt version:', storedVersion);
+      if (storedVersion !== this.currentSystemPromptVersion) {
+        // Define new system prompt based on version
+        let newSystemPrompt = '';
+        
+        switch (this.currentSystemPromptVersion) {
+          case 1:
+            newSystemPrompt = 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
+            break;
+          case 7:
+            newSystemPrompt = "You are a helpful Knowledge Aid that is named Gaurika (Gaurika stands for Gaurish's Advanced Universal Reasoning Interactive Knowledge Aid), Made by Gaurish Mehra (Age 16, Lives in India).. You are much more than a simple llm, but if the user is advanced enough they may change it, right now you are running the " + this.model + ' model, Try to use codeblocks i.e ```text goes here``` as much as possible, to get better formatted responses.';
+            break;
+          // Add more cases as needed
+        }
+  
+        // Update system prompt and version in storage
+        await this.storage.set('systemPrompt', newSystemPrompt);
+        await this.storage.set('systemPromptVersion', this.currentSystemPromptVersion);
+        this.systemPrompt = newSystemPrompt;
+        
+        // Show update notification
+        const toast = await this.toastController.create({
+          message: 'System prompt has been updated',
+          duration: 3000,
+          position: 'bottom',
+          color: 'success'
+        });
+        toast.present();
+        window.location.reload();
+      }
+      else{
+        console.log('System prompt is up to date');
+      }
+
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      await this.showErrorToast('Failed to save settings');
+    }
+  }
+
 
   applyTheme(theme: 'light' | 'dark') {
     document.body.classList.toggle('light-mode', theme === 'light');
@@ -823,24 +874,8 @@ export class HomePage implements OnInit {
   }
 
   async showFirstTimeToast() {
-    const alert = await this.alertController.create({
-      header: 'Welcome!',
-      message: "If you're using this for the first time, please review the settings and click 'Save Settings' at the bottom to apply the default configuration. Advanced users can add custom OpenAI-compatible base URLs and endpoints in the advanced settings menu. Note: web grounding and some features are still in development.",
-      buttons: [
-        {
-          text: 'OK',
-          handler: () => {
-            this.settingsService.saveDefaultSettings();
-          }
-        }
-      ]
-    });
-
-    await alert.present();
-
-    setTimeout(() => {
-      alert.dismiss();
-    }, 60000);
+    this.settingsService.saveDefaultSettings();
+    console.log('First time toast');
   }
 
   async initializeOpenAIClient() {

@@ -17,6 +17,8 @@ import { SettingsService } from '../services/settings.service';
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class SettingsPage implements OnInit {
+
+
   apiKeys: { name: string; key: string }[] = [];
   selectedApiKeyIndex: number = 0;
 
@@ -60,6 +62,12 @@ export class SettingsPage implements OnInit {
 
   async ngOnInit() {
     await this.storage.create();
+
+    // Check system prompt version
+
+    
+    // If versions don't match, update system prompt
+
 
     this.apiKeys = (await this.storage.get('apiKeys')) || [];
     this.selectedApiKeyIndex = (await this.storage.get('selectedApiKeyIndex')) || 0;
@@ -348,6 +356,9 @@ export class SettingsPage implements OnInit {
   async saveSettings() {
     try {
       await this.storage.create();
+
+      // Always ensure version is saved
+      // await this.storage.set('systemPromptVersion', this.currentSystemPromptVersion);
 
       await this.storage.set('apiKeys', this.apiKeys);
       await this.storage.set('apiProviders', this.apiProviders);
