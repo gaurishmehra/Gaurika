@@ -71,4 +71,4 @@ This is a basic implementation and may require further development for productio
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). 
+This project is licensed under a [CUSTOM LICENSE](LICENSE). 
