@@ -426,7 +426,7 @@
     </ion-button>
     <ion-button class="send-button" 
                 (click)="isStreaming ? stopStream() : sendMessage()"
-                [disabled]="isInputDisabled()">
+                >
       <ion-icon [name]="isStreaming ? 'stop-outline' : 'paper-plane-outline'" class="mr-2"></ion-icon>
     </ion-button>
   </div>
