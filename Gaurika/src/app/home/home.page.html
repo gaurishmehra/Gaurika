@@ -241,7 +241,7 @@
                     [class.assistant-message]="message.role === 'assistant'">
                     <span class="message-sender">
                       <ion-icon [name]="message.role === 'user' ? 'person-circle-outline' : 'desktop-outline'" class="mr-2"></ion-icon>
-                      {{ message.role === 'user' ? 'User' : 'Gaurika' }} :
+                      {{ message.role === 'user' ? 'You' : 'Gaurika' }} -> 
                     </span>
 
             <!-- Assistant Message Content -->
@@ -404,7 +404,7 @@
        style="display: none" />
 
 <!-- Bottom Input Bar -->
-<div class="bottom-bar" [class.disabled]="isInputDisabled()">
+<div class="bottom-bar">
   <div class="bottom-toolbar">
     <ion-textarea #messageInput
                [(ngModel)]="userInput"
