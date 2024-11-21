@@ -419,16 +419,18 @@
                enterkeyhint="enter">
       <ion-icon name="chatbox-outline" slot="start" class="input-icon"></ion-icon>
     </ion-textarea>
-    <ion-button class="upload-button" 
-                (click)="triggerFileUpload()" 
-                [disabled]="isInputDisabled()">
-      <ion-icon name="attach-outline"></ion-icon>
-    </ion-button>
-    <ion-button class="send-button" 
-                (click)="isStreaming ? stopStream() : sendMessage()"
-                >
-      <ion-icon [name]="isStreaming ? 'stop-outline' : 'paper-plane-outline'" class="mr-2"></ion-icon>
-    </ion-button>
+    
+    <div class="action-buttons-group">
+      <ion-button class="upload-button" 
+                  (click)="triggerFileUpload()" 
+                  [disabled]="isInputDisabled()">
+        <ion-icon name="attach-outline"></ion-icon>
+      </ion-button>
+      <ion-button class="send-button" 
+                  (click)="isStreaming ? stopStream() : sendMessage()">
+        <ion-icon [name]="isStreaming ? 'stop-outline' : 'paper-plane-outline'"></ion-icon>
+      </ion-button>
+    </div>
   </div>
 
   <!-- File Preview -->

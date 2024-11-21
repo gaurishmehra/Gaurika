@@ -146,12 +146,12 @@ ion-header {
 // Bottom Bar Styles 
 .bottom-bar {
   position: fixed;
-  bottom: 16px;
+  bottom: 5px;
   left: 50%;  // Changed from left: 16px
   transform: translateX(-50%);  // Added to center the bar
   width: calc(100% - 32px);  // Added to maintain padding from edges
   max-width: 800px;  // Keep max-width for larger screens
-  @include rounded-corners;
+  @include rounded-corners(15px);
   @include glass-effect(15px, 0.15); 
   background-color: rgba($background-light, 0.8); 
   padding: 10px;
@@ -170,10 +170,10 @@ ion-header {
 
   .bottom-toolbar {
     --background: transparent;
-    --min-height: 54px;
+    --min-height: 65px;
     display: flex;
     align-items: center;
-    align-self: center;
+    gap: 0;  // Reduced gap
 
     ion-input {
       --background: #{rgba($background-light, 0)};
@@ -197,37 +197,44 @@ ion-header {
       }
     }
 
-    .send-button {
-      --background: #{$secondary-color};
-      --color: #{$text-color};
-      --border-radius: 20px;
-      height: 48px;
-      margin-left: 8px;
-      margin-right: 12px;
-      padding: 0 18px;
-      @include snappy-transition;
-      font-weight: 500;
+    .action-buttons-group {
+      display: flex;
+      align-items: stretch; // Changed from align-items: center
+      border: 1px solid rgba($accent-color, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      // margin-left: 8px;
+      background: rgba($background-light, 0.3);
+      min-width: 100px;
 
-      &:active {
-        transform: scale(0.96);
+      .upload-button, .send-button {
+        --background: transparent;
+        --border-radius: 0;
+        --padding-start: 12px;
+        --padding-end: 12px;
+        margin: 0;
+        display: flex;
+        align-items: center;  // Center icon vertically
+        justify-content: center; // Center icon horizontally
+        height: auto; // Remove fixed height
+        // min-height: 40px; // Use min-height instead
+        min-width: 50px !important;
+        
+        &:first-child {
+          border-right: 1px solid rgba($accent-color, 0.2);
+        }
+
+        ion-icon {
+          font-size: 18px;
+          margin: 0;
+        }
+
+        &:hover {
+          --background: rgba($accent-color, 0.1);
+        }
       }
-    }
 
-    .upload-button {
-      --background: transparent;
-      --color: #{$accent-color};
-      --border-radius: 50%;
-      width: 48px;
-      margin-left: 12px;
-      @include snappy-transition;
-
-      &:hover {
-        --background: rgba($accent-color, 0.15);
-      }
-
-      ion-icon {
-        font-size: 22px;
-      }
+      // ...rest of the existing styles...
     }
   }
 
@@ -474,9 +481,11 @@ ion-header {
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    width: calc(100% - 20px); // Slightly reduced padding for mobile
-    max-width: calc(100% - 20px);
+    width: calc(100%); // Slightly reduced padding for mobile
+    max-width: calc(100%);
+    bottom: 0;
     margin: 0 auto;
+    border-radius: 15px 15px 0 0;
 
     .bottom-toolbar {
       ion-input {
@@ -484,7 +493,7 @@ ion-header {
       }
 
       .send-button {
-        padding: 0 16px;
+        // padding: 0 16px;
       }
     }
     .image-preview{
@@ -526,7 +535,7 @@ ion-header {
 
       .send-button {
         height: 52px;
-        padding: 0 24px;
+        // padding: 0 24px;
       }
 
       .upload-button {
@@ -1157,12 +1166,12 @@ ion-buttons {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-      }
+      // @keyframes float {
+        // 0%, 100% { transform: translateY(0); }
+        // 50% { transform: translateY(-10px); }
+      // }
 
-      animation: float 2s ease-in-out infinite;
+      // animation: float 2s ease-in-out infinite;
     }
 
     .hero-title {

@@ -1631,12 +1631,16 @@ export class HomePage implements OnInit {
         }
 
         if (this.isStreamStopped) {
-          assistantMessage.content += " [aborted]";
+          assistantMessage.content += " [forced stop, by user]";
         }
 
       } catch (error) {
         console.error('Error in conversation:', error);
-        await this.showErrorToast('Sorry, I encountered an error processing your request.');
+        this.messages.push({
+          role: 'assistant',
+          content: 'An error occurred while processing your request. Please click the redo button above to try again.',
+          timestamp: new Date()
+        });
       }
     };
 
