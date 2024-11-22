@@ -11,6 +11,14 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
+      <!-- Only show template toggle on templates page -->
+      <ion-button *ngIf="showTemplatesPage" 
+                  (click)="toggleTemplates()" 
+                  class="template-toggle"
+                  [title]="isTemplateToggleEnabled ? 'Hide Templates' : 'Show Templates'">
+        <!-- Reversed icons -->
+        <ion-icon [name]="isTemplateToggleEnabled ? 'apps-outline' : 'grid'"></ion-icon>
+      </ion-button>
       <ion-button (click)="openSettings()">
         <ion-icon name="settings-outline"></ion-icon>
       </ion-button>
@@ -103,7 +111,7 @@
   [class.sidebar-open]="isSidebarOpen" 
   [class.right-sidebar-open]="isRightSidebarOpen">
   <div class="content-container">
-    <div *ngIf="showTemplatesPage" class="landing-page">
+    <div *ngIf="showTemplatesPage" class="landing-page" [@templateTransition]>
       <div class="hero-section">
         <div class="hero-content">
           <div class="brand-logo">
@@ -179,7 +187,7 @@
       </div>
 
       <!-- Templates Section -->
-      <div class="templates-section">
+      <div class="templates-section" *ngIf="isTemplateToggleEnabled">
         <div class="section-header">
           <h2>Templates & Starting Points</h2>
           <p>Choose from our curated collection of conversation starters</p>

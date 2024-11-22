@@ -359,6 +359,8 @@ export class HomePage implements OnInit {
   filteredTemplates: Template[] = [...this.templateConversations];
   
   // Add these properties to your class
+  isTemplateToggleEnabled = true;  // Default state
+  isMobile = false;  // To track device type
 
 
   constructor(
@@ -375,7 +377,12 @@ export class HomePage implements OnInit {
     private renderer: Renderer2
 
     
-  ) {}
+  ) {
+    // Add platform detection
+    this.isMobile = this.platform.is('mobile');
+    // Set default template visibility based on device
+    this.showTemplatesPage = !this.isMobile;
+  }
 
   
 
@@ -383,12 +390,12 @@ export class HomePage implements OnInit {
 
   handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
-      if (this.platform.is('mobile')) {
-        // Insert a newline on mobile devices
-        event.preventDefault();
-        this.userInput += '\n';
+      if (event.shiftKey || this.platform.is('mobile')) {
+        // Allow new line when Shift is pressed or on mobile
+        return; // Let the default behavior handle the new line
       } else {
-        // Send message on desktop devices
+        // Send message only when Enter is pressed without Shift
+        event.preventDefault();
         this.sendMessage();
       }
     }
@@ -559,6 +566,20 @@ export class HomePage implements OnInit {
 
     this.templateSuggestions = [...this.templateConversations];
     await this.saveSettings();
+
+    // Load saved template toggle preference with proper fallback
+    const savedToggle = await this.storage.get('templateToggleEnabled');
+    this.isTemplateToggleEnabled = savedToggle !== null ? savedToggle : true;
+
+    if (this.platform.is('mobile')) {
+      this.showTemplatesPage = false;
+    } else {
+      // Only try to load stored session state if we're not on mobile
+      if (storedSessions) {
+        this.sessions = storedSessions;
+        this.currentSessionIndex = this.showTemplatesPage ? -1 : 0;
+      }
+    }
 
   }
 
@@ -1205,7 +1226,12 @@ export class HomePage implements OnInit {
   }
 
   async loadCurrentSession() {
+    // Existing code...
     this.showTemplatesPage = false;
+    // Save the current template toggle state when entering a chat
+    const currentToggleState = await this.storage.get('templateToggleEnabled');
+    this.isTemplateToggleEnabled = currentToggleState !== null ? currentToggleState : true;
+    // Rest of existing loadCurrentSession code...
     if (this.currentSessionIndex >= 0 && this.currentSessionIndex < this.sessions.length) {
       this.messages = this.sessions[this.currentSessionIndex].messages;
       this.currentSessionName = this.sessions[this.currentSessionIndex].name;
@@ -1311,8 +1337,6 @@ export class HomePage implements OnInit {
   }
 
   async startConversation(template: Template) {
-    this.showTemplatesPage = false;
-  
     // Create new session
     const newSession = {
       name: template.name,
@@ -1334,6 +1358,9 @@ export class HomePage implements OnInit {
     
     // Save the session after message is sent
     this.saveCurrentSession();
+    
+    // Only hide templates after conversation starts
+    this.showTemplatesPage = false;
   }
 
   getIconForTemplate(templateName: string): string {
@@ -2055,7 +2082,17 @@ async copyCode(code: string) {
 }
 
   showTemplatesAndRefresh() {
-    window.location.reload();
+    this.showTemplatesPage = true;
+    // Restore the previous template toggle state instead of forcing it true
+    this.storage.get('templateToggleEnabled').then(savedState => {
+      this.isTemplateToggleEnabled = savedState !== null ? savedState : true;
+    });
+    
+    if (location.pathname === '/home') {
+      this.currentSessionIndex = -1;
+      this.currentSessionName = '';
+      // No need to reload the page
+    }
   }
 
   showCodeSnippet(code: string, language?: string) {
@@ -2270,6 +2307,16 @@ async copyCode(code: string) {
   // Add this helper method
   isInputDisabled(): boolean {
     return this.isStreaming || this.isEditingMessage || this.editingUserMessageIndex !== null;
+  }
+
+  // Update the toggleTemplates method
+  async toggleTemplates() {
+    this.isTemplateToggleEnabled = !this.isTemplateToggleEnabled;
+    await this.storage.set('templateToggleEnabled', this.isTemplateToggleEnabled);
+    
+    // Show toast notification
+    const message = this.isTemplateToggleEnabled ? 'Templates shown' : 'Templates hidden';
+    await this.showToast(message, 'success');
   }
 
 }
