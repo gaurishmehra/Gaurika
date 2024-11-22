@@ -1500,15 +1500,11 @@ export class HomePage implements OnInit {
               action: {
                 type: 'string',
                 enum: ['add', 'remove'],
-                description: 'Whether to add new information or remove existing information',
+                description: 'Whether to "add" new information or "remove" existing information',
               },
               information: {
                 type: 'string',
                 description: 'The information to add or remove about the user',
-              },
-              reason: {
-                type: 'string',
-                description: 'Optional reason for adding or removing this information',
               },
             },
             required: ['action', 'information'],
