@@ -380,8 +380,9 @@ export class HomePage implements OnInit {
   ) {
     // Add platform detection
     this.isMobile = this.platform.is('mobile');
-    // Set default template visibility based on device
-    this.showTemplatesPage = !this.isMobile;
+    // Keep templates page visible but disable template toggle on mobile
+    this.showTemplatesPage = true;
+    this.isTemplateToggleEnabled = !this.isMobile;
   }
 
   
@@ -567,18 +568,17 @@ export class HomePage implements OnInit {
     this.templateSuggestions = [...this.templateConversations];
     await this.saveSettings();
 
-    // Load saved template toggle preference with proper fallback
-    const savedToggle = await this.storage.get('templateToggleEnabled');
-    this.isTemplateToggleEnabled = savedToggle !== null ? savedToggle : true;
+    // Load saved template toggle preference only for desktop
+    if (!this.isMobile) {
+      const savedToggle = await this.storage.get('templateToggleEnabled');
+      this.isTemplateToggleEnabled = savedToggle !== null ? savedToggle : true;
+    }
 
-    if (this.platform.is('mobile')) {
-      this.showTemplatesPage = false;
-    } else {
-      // Only try to load stored session state if we're not on mobile
-      if (storedSessions) {
-        this.sessions = storedSessions;
-        this.currentSessionIndex = this.showTemplatesPage ? -1 : 0;
-      }
+    // Don't automatically hide templates page on mobile
+    // Instead, let users navigate away when they start a chat or click quick chat
+    if (storedSessions) {
+      this.sessions = storedSessions;
+      this.currentSessionIndex = this.showTemplatesPage ? -1 : 0;
     }
 
   }
@@ -2240,15 +2240,21 @@ async copyCode(code: string) {
    * Starts a new chat session without a template
    */
   async startQuickChat() {
-    // Just switch to chat view without creating a session
     this.showTemplatesPage = false;
-    
-    // Create empty messages array for the view
     this.messages = [];
-    
-    // Reset current session index to indicate no active session
     this.currentSessionIndex = -1;
     this.currentSessionName = '';
+    
+    // Create a new session if none exists
+    if (this.sessions.length === 0) {
+      this.sessions.push({
+        name: 'New Chat',
+        messages: [],
+        generatedImages: []
+      });
+      this.currentSessionIndex = 0;
+      await this.saveCurrentSession();
+    }
   }
 
   /**
