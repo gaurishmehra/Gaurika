@@ -28,6 +28,8 @@ import xml from 'highlight.js/lib/languages/xml';
 import css from 'highlight.js/lib/languages/css';
 import json from 'highlight.js/lib/languages/json';
 import MarkdownIt from 'markdown-it';
+import katex from 'katex';
+const markdownItKatex = require('@iktakahiro/markdown-it-katex');
 
 
 
@@ -129,10 +131,70 @@ export class HomePage implements OnInit {
   
 
   md = new MarkdownIt({
-    html: true, // Enable HTML tags in source
-    linkify: true, // Autoconvert URL-like text to links
-    typographer: true, // Enable some language-neutral replacement + quotes beautification
+    html: true,
+    linkify: true,
+    typographer: true,
+    breaks: true,
+  }).use(markdownItKatex, {
+    throwOnError: false,
+    errorColor: ' #cc0000',
+    output: 'html',
+    displayMode: true,
+    strict: false,
+    trust: true,
+    macros: {
+      "\\RR": "\\mathbb{R}",
+      "\\NN": "\\mathbb{N}",
+      "\\ZZ": "\\mathbb{Z}",
+      "\\CC": "\\mathbb{C}",
+      "\\QQ": "\\mathbb{Q}",
+    },
+    delimiters: [
+      { left: "$$", right: "$$", display: true },
+      { left: "$", right: "$", display: false },
+      { left: "\\[", right: "\\]", display: true },
+      { left: "\\(", right: "\\)", display: false }
+    ]
   });
+
+  // Add helper method for math rendering
+  sanitizeLatexExpression(latex: string): string {
+    // Remove any potentially harmful commands
+    latex = latex.replace(/\\(input|include|write|def|let)/g, '');
+    
+    // Normalize whitespace
+    latex = latex.trim().replace(/\s+/g, ' ');
+    
+    // Ensure proper spacing around operators
+    latex = latex.replace(/([=+\-*/])/g, ' $1 ').trim();
+    
+    return latex;
+  }
+
+  // Update the renderMarkdown method
+  renderMarkdown(text: string): string {
+    // Ensure proper spacing around display math
+    text = text.replace(/\$\$(.*?)\$\$/gs, (_, latex) => {
+      const sanitized = this.sanitizeLatexExpression(latex);
+      return `\n\n$$${sanitized}$$\n\n`;
+    });
+
+    // Handle inline math
+    text = text.replace(/\$(.*?)\$/g, (_, latex) => {
+      const sanitized = this.sanitizeLatexExpression(latex);
+      return `$${sanitized}$`;
+    });
+
+    // Handle escaped delimiters
+    text = text.replace(/\\\$/g, '\\\\$');
+
+    // Process the markdown with KaTeX
+    const rendered = this.md.render(text);
+
+    // Wrap in container for proper styling
+    return `<div class="markdown-content">${rendered}</div>`;
+  }
+
   @ViewChild('codeSnippetContainer', { static: false }) 
   codeSnippetContainer: ElementRef<HTMLDivElement> | undefined; 
 
@@ -700,9 +762,20 @@ export class HomePage implements OnInit {
     return content.includes('File Context - Title:');
   }
 
-  renderMarkdown(text: string): string {
-    return this.md.render(text); 
-  }
+  // renderMarkdown(text: string): string {
+  //   // Pre-process math blocks
+  //   text = text.replace(/\$\$(.*?)\$\$/gs, (_, latex) => {
+  //     const sanitized = this.sanitizeLatexExpression(latex);
+  //     return `$$${sanitized}$$`;
+  //   });
+
+  //   text = text.replace(/\$(.*?)\$/g, (_, latex) => {
+  //     const sanitized = this.sanitizeLatexExpression(latex);
+  //     return `$${sanitized}$`;
+  //   });
+
+  //   return this.md.render(text);
+  // }
 
   async showUserMessageOptions(message: Message, index: number) { // Add this method
     // Only allow editing the latest user message
