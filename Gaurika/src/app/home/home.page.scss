@@ -40,7 +40,7 @@ $font-family: 'Inter', sans-serif;
 }
 $text-sizes: (
   xs: 0.75rem,
-  sm: 0.875rem,
+  sm: .875rem,
   base: 1rem,
   lg: 1.125rem,
   xl: 1.25rem,
@@ -61,7 +61,6 @@ $text-sizes: (
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: gradientMove 5s ease infinite;
 }
 
 @keyframes gradientMove {
@@ -1111,220 +1110,113 @@ ion-buttons {
   padding: 3rem 2rem;
   background: linear-gradient(
     135deg,
-    rgba($secondary-color, 0.7),
-    rgba($secondary-color, 0.6),
-    rgba($secondary-color, 0.5),
-    rgba($secondary-color, 0.4),
-    rgba($secondary-color, 0.3),
-    rgba($secondary-color, 0.2),
-    rgba($secondary-color, 0.1),
-    rgba($primary-color, 0.2),
-    rgba($primary-color, 0.3),
-    rgba($primary-color, 0.4),
-    rgba($primary-color, 0.5),
-    rgba($primary-color, 0.6),
-    rgba($primary-color, 0.7)
+    rgba($secondary-color, 0.7) 0%,
+    rgba($primary-color, 0.7) 100%
   );
-  background-size: 400% 400%;
-  animation: gradientAnimation 15s ease infinite;
-
-@keyframes gradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-  text-align: center;
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  background-size: 200% 200%;
+  animation: gradientAnimation 15s ease-in-out infinite;
+  will-change: background-position;
+  transform: translateZ(0); // Force GPU acceleration
 
   .hero-content {
     max-width: 800px;
     margin: 0 auto;
     background-color: rgba($background-dark, 0.5);
-    // padding: 10px;
-    padding-top: 30px;
-    padding-bottom: 30px;
+    padding: 30px 0;
     @include rounded-corners(25px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    transform: translateZ(0);
 
-    .brand-logo{
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      
-      
+    .brand-logo {
       img {
         width: auto;
         height: 4rem;
         filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
-
-      // @keyframes float {
-        // 0%, 100% { transform: translateY(0); }
-        // 50% { transform: translateY(-10px); }
-      // }
-
-      // animation: float 2s ease-in-out infinite;
     }
 
-    .hero-title {
-      position: relative;
-      display: inline-block;
-      margin: 1.5rem 0;
-      cursor: pointer;
-      text-align: center;
-      width: 100%;
-      min-height: 0; // Add minimum height to accommodate both texts
+  }
+}
+
+@keyframes gradientAnimation {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+
+
+// Optimize template cards
+.template-card {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  
+  &:hover {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+// Optimize animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+// Optimize search container for mobile
+@media (max-width: 768px) {
+  .search-container {
+    ion-searchbar {
+      transform: translateZ(0);
+      will-change: transform;
       
-      .title {
-        display: block;
-        font-size: 4rem;
-        font-weight: 800;
-        background: linear-gradient(
-          135deg,
-          $secondary-color,
-          adjust-color($secondary-color, $lightness: 15%),
-          $primary-color
-        );
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: gradientMove 5s ease infinite;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        transform: translateY(0);
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-bottom: 1rem;
-      }
-
-      .full-name {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 90%;
-        max-width: 600px;
-        font-size: 1.8rem;
-        font-weight: 600;
-        background: linear-gradient(
-          135deg,
-          $secondary-color,
-          adjust-color($secondary-color, $lightness: 15%),
-          $primary-color
-        );
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        transform: translate(-50%, 20px);
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        white-space: normal;
-        text-align: center;
-        line-height: 1.4;
-        padding: 0 1rem;
-
-        @media (max-width: 768px) {
-          font-size: 1.4rem;
-          width: 95%;
-        }
-      }
-
-      &:hover {
-        .title {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        
-        .full-name {
-          opacity: 1;
-          visibility: visible;
-          transform: translate(-50%, -50%);
-        }
-      }
-    }
-
-    .hero-subtitle {
-      font-size: map-get($text-sizes, 'xl');
-      color: rgba($text-color, 0.9);
-      margin-bottom: 2.5rem;
-      font-weight: 500;
-      padding: 5px;    }
-
-    .hero-title, 
-    .hero-subtitle {
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeInUp 0.8s ease forwards;
-    }
-
-    .hero-subtitle {
-      animation-delay: 0.3s;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px); // Use transform instead of position
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      &::part(container) {
+        transform: translateZ(0);
       }
     }
   }
 
-// ...existing code...
-
-.hero-title {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  font-size: 3rem;
-  font-weight: 700;
-
-  span {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-    transition: color 0.3s ease-in-out;
-
-    &::after {
-      content: attr(data-word);
-      position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0;
-      white-space: nowrap;
-      color: $accent-color;
-      transform: translateY(10px);
-      transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-    }
-
-    &:hover {
-      color: transparent;
-
-      &::after {
-        opacity: 1;
-        transform: translateY(0);
+  .suggestions-window {
+    transform: translateZ(0);
+    will-change: transform;
+    
+    .suggestion-item {
+      transform: translateZ(0);
+      transition: background-color 0.2s ease;
+      
+      &:hover {
+        transform: none; // Remove hover animation on mobile
       }
+    }
+  }
+  
+  // Reduce animation complexity on mobile
+  .template-card {
+    &:hover {
+      transform: none;
+    }
+    
+    .template-icon {
+      transition: none;
     }
   }
 }
+
+// Add passive scroll optimization
+.templates-grid,
+.suggestions-window,
+ion-content {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  will-change: scroll-position;
 }
 
 // Update search container positioning
@@ -1644,12 +1536,22 @@ ion-list {
   background: transparent;
   padding: 16px;
   margin-bottom: 100px;
+  will-change: transform;
+  transform: translateZ(0);
 
   @media (min-width: 768px) {
     padding: 24px;
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  ion-item {
+    contain: content;
+    
+    ion-label {
+      contain: content;
+    }
   }
 }
 
@@ -1790,6 +1692,7 @@ ion-item {
       white-space: pre-wrap;
       line-height: 1.6;
       border-bottom: none;
+      content-visibility: auto;
     }
 
     // File preview improvements
@@ -2016,31 +1919,6 @@ ion-label {
     transition: all 0.3s ease;
   }
 
-  .full-name {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, calc(-50% + 20px));
-    word-wrap: break-word;
-    font-size: 1.5rem;
-    visibility: hidden;
-    @include text-gradient;
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  &:hover {
-    .title {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    .full-name {
-      visibility: visible;
-      opacity: 1;
-      transform: translate(-50%, -50%);
-    }
-  }
 }
 
 // Updated message action styles
@@ -2154,27 +2032,7 @@ ion-label {
           height: 3rem;
           filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
-      }
-      
-      .hero-title {
-        margin-bottom: 1rem;
-        
-        .title {
-          font-size: 2.5rem;
-          font-weight: 700;
-          background: linear-gradient(135deg, $text-color, $accent-color);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        
-        .full-name {
-          font-size: 1rem;
-          color: $muted-text;
-          margin-top: 0.5rem;
-        }
-      }
-      
+      }    
       .hero-subtitle {
         font-size: 1.1rem;
         color: $muted-text;
@@ -2371,21 +2229,6 @@ ion-label {
     );
     border-bottom: 1px solid rgba($accent-color, 0.1);
     
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(
-        circle at top right,
-        rgba($secondary-color, 0.1),
-        transparent 60%
-      );
-      pointer-events: none;
-    }
-    
     .hero-content {
       max-width: 800px;
       margin: 0 auto;
@@ -2407,33 +2250,6 @@ ion-label {
         }
       }
       
-      .hero-title {
-        margin-bottom: 1.5rem;
-        
-        .title {
-          font-size: 3.5rem;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          background: linear-gradient(
-            135deg,
-            $text-color 0%,
-            rgba($secondary-color, 0.9) 50%,
-            $accent-color 100%
-          );
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-          text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .full-name {
-          font-size: 1.1rem;
-          color: $muted-text;
-          margin-top: 0.75rem;
-          opacity: 0.9;
-          letter-spacing: 0.02em;
-        }
-      }
       
       .hero-subtitle {
         font-size: 1.25rem;
@@ -3150,5 +2966,220 @@ ion-label {
 
   .date {
     color: rgba($muted-text, 0.7);
+  }
+}
+
+// Add new minimal mode styles
+.landing-page {
+  &.minimal {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+    
+    .hero-section {
+      padding: 1.5rem 1rem;
+      background: none;
+      
+      &.minimal {
+        animation: none;
+        .hero-content {
+          padding: 15px 0;
+          
+          .brand-logo img {
+            height: 3rem;
+          }
+          
+          .hero-title .title {
+            font-size: 2rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+.primary-actions {
+  &.minimal {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    
+    .quick-start-card {
+      background: rgba($background-light, 0.05);
+      transform: none;
+      transition: background 0.2s ease;
+      
+      &:hover {
+        transform: translateY(-2px);
+        background: rgba($background-light, 0.1);
+      }
+      
+      .card-content.minimal {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        
+        h2 {
+          font-size: 1.25rem;
+          margin: 0;
+        }
+        
+        .primary-icon {
+          font-size: 1.5rem;
+        }
+      }
+    }
+  }
+}
+
+// Optimize animations for minimal mode
+@media (prefers-reduced-motion: reduce){
+  .hero-section,
+  .quick-start-card,
+  .template-card {
+    animation: none;
+    transition: none;
+  }
+}
+
+// Remove unnecessary effects in minimal mode
+.minimal {
+  .hero-section::before,
+  .quick-start-card::before {
+    display: none;
+  }
+  
+  .brand-logo img {
+    filter: none;
+  }
+}
+
+// Center hero content in minimal mode
+.hero-content.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+// Adjust margins and padding in minimal mode
+.landing-page.minimal {
+  padding: 0;
+
+  .hero-section.minimal {
+    padding: 3rem 1rem 2rem;
+
+    .hero-content {
+      margin: 0 auto;
+
+      .brand-logo img {
+        width: 80px;
+        height: 80px;
+      }
+
+      .hero-title .title {
+        font-size: 2.5rem;
+        margin-top: 1rem;
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+        color: $muted-text;
+      }
+    }
+  }
+}
+
+// Remove unnecessary space when primary actions are hidden
+.primary-actions.minimal {
+  display: none;
+}
+
+// Add this to existing styles
+
+// Optimize message rendering
+ion-list {
+  will-change: transform;
+  transform: translateZ(0);
+  
+  ion-item {
+    contain: content;
+    
+    ion-label {
+      contain: content;
+    }
+  }
+}
+
+// Enhanced minimal mode styles
+.minimal-mode {
+  .suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    margin-top: 2rem;
+
+    .suggestion-card {
+      background: rgba($background-light, 0.05);
+      border: 1px solid rgba($accent-color, 0.1);
+      border-radius: 12px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      &:hover {
+        background: rgba($background-light, 0.1);
+      }
+
+      ion-icon {
+        font-size: 1.5rem;
+        color: $secondary-color;
+      }
+
+      span {
+        color: $text-color;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .quick-start {
+    text-align: center;
+    margin: 2rem auto;
+    max-width: 400px;
+    
+    .start-button {
+      background: rgba($secondary-color, 0.1);
+      color: $secondary-color;
+      border: 1px solid rgba($secondary-color, 0.2);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba($secondary-color, 0.15);
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+// Performance optimizations
+.message-content {
+  contain: content;
+  
+  img {
+    content-visibility: auto;
+  }
+  
+  pre {
+    content-visibility: auto;
   }
 }

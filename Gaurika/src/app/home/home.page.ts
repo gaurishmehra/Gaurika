@@ -9,7 +9,8 @@ import {
   LoadingController,
   ToastController,
   AlertController,
-  ActionSheetController
+  ActionSheetController,
+  IonInfiniteScroll
 } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -185,7 +186,6 @@ export class HomePage implements OnInit {
   isLearning = false;
   learnedUserInfo = '';
   
-  templateSearchInput = '';
   templateSuggestions: Template[] = [];
 
   isUserMessageOptionsOpen = false;  // Add this
@@ -362,6 +362,23 @@ export class HomePage implements OnInit {
   isTemplateToggleEnabled = true;  // Default state
   isMobile = false;  // To track device type
 
+  @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
+  
+  // Add these properties
+  pageSize = 15; // Number of messages to load at once
+  currentPage = 0;
+  visibleMessages: Message[] = [];
+  isLoadingMore = false;
+  
+  // Add new minimal mode properties
+  minimalSuggestions = [
+    { icon: 'code-outline', text: 'Code in rust' },
+    { icon: 'book-outline', text: 'Explain gravity' },
+    { icon: 'create-outline', text: 'Write a short story' },
+    { icon: 'school-outline', text: 'What is a LLM' },
+    { icon: 'briefcase-outline', text: 'Business plan template' },
+    { icon: 'language-outline', text: 'Basic Punjabi phrases' }
+  ];
 
   constructor(
     private router: Router,
@@ -580,6 +597,28 @@ export class HomePage implements OnInit {
       this.sessions = storedSessions;
       this.currentSessionIndex = this.showTemplatesPage ? -1 : 0;
     }
+
+    // Cache DOM elements
+    this.heroSection = document.querySelector('.hero-section');
+    
+    // Add intersection observer for lazy loading
+    if ('IntersectionObserver' in window) {
+      const lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const lazyElement = entry.target as HTMLElement;
+            lazyElement.classList.add('visible');
+            lazyLoadObserver.unobserve(lazyElement);
+          }
+        });
+      });
+
+      document.querySelectorAll('.template-card').forEach(card => {
+        lazyLoadObserver.observe(card);
+      });
+    }
+
+    this.resetVirtualScroll();
 
   }
 
@@ -834,23 +873,6 @@ export class HomePage implements OnInit {
     this.userInput = '';
   }
 
-  filterTemplates() {
-    const searchTerm = this.templateSearchInput.toLowerCase();
-    let filtered = searchTerm ? 
-      this.templateConversations.filter(template =>
-        template.name.toLowerCase().includes(searchTerm) ||
-        template.description.toLowerCase().includes(searchTerm) ||
-        template.prompt.toLowerCase().includes(searchTerm) ||
-        template.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
-      ) : [...this.templateConversations];
-  
-    // Limit templates on mobile devices
-    if (this.platform.is('mobile')) {
-      filtered = filtered.slice(0, Math.ceil(filtered.length / 3));
-    }
-    
-    this.templateSuggestions = filtered;
-  }
 
   async showFileContext(content: string) {
     const fileContextPart = content.split('\n\n')[1]; // Get the file context part
@@ -1282,7 +1304,7 @@ export class HomePage implements OnInit {
   }
 
   getFilteredMessages(): Message[] {
-    return this.messages.filter((m) => m.role !== 'tool');
+    return this.visibleMessages.filter((m) => m.role !== 'tool');
   }
 
   isToolCallInProgress(): boolean {
@@ -2127,7 +2149,6 @@ async copyCode(code: string) {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
-
   detectLanguage(code: string): string | null {
     const registeredLanguages = hljs.listLanguages();
     for (const lang of registeredLanguages) {
@@ -2140,6 +2161,9 @@ async copyCode(code: string) {
       }
     }
     return null;
+  }
+  trackByTemplateId(index: number, template: Template): string {
+    return template.name;
   }
 
   // Add these methods
@@ -2166,17 +2190,6 @@ async copyCode(code: string) {
   editingUserMessageIndex: number | null = null;
   editingUserMessageContent: string = '';
 
-  submitSearch() {
-    const searchTerm = this.templateSearchInput.trim();
-    if (searchTerm) {
-      // Start a new chat session with the search term as prompt
-      this.createNewSessionFromMessage(searchTerm);
-      // Clear search input
-      this.templateSearchInput = '';
-      // Hide suggestions window
-      this.templateSuggestions = [];
-    }
-  }
 
   // Add property to track active message actions menu
   activeMessageActions: number | null = null;
@@ -2257,6 +2270,8 @@ async copyCode(code: string) {
    * Sets the active category and filters templates
    */
   setCategory(categoryId: string) {
+    if (!this.isTemplateToggleEnabled) return;
+  
     this.selectedCategory = categoryId;
     if (categoryId === 'all') {
       this.filteredTemplates = [...this.templateConversations];
@@ -2316,9 +2331,70 @@ async copyCode(code: string) {
     this.isTemplateToggleEnabled = !this.isTemplateToggleEnabled;
     await this.storage.set('templateToggleEnabled', this.isTemplateToggleEnabled);
     
+    // Clear template data from memory when disabled
+    if (!this.isTemplateToggleEnabled) {
+      this.filteredTemplates = [];
+      this.templateSuggestions = [];
+    } else {
+      // Restore template data when enabled
+      this.filteredTemplates = [...this.templateConversations];
+      this.templateSuggestions = [...this.templateConversations];
+    }
+    
     // Show toast notification
-    const message = this.isTemplateToggleEnabled ? 'Templates shown' : 'Templates hidden';
+    const message = this.isTemplateToggleEnabled ? 
+      'Full UI restored' : 
+      'Switched to minimal mode';
     await this.showToast(message, 'success');
   }
 
+  // Add method to check performance mode
+  get isMinimalMode(): boolean {
+    return !this.isTemplateToggleEnabled;
+  }
+
+  // Debounce search input
+  private searchDebounceTimer: any;
+  
+  // Cache DOM queries
+  private heroSection: HTMLElement | null = null;
+
+  // Add this method for virtual scrolling
+  async loadMessages(event?: any) {
+    if (this.isLoadingMore) return;
+    
+    this.isLoadingMore = true;
+    const start = this.currentPage * this.pageSize;
+    const end = start + this.pageSize;
+    
+    // Get subset of messages
+    const newMessages = this.messages.slice(start, end);
+    
+    if (newMessages.length) {
+      // Add new messages to visible messages
+      this.visibleMessages.unshift(...newMessages);
+      this.currentPage++;
+    }
+    
+    this.isLoadingMore = false;
+    if (event) {
+      event.target.complete();
+      if (end >= this.messages.length) {
+        event.target.disabled = true;
+      }
+    }
+  }
+
+  // Add method to reset virtual scroll
+  resetVirtualScroll() {
+    this.currentPage = 0;
+    this.visibleMessages = [];
+    this.loadMessages();
+  }
+
+  // Add minimal mode suggestion handler
+  async handleMinimalSuggestion(suggestion: string) {
+    this.userInput = suggestion;
+    await this.sendMessage();
+  }
 }

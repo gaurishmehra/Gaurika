@@ -111,70 +111,50 @@
   [class.sidebar-open]="isSidebarOpen" 
   [class.right-sidebar-open]="isRightSidebarOpen">
   <div class="content-container">
-    <div *ngIf="showTemplatesPage" class="landing-page" [@templateTransition]>
-      <div class="hero-section">
-        <div class="hero-content">
+    <div *ngIf="showTemplatesPage" class="landing-page" [class.minimal]="!isTemplateToggleEnabled">
+      <!-- Add loading optimization -->
+      <!-- Update hero section by removing search and hover effect -->
+      <div class="hero-section" [class.minimal]="!isTemplateToggleEnabled" loading="lazy">
+        <div class="hero-content" [class.centered]="!isTemplateToggleEnabled">
           <div class="brand-logo">
-            <img src="../../assets/icon/favicon.png" alt="Gaurika Logo">
+            <img src="../../assets/icon/favicon.png" 
+                 alt="Gaurika Logo"
+                 loading="lazy"
+                 width="80"
+                 height="80"
+                 decoding="async">
           </div>
+          
+          <!-- Simplified title without hover effect -->
           <h1 class="hero-title">
             <span class="title">Gaurika</span>
-            <div class="full-name">Gaurish's Advanced Universal Reasoning Interactive Knowledge Aid</div>
           </h1>
-          <p class="hero-subtitle">Experience the future of AI assistance with precision, creativity, and intelligence</p>
-          
-          <div class="search-container">
-            <ion-searchbar 
-              [(ngModel)]="templateSearchInput" 
-              (ionInput)="filterTemplates()" 
-              (ionClear)="filterTemplates()"
-              (ionSearch)="submitSearch()"
-              (keydown)="handleKeyDown($event)"
-              (paste)="handlePaste($event, 'search')"
-              placeholder="Ask anything or explore templates..." 
-              showCancelButton="focus" 
-              animated>
-            </ion-searchbar>
-            
-            <!-- Suggestions Dropdown -->
-            <div class="suggestions-window" *ngIf="templateSearchInput">
-              <div *ngIf="templateSuggestions.length > 0">
-                <div class="suggestion-item"
-                     *ngFor="let template of templateSuggestions"
-                     (click)="startConversation(template)">
-                  <ion-icon [name]="getIconForTemplate(template.name)"></ion-icon>
-                  <div class="suggestion-content">
-                    <span class="template-name">{{ template.name }}</span>
-                    <span class="template-description">{{ template.description }}</span>
-                    <span class="template-prompt">{{ template.prompt }}</span>
-                  </div>
-                </div>
-              </div>
-              <div *ngIf="templateSuggestions.length === 0" class="no-templates-found">
-                <div class="suggestion-item" (click)="submitSearch()">
-                  <ion-icon name="chatbubbles-outline"></ion-icon>
-                  <span>Start a new chat with "{{ templateSearchInput }}"</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Separate subtitle for minimal mode -->
+          <p class="hero-subtitle" *ngIf="!isTemplateToggleEnabled">
+            Minimal mode (still under development)
+          </p>
+          <!-- Original subtitle for full mode -->
+          <p class="hero-subtitle" *ngIf="isTemplateToggleEnabled">
+            Experience the future of AI assistance with precision, creativity, and intelligence
+          </p>
         </div>
       </div>
 
-      <!-- Primary Actions Section -->
-      <div class="primary-actions">
+      <!-- Primary Actions - Only show in full mode -->
+      <div class="primary-actions" *ngIf="isTemplateToggleEnabled">
         <div class="quick-start-card" (click)="startQuickChat()">
-          <div class="card-content">
+          <div class="card-content" [class.minimal]="!isTemplateToggleEnabled">
             <ion-icon name="rocket-outline" class="primary-icon"></ion-icon>
             <h2>Start Fresh Chat</h2>
-            <p>Begin a new conversation with no constraints</p>
+            <p *ngIf="isTemplateToggleEnabled">Begin a new conversation with no constraints</p>
           </div>
-          <div class="action-hint">
+          <div class="action-hint" *ngIf="isTemplateToggleEnabled">
             <ion-icon name="arrow-forward-outline"></ion-icon>
           </div>
         </div>
 
-        <div class="docs-card" (click)="openDocumentation()">
+        <!-- Only show docs card in full mode -->
+        <div class="docs-card" (click)="openDocumentation()" *ngIf="isTemplateToggleEnabled">
           <div class="card-content">
             <ion-icon name="book-outline" class="primary-icon"></ion-icon>
             <h2>Documentation</h2>
@@ -205,7 +185,7 @@
         </div>
 
         <div class="templates-grid">
-          <div *ngFor="let template of filteredTemplates" 
+          <div *ngFor="let template of filteredTemplates; trackBy: trackByTemplateId" 
                class="template-card" 
                [class.featured]="template.category === selectedCategory"
                (click)="startConversation(template)">
@@ -227,15 +207,20 @@
         </div>
       </div>
 
-      <!-- No Results State -->
-      <div *ngIf="filteredTemplates.length === 0 && templateSearchInput" 
-           class="no-results-state">
-        <div class="no-results-content">
-          <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
-          <h3>No matching templates</h3>
-          <p>Try different keywords or start a fresh chat</p>
-          <button class="primary-button" (click)="startQuickChat()">
-            Start Fresh Chat
+      <!-- Replace the existing templates section when in minimal mode -->
+      <div *ngIf="showTemplatesPage && !isTemplateToggleEnabled" class="minimal-mode">
+        <div class="suggestions-grid">
+          <div class="suggestion-card" 
+               *ngFor="let suggestion of minimalSuggestions"
+               (click)="handleMinimalSuggestion(suggestion.text)">
+            <ion-icon [name]="suggestion.icon"></ion-icon>
+            <span>{{ suggestion.text }}</span>
+          </div>
+        </div>
+        
+        <div class="quick-start">
+          <button class="start-button" (click)="startQuickChat()">
+            Start a New Chat
           </button>
         </div>
       </div>
@@ -244,7 +229,7 @@
     <!-- Chat Page -->
     <div *ngIf="!showTemplatesPage && currentSessionIndex >= 0" class="chat-page">
       <ion-list lines="none">
-        <ion-item *ngFor="let message of getFilteredMessages(); let i = index" [ngClass]="{'message-enter': true}">
+        <ion-item *ngFor="let message of messages; let i = index">
           <ion-label [class.user-message]="message.role === 'user'"
                     [class.assistant-message]="message.role === 'assistant'">
                     <span class="message-sender">
@@ -321,7 +306,8 @@
                   <img [src]="message.image" 
                        class="user-sent-image" 
                        alt="User sent image"
-                       (click)="showImagePreview(message.image)" />
+                       (click)="showImagePreview(message.image)" 
+                       loading="lazy" />
                 </div>
                 <!-- Rest of existing user message content -->
               </div>
