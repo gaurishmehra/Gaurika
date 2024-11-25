@@ -1565,7 +1565,7 @@ ion-item {
 
   ion-label {
     @include rounded-corners;
-    @include glass-effect(15px, 0.15);
+    // @include glass-effect(15px, 0.15);
     padding: 18px;
     position: relative;
     overflow: hidden;
