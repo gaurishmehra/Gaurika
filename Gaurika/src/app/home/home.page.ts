@@ -599,6 +599,7 @@ export class HomePage implements OnInit {
     this.isImageGenEnabled = 
     (await this.storage.get('isImageGenEnabled')) || false;
     this.isLearning = (await this.storage.get('isLearning')) || true;
+    console.log('Learning:', this.isLearning);
     this.learnedUserInfo = (await this.storage.get('learnedUserInfo')) || '';
 
     const storedModel = await this.storage.get('model');
