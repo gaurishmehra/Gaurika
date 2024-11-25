@@ -19,10 +19,10 @@
         <ion-toggle [(ngModel)]="isWebGroundingEnabled" (ionChange)="onWebGroundingToggleChange()"></ion-toggle>
       </ion-item>
 
-      <ion-item>
+      <!-- <ion-item>
         <ion-label>Enable Personalized Learning</ion-label>
         <ion-toggle [(ngModel)]="isLearning" (ionChange)="onPersonalizedLearningToggleChange()"></ion-toggle>
-      </ion-item>
+      </ion-item> -->
     
       <ion-item *ngIf="isLearning">
         <ion-label position="stacked">Learned User Information</ion-label>

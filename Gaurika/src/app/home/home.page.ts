@@ -129,6 +129,9 @@ export class HomePage implements OnInit {
   // Add version property
   currentSystemPromptVersion = 7; // Keep in sync with settings page
   
+  // Add new properties
+  learnedInfo: string[] = [];
+  isLearningIndicatorVisible = false;
 
   md = new MarkdownIt({
     html: true,
@@ -441,6 +444,9 @@ export class HomePage implements OnInit {
     { icon: 'briefcase-outline', text: 'Business plan template' },
     { icon: 'language-outline', text: 'Basic Punjabi phrases' }
   ];
+
+  // Add these properties
+  isLearningDialogOpen = false;
 
   constructor(
     private router: Router,
@@ -1340,6 +1346,13 @@ export class HomePage implements OnInit {
     setTimeout(() => {
       this.content.scrollToBottom(300);
     });
+
+    // Load learned info
+    const learningInfo = await this.storage.get('learnedUserInfo') || '';
+    this.learnedInfo = learningInfo.split('\n').filter((x: string) => x);
+    
+    // Make sure system prompt includes learning info
+    await this.updateSystemPromptWithLearning(learningInfo);
   }
 
   saveCurrentSession() {
@@ -1776,100 +1789,56 @@ export class HomePage implements OnInit {
     try {
       const currentInfo = await this.storage.get('learnedUserInfo') || '';
       let updatedInfo = currentInfo;
-  
+      
       if (args.action === 'add') {
-        // Add new information while avoiding duplicates
         const newInfo = args.information.trim();
         if (!currentInfo.includes(newInfo)) {
           updatedInfo = currentInfo ? `${currentInfo}\n${newInfo}` : newInfo;
+          
+          // Show visual feedback
+          this.learnedInfo = updatedInfo.split('\n');
+          this.isLearningIndicatorVisible = true;
+          setTimeout(() => this.isLearningIndicatorVisible = false, 3000);
+          
+          // Show toast
+          await this.showToast(`Learned: ${newInfo}`, 'success');
         }
       } else if (args.action === 'remove') {
-        // Remove specific information
         const lines = currentInfo.split('\n');
         updatedInfo = lines
           .filter((line: string) => !line.includes(args.information))
           .join('\n');
+          
+        // Update visual state
+        this.learnedInfo = updatedInfo.split('\n');
+        await this.showToast(`Removed: ${args.information}`, 'warning');
       }
-  
+
+      // Update storage and system prompt immediately
       await this.storage.set('learnedUserInfo', updatedInfo);
+      await this.updateSystemPromptWithLearning(updatedInfo);
       
-      // Update system prompt with learned information
-      const basePrompt = await this.storage.get('systemPrompt');
-      const updatedPrompt = `${basePrompt}\n\nLearned information about the user:\n${updatedInfo}`;
-      await this.storage.set('systemPrompt', updatedPrompt);
-  
       return args.action === 'add'
-        ? `Successfully learned: ${args.information}`
-        : `Successfully removed information about: ${args.information}`;
+        ? `✓ Learned: ${args.information}`
+        : `✓ Removed: ${args.information}`;
     } catch (error) {
       console.error('Error in learning tool:', error);
       throw new Error('Failed to process learning operation');
     }
   }
 
-  async imagetool(description: string): Promise<string> {
-    const together = new OpenAI({baseURL:"https://api.gaurish.xyz/api/together/v1/", apiKey:"aaa", dangerouslyAllowBrowser:true});
-  
-    const response = await together.images.generate({
-      model: "black-forest-labs/FLUX.1-schnell-Free",
-      prompt: description,
-      n: 1
-    });
-    console.log(response.data[0]); 
-    console.log('imagetool called with description:', description);
-  
-    // Store the generated image in the current session
-    if (response.data[0].url) {
-      // Find the last assistant message using a loop
-      let lastAssistantMessage: Message | undefined;
-      for (let i = this.messages.length - 1; i >= 0; i--) {
-        if (this.messages[i].role === 'assistant') {
-          lastAssistantMessage = this.messages[i];
-          break;
-        }
-      }
-  
-      if (lastAssistantMessage) {
-        if (!lastAssistantMessage.generatedImages) {
-          lastAssistantMessage.generatedImages = [];
-        }
-        lastAssistantMessage.generatedImages.push(response.data[0].url);
-      }
-      return response.data[0].url || '';
-    } else {
-      return 'Failed to generate image';
-    }
-  }
+  // Add new method to update system prompt
+  private async updateSystemPromptWithLearning(learningInfo: string) {
+    const basePrompt = await this.storage.get('systemPrompt') || '';
+    const updatedPrompt = learningInfo 
+      ? `${basePrompt}\n\nLearned information about the user:\n${learningInfo}`
+      : basePrompt;
+    
+    this.systemPrompt = updatedPrompt;
+    await this.storage.set('systemPrompt', updatedPrompt);
 
-  async webgroundtool(query: string, maxResults = 5, baseUrl = 'http://localhost:5000'): Promise<string> {
-    try {
-      const response = await fetch(`${baseUrl}/research`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, max_results: maxResults }),
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const data: ResearchResponse = await response.json();
-  
-      // Create a summary string from the research results
-      let summary = `Research results for "${query}":\n\n`;
-      data.results.forEach((result, index) => {
-        summary += `${index + 1}. ${result.title} (${result.url})\n`;
-        summary += `${result.snippet}\n\n`; // Add the snippet
-      });
-      summary += `Total results: ${data.summary.total_sources}, Execution time: ${data.execution_time}ms`;
-  
-      return summary;
-  
-    } catch (error) {
-      console.error('Error performing research:', error);
-      // Return an error message to the model
-      return `Error performing research`; // Or a more user-friendly message
-    }
+    // Update with explicit type
+    this.learnedInfo = learningInfo.split('\n').filter((x: string) => x);
   }
 
   stopStream() {
@@ -2469,5 +2438,80 @@ async copyCode(code: string) {
   async handleMinimalSuggestion(suggestion: string) {
     this.userInput = suggestion;
     await this.sendMessage();
+  }
+
+  async showLearningDialog() {
+    this.isLearningDialogOpen = true;
+  }
+
+  // Add explicit type for filter callback parameter
+  updateLearnedInfo(learningInfo: string) {
+    this.learnedInfo = learningInfo.split('\n').filter((x: string) => x.length > 0);
+  }
+
+  // Add the missing tool methods
+  async webgroundtool(query: string): Promise<string> {
+    try {
+      const response = await fetch('http://localhost:5000/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, max_results: 5 }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data: ResearchResponse = await response.json();
+      let summary = `Research results for "${query}":\n\n`;
+      
+      data.results.forEach((result, index) => {
+        summary += `${index + 1}. ${result.title} (${result.url})\n`;
+        summary += `${result.snippet}\n\n`;
+      });
+      
+      summary += `Total results: ${data.summary.total_sources}, Execution time: ${data.execution_time}ms`;
+      return summary;
+    } catch (error) {
+      console.error('Error performing research:', error);
+      return `Error performing research`;
+    }
+  }
+
+  async imagetool(description: string): Promise<string> {
+    try {
+      const together = new OpenAI({
+        baseURL: "https://api.gaurish.xyz/api/together/v1/", 
+        apiKey: "aaa", 
+        dangerouslyAllowBrowser: true
+      });
+    
+      const response = await together.images.generate({
+        model: "black-forest-labs/FLUX.1-schnell-Free",
+        prompt: description,
+        n: 1
+      });
+      
+      if (response.data[0].url) {
+        // Replace findLast with reverse().find()
+        const lastAssistantMessage = this.messages
+          .reverse()
+          .find((m: Message) => m.role === 'assistant');
+        
+        if (lastAssistantMessage) {
+          if (!lastAssistantMessage.generatedImages) {
+            lastAssistantMessage.generatedImages = [];
+          }
+          lastAssistantMessage.generatedImages.push(response.data[0].url);
+        }
+        
+        return response.data[0].url;
+      }
+      
+      return 'Failed to generate image';
+    } catch (error) {
+      console.error('Error generating image:', error);
+      return 'Error generating image';
+    }
   }
 }

@@ -3184,3 +3184,44 @@ ion-list {
   }
 }
 
+.learning-indicator {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.learning-status {
+  ion-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    border-radius: 50%;
+  }
+}
+
+.learning-dialog {
+  --height: 300px;
+  --width: 300px;
+  
+  ion-item {
+    --padding-start: 16px;
+    
+    ion-icon {
+      margin-right: 16px;
+    }
+  }
+}
+

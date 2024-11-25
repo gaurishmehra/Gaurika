@@ -22,6 +22,12 @@
       <ion-button (click)="openSettings()">
         <ion-icon name="settings-outline"></ion-icon>
       </ion-button>
+      <ion-button *ngIf="learnedInfo.length > 0" 
+                  (click)="showLearningDialog()"
+                  class="learning-status">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <ion-badge color="success">{{ learnedInfo.length }}</ion-badge>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 
@@ -106,6 +112,14 @@
     </div>
   </div>
 </ion-header>
+
+<!-- Add this after the header -->
+<div class="learning-indicator" *ngIf="isLearningIndicatorVisible">
+  <ion-chip color="success">
+    <ion-icon name="brain-outline"></ion-icon>
+    <ion-label>Learning in progress...</ion-label>
+  </ion-chip>
+</div>
 
 <ion-content [fullscreen]="true" [class.content-shift]="true" 
   [class.sidebar-open]="isSidebarOpen" 
@@ -510,3 +524,29 @@
     <img [src]="selectedPreviewImage" alt="Preview" />
   </div>
 </div>
+
+<!-- Add at the bottom of the file -->
+<ion-modal [isOpen]="isLearningDialogOpen" 
+          (didDismiss)="isLearningDialogOpen = false" 
+          class="learning-dialog">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Learned Information</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="isLearningDialogOpen = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-item *ngFor="let info of learnedInfo">
+          <ion-icon name="checkmark-circle" color="success" slot="start"></ion-icon>
+          <ion-label>{{ info }}</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-modal>

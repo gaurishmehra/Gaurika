@@ -49,7 +49,7 @@ export class SettingsPage implements OnInit {
   speechToTextBaseUrl = '';
   liveLLMApiKey = '';
   liveLLMBaseUrl = '';
-  isLearning = false;
+  isLearning = true;
   learnedUserInfo = '';
 
   constructor(
@@ -91,7 +91,7 @@ export class SettingsPage implements OnInit {
     this.speechToTextBaseUrl = (await this.storage.get('speechToTextBaseUrl')) || '';
     this.liveLLMApiKey = (await this.storage.get('liveLLMApiKey')) || '';
     this.liveLLMBaseUrl = (await this.storage.get('liveLLMBaseUrl')) || '';
-    this.isLearning = (await this.storage.get('isLearning')) || false;
+    this.isLearning = (await this.storage.get('isLearning')) || true;
     this.learnedUserInfo = (await this.storage.get('learnedUserInfo')) || '';
 
     this.ensureSelectedIndicesWithinBounds();
