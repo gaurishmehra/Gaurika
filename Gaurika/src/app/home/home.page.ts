@@ -436,14 +436,58 @@ export class HomePage implements OnInit {
   isLoadingMore = false;
   
   // Add new minimal mode properties
-  minimalSuggestions = [
-    { icon: 'code-outline', text: 'Code in rust' },
-    { icon: 'book-outline', text: 'Explain gravity' },
-    { icon: 'create-outline', text: 'Write a short story' },
-    { icon: 'school-outline', text: 'What is a LLM' },
-    { icon: 'briefcase-outline', text: 'Business plan template' },
-    { icon: 'language-outline', text: 'Basic Punjabi phrases' }
-  ];
+  allMinimalSuggestions = [
+    { icon: 'code-outline', text: 'Rust Basics', prompt: 'Write a beginner-friendly Rust program that demonstrates basic syntax and error handling.' },
+    { icon: 'book-outline', text: 'Gravity Explained', prompt: 'Explain gravity in simple terms and its effects on our daily lives. Include some interesting examples.' },
+    { icon: 'create-outline', text: 'Mystery Story', prompt: 'Write a short creative story about a mysterious package that arrives at someone\'s doorstep.' },
+    { icon: 'school-outline', text: 'Intro to LLMs', prompt: 'Explain what Large Language Models are, how they work, and their impact on technology in simple terms.' },
+    { icon: 'briefcase-outline', text: 'Business Plan', prompt: 'Create a detailed business plan template with sections for executive summary, market analysis, financial projections, and marketing strategy.' },
+    { icon: 'language-outline', text: 'Punjabi Greetings', prompt: 'Teach me 5 essential Punjabi greetings with pronunciation guide, translations, and cultural context.' },
+    { icon: 'calculator-outline', text: 'Quadratic Solver', prompt: 'Show me how to solve quadratic equations step by step with examples and visual explanations.' },
+    { icon: 'color-palette-outline', text: 'Modern Logo', prompt: 'Help me design a professional logo. Describe various concepts focusing on modern, minimalist design principles.' },
+    { icon: 'flask-outline', text: 'Photoelectric Effect', prompt: 'Explain the photoelectric experiment, its significance, and how to conduct it safely in a laboratory setting.' },
+    { icon: 'musical-notes-outline', text: 'Music Theory 101', prompt: 'Explain basic music theory concepts including scales, chords, and rhythm with practical examples.' },
+    { icon: 'planet-outline', text: 'Solar System Facts', prompt: 'Share fascinating facts about our solar system, including recent discoveries and interesting phenomena.' },
+    { icon: 'leaf-outline', text: 'Beginner Gardening', prompt: 'Provide comprehensive gardening tips for beginners, including plant selection, soil preparation, and maintenance.' },
+    { icon: 'nutrition-outline', text: 'Healthy Recipes', prompt: 'Suggest healthy, balanced meal recipes with nutritional information and preparation instructions.' },
+    { icon: 'fitness-outline', text: 'Workout Routine', prompt: 'Create a balanced workout routine with warm-up, exercises, cool-down, and progression guidelines.' },
+    { icon: 'telescope-outline', text: 'Night Sky Guide', prompt: 'Explain interesting astronomy concepts and how to identify major constellations visible this month.' },
+    { icon: 'newspaper-outline', text: 'Blog Tips', prompt: 'Help me write an engaging blog post with proper structure, SEO considerations, and content strategy.' },
+    { icon: 'bulb-outline', text: 'Productivity Hacks', prompt: 'Let\'s brainstorm creative solutions for improving daily productivity and time management.' },
+    { icon: 'desktop-outline', text: 'Debug JavaScript', prompt: 'Help me understand common JavaScript debugging techniques and best practices with examples.' },
+    { icon: 'layers-outline', text: 'Software Patterns', prompt: 'Explain software design patterns, their use cases, and implementation examples in modern programming.' },
+    { icon: 'podium-outline', text: 'Public Speaking', prompt: 'Provide tips for effective public speaking, including preparation, delivery, and handling nervousness.' },
+    { icon: 'camera-outline', text: 'Photography Basics', prompt: 'Share essential photography techniques for better composition, lighting, and camera settings.' },
+    { icon: 'brush-outline', text: 'Digital Art Tips', prompt: 'Provide a beginner\'s guide to digital art, including tool selection, basic techniques, and practice exercises.' },
+    { icon: 'megaphone-outline', text: 'Marketing Plan', prompt: 'Develop a comprehensive digital marketing strategy including social media, content, and analytics.' },
+    { icon: 'shield-outline', text: 'Cybersecurity 101', prompt: 'Explain essential cybersecurity practices for personal and professional digital safety.' },
+    { icon: 'book-outline', text: 'Book Analysis', prompt: 'Provide an in-depth analysis of Harry Potter and the Philosopher\'s Stone, including themes, characters, and impact.' },
+    { icon: 'code-slash-outline', text: 'Python Structures', prompt: 'Explain Python data structures with practical examples and performance considerations.' },
+    { icon: 'flask-outline', text: 'Fun Experiments', prompt: 'Share exciting and safe chemistry experiments that can be done at home with common materials.' },
+    { icon: 'earth-outline', text: 'Geography Quiz', prompt: 'Create an engaging quiz about world geography, covering countries, capitals, and interesting facts.' },
+    { icon: 'language-outline', text: 'Learn Japanese', prompt: 'Teach basic Japanese phrases, greetings, and cultural etiquette for beginners.' },
+    { icon: 'calculator-outline', text: 'Stats Basics', prompt: 'Explain fundamental statistics concepts with real-world examples and calculations.' },
+    { icon: 'brush-outline', text: 'Color Theory', prompt: 'Provide a comprehensive guide to color theory and paint mixing techniques.' },
+    { icon: 'musical-note-outline', text: 'A-Minor Scale', prompt: 'Explain the A-Minor scale, its relationship to C-Major, and common chord progressions.' },
+    { icon: 'basketball-outline', text: 'Sports Science', prompt: 'Explore the science behind athletic performance, training, and recovery.' },
+    { icon: 'cafe-outline', text: 'Coffee Brewing', prompt: 'Share detailed coffee brewing techniques, bean selection, and equipment recommendations.' },
+    { icon: 'construct-outline', text: 'DIY Projects', prompt: 'Suggest creative DIY home improvement projects with step-by-step instructions.' },
+    { icon: 'flower-outline', text: 'Plant Care Tips', prompt: 'Provide detailed care instructions for common houseplants, including troubleshooting tips.' },
+    { icon: 'globe-outline', text: 'Travel Planning', prompt: 'Share comprehensive travel planning advice, including budgeting, itinerary creation, and safety tips.' },
+    { icon: 'heart-outline', text: 'Health Tips', prompt: 'Provide evidence-based health and wellness advice for maintaining a balanced lifestyle.' },
+    { icon: 'id-card-outline', text: 'Resume Guide', prompt: 'Guide me through creating a professional resume with modern formatting and content guidelines.' },
+    { icon: 'library-outline', text: 'Book Suggestions', prompt: 'Recommend books across different genres with brief descriptions and reading level suggestions.' },
+    { icon: 'mic-outline', text: 'Advanced Speech', prompt: 'Share advanced public speaking techniques for engaging and persuasive presentations.' },
+    { icon: 'pencil-outline', text: 'Improve Drawing', prompt: 'Provide step-by-step guidance for improving drawing skills with exercises and techniques.' },
+    { icon: 'pizza-outline', text: 'Cooking Basics', prompt: 'Explain fundamental cooking techniques, knife skills, and kitchen organization tips.' },
+    { icon: 'rocket-outline', text: 'Space Technology', prompt: 'Discuss current space exploration technologies and future missions planned by various agencies.' },
+    { icon: 'shapes-outline', text: 'Geometry Concepts', prompt: 'Help me understand geometric concepts including proofs, formulas, and real-world applications.' },
+    { icon: 'terminal-outline', text: 'Arch Linux 101', prompt: 'Explain essential Arch Linux commands and system administration tasks for beginners.' },
+    { icon: 'water-outline', text: 'Ocean Wonders', prompt: 'Share fascinating facts about marine ecosystems, ocean currents, and marine life.' }
+];
+
+
+  minimalSuggestions: any[] = [];
 
   // Add these properties
   isLearningDialogOpen = false;
@@ -468,6 +512,7 @@ export class HomePage implements OnInit {
     // Keep templates page visible but disable template toggle on mobile
     this.showTemplatesPage = true;
     this.isTemplateToggleEnabled = !this.isMobile;
+    this.refreshMinimalSuggestions();
   }
 
   
@@ -2483,8 +2528,13 @@ async copyCode(code: string) {
 
   // Add minimal mode suggestion handler
   async handleMinimalSuggestion(suggestion: string) {
-    this.userInput = suggestion;
-    await this.sendMessage();
+    // Update to use the prompt instead of the display text
+    const selectedSuggestion = this.minimalSuggestions.find(s => s.text === suggestion);
+    if (selectedSuggestion) {
+      this.userInput = selectedSuggestion.prompt;
+      await this.sendMessage();
+      this.refreshMinimalSuggestions();
+    }
   }
 
   async showLearningDialog() {
@@ -2560,5 +2610,23 @@ async copyCode(code: string) {
       console.error('Error generating image:', error);
       return 'Error generating image';
     }
+  }
+
+  private refreshMinimalSuggestions() {
+    // Doubled the number of suggestions from 6 to 12
+    this.minimalSuggestions = this.getRandomSuggestions(this.allMinimalSuggestions, 6);
+  }
+
+  private getRandomSuggestions(array: any[], count: number): any[] {
+    // Fisher-Yates shuffle algorithm
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      // Use crypto for better randomization if available
+      const j = window.crypto 
+        ? Math.floor(window.crypto.getRandomValues(new Uint32Array(1))[0] / (0xffffffff + 1) * (i + 1))
+        : Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, count);
   }
 }

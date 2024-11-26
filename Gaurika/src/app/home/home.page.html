@@ -22,12 +22,12 @@
       <ion-button (click)="openSettings()">
         <ion-icon name="settings-outline"></ion-icon>
       </ion-button>
-      <ion-button *ngIf="learnedInfo.length > 0" 
+      <!-- <ion-button *ngIf="learnedInfo.length > 0" 
                   (click)="showLearningDialog()"
                   class="learning-status">
         <ion-icon name="information-circle-outline"></ion-icon>
         <ion-badge color="success">{{ learnedInfo.length }}</ion-badge>
-      </ion-button>
+      </ion-button> -->
     </ion-buttons>
   </ion-toolbar>
 
@@ -145,7 +145,7 @@
           </h1>
           <!-- Separate subtitle for minimal mode -->
           <p class="hero-subtitle" *ngIf="!isTemplateToggleEnabled">
-            Minimal mode (still under development)
+            What can I help you with? Start typing or choose a template below
           </p>
           <!-- Original subtitle for full mode -->
           <p class="hero-subtitle" *ngIf="isTemplateToggleEnabled">
@@ -230,12 +230,6 @@
             <ion-icon [name]="suggestion.icon"></ion-icon>
             <span>{{ suggestion.text }}</span>
           </div>
-        </div>
-        
-        <div class="quick-start">
-          <button class="start-button" (click)="startQuickChat()">
-            Start a New Chat
-          </button>
         </div>
       </div>
     </div>
@@ -416,7 +410,7 @@
   <div class="bottom-toolbar">
     <ion-textarea #messageInput
                [(ngModel)]="userInput"
-               placeholder="Send a message..."
+               placeholder="Start Typing..."
                (keydown)="handleKeyDown($event)"
                (paste)="handlePaste($event, 'user')"
                [disabled]="isInputDisabled()"
