@@ -1401,7 +1401,7 @@ ion-content {
 }
 
 .template-card {
-  @include glass-effect;
+  // @include glass-effect;
   padding: 1.75rem;
   border-radius: 16px;
   cursor: pointer;
