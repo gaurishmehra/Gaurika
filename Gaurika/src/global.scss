@@ -29,193 +29,193 @@
 @import 'katex/dist/katex.min.css';
 
 /* Custom KaTeX Styles */
-.katex-display {
-  overflow: visible !important; // Changed from auto hidden
-  padding: 1em 0;
-  margin: 1em 0;
-  text-align: center;
-  border: none !important;
-  background: transparent !important;
+// .katex-display {
+//   overflow: visible !important; // Changed from auto hidden
+//   padding: 1em 0;
+//   margin: 1em 0;
+//   text-align: center;
+//   border: none !important;
+//   background: transparent !important;
   
-  // Remove any line breaks in math display
-  .base {
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-  }
+//   // Remove any line breaks in math display
+//   .base {
+//     margin: 0 !important;
+//     padding: 0 !important;
+//     border: none !important;
+//   }
 
-  // Fix the vertical alignment
-  .vlist-t, .vlist-r, .vlist {
-    height: auto !important;
-  }
+//   // Fix the vertical alignment
+//   .vlist-t, .vlist-r, .vlist {
+//     height: auto !important;
+//   }
 
-  // Remove unwanted struts
-  .strut {
-    display: none !important;
-  }
-}
+//   // Remove unwanted struts
+//   .strut {
+//     display: none !important;
+//   }
+// }
 
-// Prevent line breaks in math expressions
-.katex {
-  display: inline-block !important;
-  font-size: 1.1em !important;
-  text-indent: 0;
-  text-rendering: auto;
-  border: none !important;
-  padding: 0 !important;
-  background: transparent !important;
+// // Prevent line breaks in math expressions
+// .katex {
+//   display: inline-block !important;
+//   font-size: 1.1em !important;
+//   text-indent: 0;
+//   text-rendering: auto;
+//   border: none !important;
+//   padding: 0 !important;
+//   background: transparent !important;
   
-  .katex-html {
-    // Fix formatting issues
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    white-space: nowrap !important;
-    border: none !important;
-    background: transparent !important;
-  }
-}
+//   .katex-html {
+//     // Fix formatting issues
+//     display: flex !important;
+//     align-items: center !important;
+//     justify-content: center !important;
+//     white-space: nowrap !important;
+//     border: none !important;
+//     background: transparent !important;
+//   }
+// }
 
-// Style math blocks within markdown
-.markdown-math {
-  margin: 1em 0;
-  padding: 0.5em;
-  background: transparent !important;
-  overflow-x: auto;
-  overflow-y: hidden;
-  max-width: 100%;
+// // Style math blocks within markdown
+// .markdown-math {
+//   margin: 1em 0;
+//   padding: 0.5em;
+//   background: transparent !important;
+//   overflow-x: auto;
+//   overflow-y: hidden;
+//   max-width: 100%;
   
-  // Prevent overlap with other content
-  clear: both;
-  position: relative;
-  z-index: 1;
-}
+//   // Prevent overlap with other content
+//   clear: both;
+//   position: relative;
+//   z-index: 1;
+// }
 
-// Fix inline math
-.math-inline {
-  display: inline-flex !important;
-  align-items: center;
-  padding: 0 0.2em;
-  vertical-align: middle;
-  background: transparent !important;
-}
+// // Fix inline math
+// .math-inline {
+//   display: inline-flex !important;
+//   align-items: center;
+//   padding: 0 0.2em;
+//   vertical-align: middle;
+//   background: transparent !important;
+// }
 
-// Fix display math
-.math-display {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
-  margin: 1em 0;
-  text-align: center;
-  background: transparent !important;
-  padding: 0.5em 0;
+// // Fix display math
+// .math-display {
+//   display: block;
+//   max-width: 100%;
+//   overflow-x: auto;
+//   margin: 1em 0;
+//   text-align: center;
+//   background: transparent !important;
+//   padding: 0.5em 0;
   
-  &::before,
-  &::after {
-    display: none !important;
-  }
-}
+//   &::before,
+//   &::after {
+//     display: none !important;
+//   }
+// }
 
-// Prevent markdown conflicts
-.markdown-content {
-  .katex-display {
-    margin: 1em -1em !important;
-    padding: 0.5em 1em !important;
-  }
+// // Prevent markdown conflicts
+// .markdown-content {
+//   .katex-display {
+//     margin: 1em -1em !important;
+//     padding: 0.5em 1em !important;
+//   }
   
-  p {
-    overflow: visible !important;
+//   p {
+//     overflow: visible !important;
     
-    .katex {
-      vertical-align: middle;
-    }
-  }
-}
+//     .katex {
+//       vertical-align: middle;
+//     }
+//   }
+// }
 
-// Ensure proper line height
-p, li {
-  .katex {
-    line-height: 1.2em;
-  }
-}
+// // Ensure proper line height
+// p, li {
+//   .katex {
+//     line-height: 1.2em;
+//   }
+// }
 
-/* Custom KaTeX Styles - Enhanced */
-.markdown-content {
-  // Fix nested math rendering
-  .katex-display {
-    display: block !important;
-    margin: 1em 0 !important;
-    text-align: center !important;
-    font-size: 1.21em !important;
-    > .katex {
-      display: inline-block !important;
-      text-align: center !important;
-      max-width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-    }
-  }
+// /* Custom KaTeX Styles - Enhanced */
+// .markdown-content {
+//   // Fix nested math rendering
+//   .katex-display {
+//     display: block !important;
+//     margin: 1em 0 !important;
+//     text-align: center !important;
+//     font-size: 1.21em !important;
+//     > .katex {
+//       display: inline-block !important;
+//       text-align: center !important;
+//       max-width: 100%;
+//       overflow-x: auto;
+//       overflow-y: hidden;
+//     }
+//   }
   
-  // Fix math scaling and alignment
-  .katex {
-    text-rendering: auto;
-    font-size: 1.1em !important;
-    line-height: 1.2 !important;
+//   // Fix math scaling and alignment
+//   .katex {
+//     text-rendering: auto;
+//     font-size: 1.1em !important;
+//     line-height: 1.2 !important;
     
-    .katex-mathml {
-      display: none;
-    }
+//     .katex-mathml {
+//       display: none;
+//     }
     
-    .katex-html {
-      display: flex !important;
-      align-items: baseline !important;
-      justify-content: center !important;
-    }
-  }
+//     .katex-html {
+//       display: flex !important;
+//       align-items: baseline !important;
+//       justify-content: center !important;
+//     }
+//   }
 
-  // Fix fraction alignment
-  .mfrac {
-    margin: 0 0.2em !important;
-    vertical-align: -0.5em !important;
-  }
+//   // Fix fraction alignment
+//   .mfrac {
+//     margin: 0 0.2em !important;
+//     vertical-align: -0.5em !important;
+//   }
 
-  // Fix vertical overflow
-  .vlist-t, .vlist-r, .vlist {
-    height: auto !important;
-  }
-}
+//   // Fix vertical overflow
+//   .vlist-t, .vlist-r, .vlist {
+//     height: auto !important;
+//   }
+// }
 
-// Fix inline math
-.math-inline {
-  display: inline-flex !important;
-  align-items: baseline !important;
-  margin: 0 0.15em !important;
-  vertical-align: baseline !important;
+// // Fix inline math
+// .math-inline {
+//   display: inline-flex !important;
+//   align-items: baseline !important;
+//   margin: 0 0.15em !important;
+//   vertical-align: baseline !important;
   
-  .katex {
-    font-size: 1em !important;
-  }
-}
+//   .katex {
+//     font-size: 1em !important;
+//   }
+// }
 
-// Fix display math
-.math-display {
-  width: 100%;
-  overflow-x: auto;
-  margin: 1em auto !important;
-  padding: 0.5em 0 !important;
-  text-align: center !important;
-  background: transparent !important;
+// // Fix display math
+// .math-display {
+//   width: 100%;
+//   overflow-x: auto;
+//   margin: 1em auto !important;
+//   padding: 0.5em 0 !important;
+//   text-align: center !important;
+//   background: transparent !important;
 
-  .katex-display {
-    margin: 0 !important;
-  }
-}
+//   .katex-display {
+//     margin: 0 !important;
+//   }
+// }
 
-// Fix spacing in matrices
-.array-col-align {
-  text-align: center !important;
-  padding: 0 0.5em !important;
-}
+// // Fix spacing in matrices
+// .array-col-align {
+//   text-align: center !important;
+//   padding: 0 0.5em !important;
+// }
 
 /**
  * Ionic Dark Mode
