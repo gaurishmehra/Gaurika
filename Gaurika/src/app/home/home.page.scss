@@ -1909,6 +1909,7 @@ ion-label {
   position: relative;
   display: inline-block;
   cursor: pointer;
+  margin: none;
   
   .title {
     display: block;
@@ -2026,7 +2027,7 @@ ion-label {
       text-align: center;
       
       .brand-logo {
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
         
         img {
           height: 3rem;
@@ -2237,7 +2238,7 @@ ion-label {
       z-index: 1;
       
       .brand-logo {
-        margin-bottom: 2rem;
+        margin-bottom: 0.5rem;
         
         img {
           height: 4rem;
@@ -3225,3 +3226,7 @@ ion-list {
   }
 }
 
+
+.brand-logo{
+  margin: none !important;
+}

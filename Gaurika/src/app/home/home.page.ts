@@ -660,6 +660,7 @@ export class HomePage implements OnInit {
   
 
   async ngOnInit() {
+    this.showToast('Welcome to Gaurika! 🚀');
     await this.storage.create();
     const apiKeys = (await this.storage.get('apiKeys')) || [];
     const apiProviders = (await this.storage.get('apiProviders')) || [];
@@ -708,7 +709,7 @@ export class HomePage implements OnInit {
     if (this.platform.is('android')) {
       StatusBar.setStyle({ style: Style.Dark });
       StatusBar.setBackgroundColor({ color: '#181818' });
-      this.showToast('Welcome to Gaurika! 🚀');
+      // this.showToast('Welcome to Gaurika! 🚀');
     }
 
     const storedApiKey = await this.storage.get('apiKey');
@@ -2670,19 +2671,19 @@ async copyCode(code: string) {
     const oldDefaultKeyIndex = this.apiKeys.findIndex(key => key.name === 'Default API Key');
     if (oldDefaultKeyIndex !== -1) {
       this.apiKeys.splice(oldDefaultKeyIndex, 1);
-      this.showToast('Default API Key found. Removing...', 'warning');
+      // this.showToast('Default API Key found. Removing...', 'warning');
     }
 
     const oldDefaultProviderIndex = this.apiProviders.findIndex(provider => provider.name === 'Default API Provider');
     if (oldDefaultProviderIndex !== -1) {
       this.apiProviders.splice(oldDefaultProviderIndex, 1);
-      this.showToast('Default API Provider found. Removing...', 'warning');
+      // this.showToast('Default API Provider found. Removing...', 'warning');
     }
 
     const oldDefaultModelIndex = this.models.findIndex(model => model.name === 'default');
     if (oldDefaultModelIndex !== -1) {
       this.models.splice(oldDefaultModelIndex, 1);
-      this.showToast('Default model found. Removing...', 'warning');
+      // this.showToast('Default model found. Removing...', 'warning');
     }
 
     // Add new default entries
@@ -2698,7 +2699,7 @@ async copyCode(code: string) {
 
     const defaultModelExists = this.models.some(model => model.name === 'default_new');
     if (!defaultModelExists) {
-      this.showToast('Default model not found. Creating a new one...', 'warning');
+      // this.showToast('Default model not found. Creating a new one...', 'warning');
       const defaultModelIndex = this.models.push({
         name: 'default_new',
         value: 'llama3.3-70b',
