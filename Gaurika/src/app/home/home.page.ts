@@ -33,6 +33,25 @@ const markdownItKatex = require('@iktakahiro/markdown-it-katex');
 
 
 
+
+interface ApiKey {
+  name: string;
+  key: string;
+}
+
+interface ApiProvider {
+  name: string;
+  baseUrl: string;
+}
+
+interface Model {
+  name: string;
+  value: string;
+  apiKeyIndex: number;
+  apiProviderIndex: number;
+  isMultimodal: boolean;
+}
+
 interface Message {
   role: string;
   content: string;
@@ -126,12 +145,19 @@ interface ResearchResponse {
   imports: [IonicModule, FormsModule, CommonModule],
 })
 export class HomePage implements OnInit {
+
   // Add version property
   currentSystemPromptVersion = 9; // Keep in sync with settings page
   
   // Add new properties
   learnedInfo: string[] = [];
   isLearningIndicatorVisible = false;
+  apiKeys: ApiKey[] = [];
+  apiProviders: ApiProvider[] = [];
+  models: Model[] = [];
+  selectedApiKeyIndex: number = 0;
+  selectedApiProviderIndex: number = 0;
+  selectedModelIndex: number = 0;
 
   md = new MarkdownIt({
     html: true,
@@ -208,7 +234,7 @@ export class HomePage implements OnInit {
   messages: Message[] = [];
   client: any;
   isSidebarOpen = false;
-  model = 'llama3.1-70b';
+  model = 'llama3.3-70b';
   systemPrompt = '';
   sessions: { 
     name: string; 
@@ -634,13 +660,21 @@ export class HomePage implements OnInit {
   
 
   async ngOnInit() {
+    await this.storage.create();
+    const apiKeys = (await this.storage.get('apiKeys')) || [];
+    const apiProviders = (await this.storage.get('apiProviders')) || [];
+    const models = (await this.storage.get('models')) || [];
+   const selectedApiKeyIndex = (await this.storage.get('selectedApiKeyIndex')) || 0;
+  const selectedApiProviderIndex = (await this.storage.get('selectedApiProviderIndex')) || 0;
+    const selectedModelIndex = (await this.storage.get('selectedModelIndex')) || 0;
     
+    this.addDefaultEntriesIfNotPresent();
     hljs.registerLanguage('javascript', javascript);
     hljs.registerLanguage('python', python);
     hljs.registerLanguage('xml', xml);
     hljs.registerLanguage('css', css);
     hljs.registerLanguage('json', json); 
-    await this.storage.create();
+
     this.isImageGenEnabled = 
     (await this.storage.get('isImageGenEnabled')) || false;
     this.isLearning = (await this.storage.get('isLearning')) || true;
@@ -674,6 +708,7 @@ export class HomePage implements OnInit {
     if (this.platform.is('android')) {
       StatusBar.setStyle({ style: Style.Dark });
       StatusBar.setBackgroundColor({ color: '#181818' });
+      this.showToast('Welcome to Gaurika! 🚀');
     }
 
     const storedApiKey = await this.storage.get('apiKey');
@@ -746,7 +781,7 @@ export class HomePage implements OnInit {
         
         switch (this.currentSystemPromptVersion) {
           case 1:
-            newSystemPrompt = 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.1-70b, but the user may change it.';
+            newSystemPrompt = 'You are a helpful assistant named Gaurika, Made by Gaurish Mehra.. You are much more than a simple llm, the default model is llama3.3-70b, but the user may change it.';
             break;
           case 9:
             newSystemPrompt = `
@@ -2628,5 +2663,50 @@ async copyCode(code: string) {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled.slice(0, count);
+  }
+  
+  private addDefaultEntriesIfNotPresent() {
+    // Remove old default entries if they exist
+    const oldDefaultKeyIndex = this.apiKeys.findIndex(key => key.name === 'Default API Key');
+    if (oldDefaultKeyIndex !== -1) {
+      this.apiKeys.splice(oldDefaultKeyIndex, 1);
+      this.showToast('Default API Key found. Removing...', 'warning');
+    }
+
+    const oldDefaultProviderIndex = this.apiProviders.findIndex(provider => provider.name === 'Default API Provider');
+    if (oldDefaultProviderIndex !== -1) {
+      this.apiProviders.splice(oldDefaultProviderIndex, 1);
+      this.showToast('Default API Provider found. Removing...', 'warning');
+    }
+
+    const oldDefaultModelIndex = this.models.findIndex(model => model.name === 'default');
+    if (oldDefaultModelIndex !== -1) {
+      this.models.splice(oldDefaultModelIndex, 1);
+      this.showToast('Default model found. Removing...', 'warning');
+    }
+
+    // Add new default entries
+    const defaultApiKeyExists = this.apiKeys.some(key => key.name === 'Default API Key New');
+    if (!defaultApiKeyExists) {
+      this.apiKeys.push({ name: 'Default API Key New', key: '' }); 
+    }
+
+    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Default API Provider New');
+    if (!defaultApiProviderExists) {
+      this.apiProviders.push({ name: 'Default API Provider New', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' }); 
+    }
+
+    const defaultModelExists = this.models.some(model => model.name === 'default_new');
+    if (!defaultModelExists) {
+      this.showToast('Default model not found. Creating a new one...', 'warning');
+      const defaultModelIndex = this.models.push({
+        name: 'default_new',
+        value: 'llama3.3-70b',
+        apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key New'),
+        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Default API Provider New'),
+        isMultimodal: false
+      }) - 1;
+      this.selectedModelIndex = defaultModelIndex;
+    }
   }
 }

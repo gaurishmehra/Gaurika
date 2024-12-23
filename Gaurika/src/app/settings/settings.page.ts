@@ -18,7 +18,6 @@ import { SettingsService } from '../services/settings.service';
 })
 export class SettingsPage implements OnInit {
 
-
   apiKeys: { name: string; key: string }[] = [];
   selectedApiKeyIndex: number = 0;
 
@@ -57,17 +56,11 @@ export class SettingsPage implements OnInit {
     private storage: Storage,
     private modalController: ModalController,
     private settingsService: SettingsService,
-    private toastController: ToastController  // Add this line
+    private toastController: ToastController
   ) {}
 
   async ngOnInit() {
     await this.storage.create();
-
-    // Check system prompt version
-
-    
-    // If versions don't match, update system prompt
-
 
     this.apiKeys = (await this.storage.get('apiKeys')) || [];
     this.selectedApiKeyIndex = (await this.storage.get('selectedApiKeyIndex')) || 0;
@@ -110,12 +103,11 @@ export class SettingsPage implements OnInit {
       this.isImageGenEnabled = false;
     }
   }
+
   async saveLearnedInfo() {
     try {
-      // Save the manually edited learned information
       await this.storage.set('learnedUserInfo', this.learnedUserInfo);
       
-      // Update the system prompt to reflect manual changes
       const basePrompt = this.systemPrompt.split('\n\nLearned information about the user:')[0];
       const updatedPrompt = this.learnedUserInfo 
         ? `${basePrompt}\n\nLearned information about the user:\n${this.learnedUserInfo}`
@@ -146,11 +138,9 @@ export class SettingsPage implements OnInit {
 
   async clearLearnedInfo() {
     try {
-      // Clear the learned information
       this.learnedUserInfo = '';
       await this.storage.set('learnedUserInfo', '');
       
-      // Reset system prompt to remove learned information section
       const basePrompt = this.systemPrompt.split('\n\nLearned information about the user:')[0];
       await this.storage.set('systemPrompt', basePrompt);
       this.systemPrompt = basePrompt;
@@ -181,8 +171,6 @@ export class SettingsPage implements OnInit {
     }
     await this.saveSettings();
   }
-  
-
 
   ionViewDidEnter() {
     console.log('SettingsPage ionViewDidEnter() executed');
@@ -357,9 +345,6 @@ export class SettingsPage implements OnInit {
     try {
       await this.storage.create();
 
-      // Always ensure version is saved
-      // await this.storage.set('systemPromptVersion', this.currentSystemPromptVersion);
-
       await this.storage.set('apiKeys', this.apiKeys);
       await this.storage.set('apiProviders', this.apiProviders);
       await this.storage.set('models', this.models);
@@ -405,7 +390,6 @@ export class SettingsPage implements OnInit {
       this.selectedApiProviderIndex = selectedModel.apiProviderIndex || 0;
       this.isMultimodalEnabled = selectedModel.isMultimodal || false;
     }
-
   }
 
   ensureSelectedIndicesWithinBounds() {
@@ -423,23 +407,40 @@ export class SettingsPage implements OnInit {
   }
 
   addDefaultEntriesIfNotPresent() {
-    const defaultApiKeyExists = this.apiKeys.some(key => key.name === 'Default API Key');
+    // Remove old default entries if they exist
+    const oldDefaultKeyIndex = this.apiKeys.findIndex(key => key.name === 'Default API Key');
+    if (oldDefaultKeyIndex !== -1) {
+      this.apiKeys.splice(oldDefaultKeyIndex, 1);
+    }
+
+    const oldDefaultProviderIndex = this.apiProviders.findIndex(provider => provider.name === 'Default API Provider');
+    if (oldDefaultProviderIndex !== -1) {
+      this.apiProviders.splice(oldDefaultProviderIndex, 1);
+    }
+
+    const oldDefaultModelIndex = this.models.findIndex(model => model.name === 'default');
+    if (oldDefaultModelIndex !== -1) {
+      this.models.splice(oldDefaultModelIndex, 1);
+    }
+
+    // Add new default entries
+    const defaultApiKeyExists = this.apiKeys.some(key => key.name === 'Default API Key New');
     if (!defaultApiKeyExists) {
-      this.apiKeys.push({ name: 'Default API Key', key: '' }); 
+      this.apiKeys.push({ name: 'Default API Key New', key: '' }); 
     }
 
-    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Default API Provider');
+    const defaultApiProviderExists = this.apiProviders.some(provider => provider.name === 'Default API Provider New');
     if (!defaultApiProviderExists) {
-      this.apiProviders.push({ name: 'Default API Provider', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' }); 
+      this.apiProviders.push({ name: 'Default API Provider New', baseUrl: 'https://proxy.gaurish.xyz/api/cerebras/v1/' }); 
     }
 
-    const defaultModelExists = this.models.some(model => model.name === 'default');
+    const defaultModelExists = this.models.some(model => model.name === 'default_new');
     if (!defaultModelExists) {
       const defaultModelIndex = this.models.push({
-        name: 'default',
-        value: 'llama3.1-70b', 
-        apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key'),
-        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Default API Provider'),
+        name: 'default_new',
+        value: 'llama3.3-70b',
+        apiKeyIndex: this.apiKeys.findIndex(key => key.name === 'Default API Key New'),
+        apiProviderIndex: this.apiProviders.findIndex(provider => provider.name === 'Default API Provider New'),
         isMultimodal: false
       }) - 1;
       this.selectedModelIndex = defaultModelIndex;
